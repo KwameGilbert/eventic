@@ -107,11 +107,10 @@ const NavBar = () => {
                                         {/* Dropdown */}
                                         <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                             <div className="py-2">
-
                                                 <Link
                                                     to="/signup/attendee"
                                                     onClick={() => setIsMobileSignUpOpen(false)}
-                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-300"
                                                 >
                                                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                         <Ticket size={16} className="text-blue-600" />
@@ -121,7 +120,6 @@ const NavBar = () => {
                                                         <div className="text-xs text-gray-500">Discover and book events</div>
                                                     </div>
                                                 </Link>
-
                                                 <Link
                                                     to="/signup/organizer"
                                                     onClick={() => setIsMobileSignUpOpen(false)}
@@ -135,7 +133,6 @@ const NavBar = () => {
                                                         <div className="text-xs text-gray-500">Create and manage events</div>
                                                     </div>
                                                 </Link>
-
                                             </div>
                                         </div>
                                     </>
@@ -242,8 +239,7 @@ const NavBar = () => {
             </nav>
 
             {/* Mobile Menu Drawer */}
-            <div
-                className={`lg:hidden fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            <div className={`lg:hidden fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
                     }`}
                 onClick={() => setIsMobileMenuOpen(false)}
             >

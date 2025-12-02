@@ -74,3 +74,54 @@ export const upcomingEvents = [
         image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800&q=80",
     },
 ];
+
+export const featuredCategories = [
+    {
+        id: 1,
+        name: "Concert / Music",
+        icon: "🎵",
+        eventCount: 128,
+        image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&q=80",
+        color: "from-purple-500 to-pink-500",
+    },
+    {
+        id: 2,
+        name: "Sport / Fitness",
+        icon: "⚽",
+        eventCount: 94,
+        image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&q=80",
+        color: "from-green-500 to-emerald-500",
+    },
+    {
+        id: 3,
+        name: "Theater / Arts",
+        icon: "🎭",
+        eventCount: 76,
+        image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=600&q=80",
+        color: "from-red-500 to-orange-500",
+    },
+    {
+        id: 4,
+        name: "Food & Drink",
+        icon: "🍷",
+        eventCount: 52,
+        image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+        color: "from-yellow-500 to-amber-500",
+    },
+    {
+        id: 5,
+        name: "Conference",
+        icon: "💼",
+        eventCount: 68,
+        image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80",
+        color: "from-blue-500 to-cyan-500",
+    },
+    {
+        id: 6,
+        name: "Cinema",
+        icon: "🎬",
+        eventCount: 42,
+        image: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=600&q=80",
+        color: "from-indigo-500 to-purple-500",
+    },
+];
