@@ -94,6 +94,7 @@ const NavBar = () => {
                                 {/* Dropdown Menu */}
                                 <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                                     <div className="py-2">
+                                       
                                         <Link
                                             to="/signup/attendee"
                                             className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
@@ -119,6 +120,7 @@ const NavBar = () => {
                                                 <div className="text-xs text-gray-500">Create and manage events</div>
                                             </div>
                                         </Link>
+
                                     </div>
                                 </div>
                             </div>
