@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
 import SignIn from "../pages/SignIn";
 import SignUpAttendee from "../pages/SignUpAttendee";
+import SignUpOrganizer from "../pages/SignUpOrganizer";
 import NotFound from "../pages/NotFound";
 import Layout from "../components/layout/Layout";
 
@@ -13,6 +14,7 @@ const AppRoutes = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup/attendee" element={<SignUpAttendee />} />
+                <Route path="/signup/organizer" element={<SignUpOrganizer />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </Layout>
