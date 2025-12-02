@@ -73,6 +73,66 @@ export const upcomingEvents = [
         category: "Entertainment",
         image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800&q=80",
     },
+    {
+        id: 9,
+        title: "Art Gallery Opening",
+        venue: "Modern Art Museum",
+        date: "2025-12-22",
+        time: "6:00 PM",
+        price: "Free",
+        category: "Theater / Arts",
+        image: "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=800&q=80",
+    },
+    {
+        id: 10,
+        title: "Basketball Championship",
+        venue: "Sports Arena",
+        date: "2025-12-25",
+        time: "7:00 PM",
+        price: "$60",
+        category: "Sport / Fitness",
+        image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&q=80",
+    },
+    {
+        id: 11,
+        title: "Digital Marketing Summit",
+        venue: "Business Convention Center",
+        date: "2026-01-05",
+        time: "9:00 AM",
+        price: "$150",
+        category: "Conference",
+        image: "https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=800&q=80",
+    },
+    {
+        id: 12,
+        title: "Indie Film Festival",
+        venue: "Grand Cinema",
+        date: "2026-01-08",
+        time: "5:00 PM",
+        price: "$25",
+        category: "Cinema",
+        image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80",
+    },
+    {
+        id: 13,
+        title: "Rock Concert: The Legends",
+        venue: "Stadium Arena",
+        date: "2026-01-12",
+        time: "8:00 PM",
+        price: "$85",
+        category: "Concert / Music",
+        image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80",
+    },
+    {
+        id: 14,
+        title: "Yoga & Wellness Retreat",
+        venue: "Serenity Wellness Center",
+        date: "2026-01-15",
+        time: "7:00 AM",
+        price: "$40",
+        category: "Sport / Fitness",
+        image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80",
+    },
 ];
 
 export const featuredCategories = [
@@ -125,3 +185,16 @@ export const featuredCategories = [
         color: "from-indigo-500 to-purple-500",
     },
 ];
+
+// Categories for navigation dropdown
+export const categories = [
+    { id: 1, name: "Concert / Music", icon: "🎵", slug: "concert-music" },
+    { id: 2, name: "Sport / Fitness", icon: "⚽", slug: "sport-fitness" },
+    { id: 3, name: "Theater / Arts", icon: "🎭", slug: "theater-arts" },
+    { id: 4, name: "Food & Drink", icon: "🍷", slug: "food-drink" },
+    { id: 5, name: "Conference", icon: "💼", slug: "conference" },
+    { id: 6, name: "Cinema", icon: "🎬", slug: "cinema" },
+    { id: 7, name: "Exhibition", icon: "🖼️", slug: "exhibition" },
+    { id: 8, name: "Workshop", icon: "🔧", slug: "workshop" },
+];
+

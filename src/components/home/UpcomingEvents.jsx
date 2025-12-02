@@ -54,7 +54,7 @@ const UpcomingEvents = ({ events }) => {
 
                             {/* Event Details */}
                             <div className="p-5">
-                                <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-[var(--brand-primary)] transition-colors">
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-[var(--brand-primary)] transition-colors">
                                     {event.title}
                                 </h3>
 

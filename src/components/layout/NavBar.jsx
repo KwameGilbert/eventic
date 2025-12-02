@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Home, Calendar, Compass, MapPin, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus } from 'lucide-react';
+import { categories } from '../../data/mockEvents';
 
 const NavBar = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobileSignUpOpen, setIsMobileSignUpOpen] = useState(false);
+
+    // Navigation items configuration
+    const navItems = [
+        { path: '/', label: 'Home', icon: Home, isActive: true },
+        { path: '/events', label: 'Browse Events', icon: Calendar },
+        { path: '/explore', label: 'Explore', icon: Compass, hasDropdown: true },
+        { path: '/venues', label: 'Venues', icon: MapPin },
+        { path: '/how-it-works', label: 'How it works?', icon: HelpCircle },
+        { path: '/blog', label: 'Blog', icon: FileText },
+        { path: '/my-tickets', label: 'My tickets', icon: Ticket },
+        { path: '/add-event', label: 'Add my event', icon: Plus },
+    ];
 
     return (
         <>
@@ -170,77 +183,69 @@ const NavBar = () => {
             <nav className="hidden lg:block bg-white shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-1">
-                        <Link
-                            to="/"
-                            className="flex items-center gap-2 px-4 py-3 bg-[var(--brand-primary)] text-white font-medium hover:opacity-90 transition-opacity"
-                        >
-                            <Home size={18} />
-                            <span>Home</span>
-                        </Link>
+                        {navItems.map((item) => {
+                            const Icon = item.icon;
 
-                        <Link
-                            to="/events"
-                            className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <Calendar size={18} />
-                            <span>Browse Events</span>
-                        </Link>
+                            if (item.hasDropdown) {
+                                return (
+                                    <div key={item.path} className="relative group">
+                                        <button className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors">
+                                            <Icon size={18} />
+                                            <span>{item.label}</span>
+                                            <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                                        </button>
 
-                        <div className="relative group">
-                            <button className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors">
-                                <Compass size={18} />
-                                <span>Explore</span>
-                                <ChevronDown size={16} />
-                            </button>
-                            {/* TODO: Dropdown menu to be added here later */}
-                        </div>
+                                        {/* Categories Dropdown */}
+                                        <div className="absolute left-0 top-full mt-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                            <div className="py-2">
+                                                <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                                                    Browse by Category
+                                                </div>
+                                                {categories.map((category) => (
+                                                    <Link
+                                                        key={category.id}
+                                                        to={`/category/${category.slug}`}
+                                                        className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <span className="text-xl">{category.icon}</span>
+                                                        <span className="text-sm font-medium">{category.name}</span>
+                                                    </Link>
+                                                ))}
+                                                <div className="border-t border-gray-100 mt-2 pt-2">
+                                                    <Link
+                                                        to="/categories"
+                                                        className="flex items-center justify-center gap-2 px-4 py-2.5 text-[var(--brand-primary)] hover:bg-gray-50 transition-colors text-sm font-semibold"
+                                                    >
+                                                        View All Categories →
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
 
-                        <Link
-                            to="/venues"
-                            className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <MapPin size={18} />
-                            <span>Venues</span>
-                        </Link>
-
-                        <Link
-                            to="/how-it-works"
-                            className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <HelpCircle size={18} />
-                            <span>How it works?</span>
-                        </Link>
-
-                        <Link
-                            to="/blog"
-                            className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <FileText size={18} />
-                            <span>Blog</span>
-                        </Link>
-
-                        <Link
-                            to="/my-tickets"
-                            className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <Ticket size={18} />
-                            <span>My tickets</span>
-                        </Link>
-
-                        <Link
-                            to="/add-event"
-                            className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                        >
-                            <Plus size={18} />
-                            <span>Add my event</span>
-                        </Link>
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-opacity ${item.isActive
+                                        ? 'bg-[var(--brand-primary)] text-white hover:opacity-90'
+                                        : 'text-gray-700 hover:bg-gray-50 transition-colors'
+                                        }`}
+                                >
+                                    <Icon size={18} />
+                                    <span>{item.label}</span>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
             </nav>
 
             {/* Mobile Menu Drawer */}
             <div className={`lg:hidden fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                    }`}
+                }`}
                 onClick={() => setIsMobileMenuOpen(false)}
             >
                 <div
@@ -251,74 +256,34 @@ const NavBar = () => {
                     {/* Mobile Menu Content */}
                     <div className="flex flex-col h-full overflow-y-auto">
                         <div className="p-6 space-y-2">
-                            <Link
-                                to="/"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 bg-[var(--brand-primary)] text-white font-medium rounded-lg"
-                            >
-                                <Home size={20} />
-                                <span>Home</span>
-                            </Link>
+                            {navItems.map((item) => {
+                                const Icon = item.icon;
 
-                            <Link
-                                to="/events"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
-                            >
-                                <Calendar size={20} />
-                                <span>Browse Events</span>
-                            </Link>
+                                if (item.hasDropdown) {
+                                    return (
+                                        <div key={item.path} className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3">
+                                            <Icon size={20} />
+                                            <span>{item.label}</span>
+                                            <ChevronDown size={16} className="ml-auto" />
+                                        </div>
+                                    );
+                                }
 
-                            <div className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3">
-                                <Compass size={20} />
-                                <span>Explore</span>
-                                <ChevronDown size={16} className="ml-auto" />
-                            </div>
-
-                            <Link
-                                to="/venues"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
-                            >
-                                <MapPin size={20} />
-                                <span>Venues</span>
-                            </Link>
-
-                            <Link
-                                to="/how-it-works"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
-                            >
-                                <HelpCircle size={20} />
-                                <span>How it works?</span>
-                            </Link>
-
-                            <Link
-                                to="/blog"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
-                            >
-                                <FileText size={20} />
-                                <span>Blog</span>
-                            </Link>
-
-                            <Link
-                                to="/my-tickets"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
-                            >
-                                <Ticket size={20} />
-                                <span>My tickets</span>
-                            </Link>
-
-                            <Link
-                                to="/add-event"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
-                            >
-                                <Plus size={20} />
-                                <span>Add my event</span>
-                            </Link>
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors ${item.isActive
+                                            ? 'bg-[var(--brand-primary)] text-white'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        <Icon size={20} />
+                                        <span>{item.label}</span>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
