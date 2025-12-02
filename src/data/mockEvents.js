@@ -1,0 +1,76 @@
+// Mock event data - replace with API calls later
+export const featuredEvents = [
+    {
+        id: 1,
+        title: "ProSoccer FC vs Tigers FC",
+        venue: "ProSoccer Stadium: Fulham, United Kingdom",
+        date: "Sat 27 Dec 2025, 9:00 PM EST",
+        image: "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1920&q=80",
+        category: "Sport / Fitness",
+    },
+    {
+        id: 2,
+        title: "Summer Music Festival 2025",
+        venue: "Central Park Arena: New York, United States",
+        date: "Fri 15 Aug 2025, 6:00 PM EDT",
+        image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80",
+        category: "Concert / Music",
+    },
+    {
+        id: 3,
+        title: "Tech Innovation Summit",
+        venue: "Convention Center: San Francisco, United States",
+        date: "Mon 10 Nov 2025, 9:00 AM PST",
+        image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1920&q=80",
+        category: "Conference",
+    },
+    {
+        id: 4,
+        title: "Broadway Night: Hamilton",
+        venue: "Grand Theater: London, United Kingdom",
+        date: "Thu 5 Sep 2025, 7:30 PM GMT",
+        image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=1920&q=80",
+        category: "Theater / Arts",
+    },
+    {
+        id: 5,
+        title: "Marathon Challenge 2025",
+        venue: "City Marathon Route: Boston, United States",
+        date: "Sun 20 Apr 2025, 7:00 AM EDT",
+        image: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=1920&q=80",
+        category: "Sport / Fitness",
+    },
+];
+
+export const upcomingEvents = [
+    {
+        id: 6,
+        title: "Jazz Night Live",
+        venue: "Blue Note Club",
+        date: "2025-12-15",
+        time: "8:00 PM",
+        price: "$45",
+        category: "Concert / Music",
+        image: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&q=80",
+    },
+    {
+        id: 7,
+        title: "Food & Wine Expo",
+        venue: "Exhibition Hall",
+        date: "2025-12-20",
+        time: "12:00 PM",
+        price: "$30",
+        category: "Food & Drink",
+        image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
+    },
+    {
+        id: 8,
+        title: "Comedy Show",
+        venue: "Laugh Factory",
+        date: "2025-12-18",
+        time: "9:00 PM",
+        price: "$35",
+        category: "Entertainment",
+        image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800&q=80",
+    },
+];

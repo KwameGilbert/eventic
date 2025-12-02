@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-footer-bg: #f0f2f5;
+  --color-footer-text: #6b7280;
+  --color-footer-heading: #1f2937;
+  --color-brand-orange: #ff6b00;
+  --color-social-fb: #3b5998;
+  --color-social-insta: #e1306c;
+  --color-social-yt: #ff0000;
+  --color-social-tw: #1da1f2;
+}
+
+:root {
+  --footer-bg: var(--color-footer-bg);
+  --text-primary: var(--color-footer-heading);
+  --text-secondary: var(--color-footer-text);
+  --brand-primary: var(--color-brand-orange);
+}
