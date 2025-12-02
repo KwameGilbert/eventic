@@ -5,6 +5,7 @@ import { Search, Home, Calendar, Compass, MapPin, HelpCircle, FileText, Ticket, 
 const NavBar = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileSignUpOpen, setIsMobileSignUpOpen] = useState(false);
 
     return (
         <>
@@ -86,43 +87,59 @@ const NavBar = () => {
                             </Link>
 
                             {/* Mobile Sign Up Dropdown */}
-                            <div className="relative group">
-                                <button className="w-10 h-10 bg-[var(--brand-primary)] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsMobileSignUpOpen(!isMobileSignUpOpen)}
+                                    className="w-10 h-10 bg-[var(--brand-primary)] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity"
+                                >
                                     <UserPlus size={20} className="text-white" />
                                 </button>
 
                                 {/* Dropdown Menu */}
-                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                    <div className="py-2">
-                                       
-                                        <Link
-                                            to="/signup/attendee"
-                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <Ticket size={16} className="text-blue-600" />
-                                            </div>
-                                            <div className="text-left">
-                                                <div className="font-semibold text-sm">Sign up as Attendee</div>
-                                                <div className="text-xs text-gray-500">Discover and book events</div>
-                                            </div>
-                                        </Link>
+                                {isMobileSignUpOpen && (
+                                    <>
+                                        {/* Backdrop */}
+                                        <div
+                                            className="fixed inset-0 z-40"
+                                            onClick={() => setIsMobileSignUpOpen(false)}
+                                        />
 
-                                        <Link
-                                            to="/signup/organizer"
-                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <Calendar size={16} className="text-[var(--brand-primary)]" />
-                                            </div>
-                                            <div className="text-left">
-                                                <div className="font-semibold text-sm">Sign up as Organizer</div>
-                                                <div className="text-xs text-gray-500">Create and manage events</div>
-                                            </div>
-                                        </Link>
+                                        {/* Dropdown */}
+                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                            <div className="py-2">
 
-                                    </div>
-                                </div>
+                                                <Link
+                                                    to="/signup/attendee"
+                                                    onClick={() => setIsMobileSignUpOpen(false)}
+                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                        <Ticket size={16} className="text-blue-600" />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="font-semibold text-sm">Sign up as Attendee</div>
+                                                        <div className="text-xs text-gray-500">Discover and book events</div>
+                                                    </div>
+                                                </Link>
+
+                                                <Link
+                                                    to="/signup/organizer"
+                                                    onClick={() => setIsMobileSignUpOpen(false)}
+                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                        <Calendar size={16} className="text-[var(--brand-primary)]" />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="font-semibold text-sm">Sign up as Organizer</div>
+                                                        <div className="text-xs text-gray-500">Create and manage events</div>
+                                                    </div>
+                                                </Link>
+
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             <button
