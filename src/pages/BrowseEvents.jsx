@@ -50,7 +50,7 @@ const BrowseEvents = () => {
             if (filters.date && filters.date !== '') {
                 const eventDate = new Date(event.date);
                 const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0); 
 
                 switch (filters.date) {
                     case 'today':
