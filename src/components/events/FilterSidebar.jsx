@@ -1,0 +1,213 @@
+import React, { useState } from 'react';
+import { Search, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
+
+const FilterSidebar = ({ onFilterChange }) => {
+    const [filters, setFilters] = useState({
+        keyword: '',
+        category: '',
+        location: '',
+        onlineOnly: false,
+        localOnly: false,
+        country: 'Ghana',
+        date: '',
+        priceMin: 5,
+        priceMax: 10000,
+    });
+
+    const handleChange = (name, value) => {
+        const newFilters = { ...filters, [name]: value };
+        setFilters(newFilters);
+        if (onFilterChange) {
+            onFilterChange(newFilters);
+        }
+    };
+
+    const dateOptions = [
+        { value: 'today', label: 'Today' },
+        { value: 'tomorrow', label: 'Tomorrow' },
+        { value: 'this-weekend', label: 'This weekend' },
+        { value: 'this-week', label: 'This week' },
+        { value: 'next-week', label: 'Next week' },
+        { value: 'this-month', label: 'This month' },
+        { value: 'next-month', label: 'Next month' },
+        { value: 'pick-date', label: 'Pick a date' },
+    ];
+
+    return (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
+            {/* Keyword Search */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Keyword
+                </label>
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="Search events..."
+                        value={filters.keyword}
+                        onChange={(e) => handleChange('keyword', e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                    />
+                </div>
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Category
+                </label>
+                <div className="relative">
+                    <select
+                        value={filters.category}
+                        onChange={(e) => handleChange('category', e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                    >
+                        <option value="">Select an option</option>
+                        <option value="concert-music">Concert / Music</option>
+                        <option value="sport-fitness">Sport / Fitness</option>
+                        <option value="theater-arts">Theater / Arts</option>
+                        <option value="food-drink">Food & Drink</option>
+                        <option value="conference">Conference</option>
+                        <option value="cinema">Cinema</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                </div>
+            </div>
+
+            {/* Location Dropdown */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Location
+                </label>
+                <div className="relative">
+                    <select
+                        value={filters.location}
+                        onChange={(e) => handleChange('location', e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                    >
+                        <option value="">Select an option</option>
+                        <option value="accra">Accra</option>
+                        <option value="kumasi">Kumasi</option>
+                        <option value="takoradi">Takoradi</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                </div>
+            </div>
+
+            {/* Event Type Checkboxes */}
+            <div className="mb-6 space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={filters.onlineOnly}
+                        onChange={(e) => handleChange('onlineOnly', e.target.checked)}
+                        className="w-4 h-4 text-[var(--brand-primary)] border-gray-300 rounded focus:ring-[var(--brand-primary)]"
+                    />
+                    <span className="text-sm text-gray-700">Online events only</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={filters.localOnly}
+                        onChange={(e) => handleChange('localOnly', e.target.checked)}
+                        className="w-4 h-4 text-[var(--brand-primary)] border-gray-300 rounded focus:ring-[var(--brand-primary)]"
+                    />
+                    <span className="text-sm text-gray-700">Local events only</span>
+                </label>
+            </div>
+
+            {/* Country */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Country
+                </label>
+                <div className="relative">
+                    <select
+                        value={filters.country}
+                        onChange={(e) => handleChange('country', e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                    >
+                        <option value="Ghana">🇬🇭 Ghana</option>
+                        <option value="Nigeria">🇳🇬 Nigeria</option>
+                        <option value="Kenya">🇰🇪 Kenya</option>
+                        <option value="USA">🇺🇸 United States</option>
+                        <option value="UK">🇬🇧 United Kingdom</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                </div>
+            </div>
+
+            {/* Date Filter */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Date
+                </label>
+                <div className="space-y-2">
+                    {dateOptions.map((option) => (
+                        <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="date"
+                                value={option.value}
+                                checked={filters.date === option.value}
+                                onChange={(e) => handleChange('date', e.target.value)}
+                                className="w-4 h-4 text-[var(--brand-primary)] border-gray-300 focus:ring-[var(--brand-primary)]"
+                            />
+                            <span className="text-sm text-gray-700">{option.label}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Price Range */}
+            <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Price range
+                </label>
+                <div className="flex gap-4 mb-3">
+                    <div>
+                        <label className="text-xs text-gray-500">Min</label>
+                        <input
+                            type="number"
+                            value={filters.priceMin}
+                            onChange={(e) => handleChange('priceMin', parseInt(e.target.value))}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-xs text-gray-500">Max</label>
+                        <input
+                            type="number"
+                            value={filters.priceMax}
+                            onChange={(e) => handleChange('priceMax', parseInt(e.target.value))}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Search Button */}
+            <button className="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-full transition-opacity flex items-center justify-center gap-2">
+                <Search size={20} />
+                SEARCH
+            </button>
+
+            {/* Newsletter Subscription */}
+            <div className="mt-8 bg-[var(--brand-primary)] rounded-lg p-4 text-white">
+                <h3 className="font-bold mb-2 flex items-center gap-2">
+                    <span>📧</span> Subscribe to our newsletter
+                </h3>
+                <input
+                    type="email"
+                    placeholder="Email address"
+                    className="w-full px-3 py-2 mb-3 rounded-lg text-gray-900 focus:outline-none"
+                />
+                <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                    SUBSCRIBE
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default FilterSidebar;
