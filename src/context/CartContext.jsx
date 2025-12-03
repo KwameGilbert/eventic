@@ -35,25 +35,47 @@ export const CartProvider = ({ children }) => {
     }, [cartItems, isLoaded]);
 
     const addToCart = (event, tickets) => {
-        const newCartItem = {
-            id: Date.now(),
-            event: {
-                id: event.id,
-                title: event.title,
-                eventSlug: event.eventSlug,
-                date: event.date,
-                time: event.time,
-                venue: event.venue,
-                location: event.location,
-                country: event.country,
-                image: event.image,
-                organizer: event.organizer || 'Event Organizer',
-                ticketTypes: event.ticketTypes // Save for price reference
-            },
-            tickets: tickets,
-            addedAt: new Date().toISOString()
-        };
-        setCartItems(prev => [...prev, newCartItem]);
+        setCartItems(prev => {
+            const existingItemIndex = prev.findIndex(item => item.event.id === event.id);
+
+            if (existingItemIndex > -1) {
+                // Item exists, update quantities
+                const newCartItems = [...prev];
+                const existingItem = newCartItems[existingItemIndex];
+                const updatedTickets = { ...existingItem.tickets };
+
+                Object.entries(tickets).forEach(([ticketName, qty]) => {
+                    updatedTickets[ticketName] = (updatedTickets[ticketName] || 0) + qty;
+                });
+
+                newCartItems[existingItemIndex] = {
+                    ...existingItem,
+                    tickets: updatedTickets
+                };
+                return newCartItems;
+            } else {
+                // Item does not exist, add new
+                const newCartItem = {
+                    id: Date.now(),
+                    event: {
+                        id: event.id,
+                        title: event.title,
+                        eventSlug: event.eventSlug,
+                        date: event.date,
+                        time: event.time,
+                        venue: event.venue,
+                        location: event.location,
+                        country: event.country,
+                        image: event.image,
+                        organizer: event.organizer || 'Event Organizer',
+                        ticketTypes: event.ticketTypes // Save for price reference
+                    },
+                    tickets: tickets,
+                    addedAt: new Date().toISOString()
+                };
+                return [...prev, newCartItem];
+            }
+        });
     };
 
     const removeFromCart = (itemId) => {
