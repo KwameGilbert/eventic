@@ -12,8 +12,8 @@ const NavBar = () => {
     const navItems = [
         { path: '/', label: 'Home', icon: Home, isActive: true },
         { path: '/events', label: 'Browse Events', icon: Calendar },
-        { path: '/explore', label: 'Explore', icon: Compass, hasDropdown: true },
-        { path: '/venues', label: 'Venues', icon: MapPin },
+        { path: '/categories', label: 'Event Cagtegories', icon: Compass, hasDropdown: true },
+        // { path: '/venues', label: 'Venues', icon: MapPin },
         { path: '/how-it-works', label: 'How it works?', icon: HelpCircle },
         { path: '/blog', label: 'Blog', icon: FileText },
         { path: '/my-tickets', label: 'My tickets', icon: Ticket },

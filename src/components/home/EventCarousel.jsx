@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, MapPin, Clock, Ticket } from 'lucide-react';
 
 const EventCarousel = ({ events }) => {
@@ -78,10 +79,13 @@ const EventCarousel = ({ events }) => {
 
                     {/* CTA Button */}
                     <div>
-                        <button className="bg-white hover:bg-gray-100 text-gray-900 font-semibold py-3 px-8 rounded-full flex items-center gap-2 transition-colors shadow-lg">
+                        <Link
+                            to={`/event/${currentEvent.eventSlug}`}
+                            className="bg-white hover:bg-gray-100 text-gray-900 font-semibold py-3 px-8 rounded-full inline-flex items-center gap-2 transition-colors shadow-lg"
+                        >
                             <Ticket size={20} />
                             BUY TICKETS
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -110,8 +114,8 @@ const EventCarousel = ({ events }) => {
                         key={index}
                         onClick={() => goToSlide(index)}
                         className={`w-2 h-2 rounded-full transition-all ${index === currentIndex
-                                ? 'bg-white w-4'
-                                : 'bg-white/50 hover:bg-white/75'
+                            ? 'bg-white w-4'
+                            : 'bg-white/50 hover:bg-white/75'
                             }`}
                         aria-label={`Go to slide ${index + 1}`}
                     />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Calendar, MapPin } from 'lucide-react';
 
 const UpcomingEvents = ({ events }) => {
@@ -22,9 +23,10 @@ const UpcomingEvents = ({ events }) => {
                     const { month, day } = formatEventDate(event.date);
 
                     return (
-                        <div
+                        <Link
                             key={event.id}
-                            className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                            to={`/event/${event.eventSlug}`}
+                            className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group block"
                         >
                             {/* Event Image */}
                             <div className="relative h-48 overflow-hidden bg-gray-200">
@@ -73,21 +75,24 @@ const UpcomingEvents = ({ events }) => {
                                     <span className="text-lg font-bold text-[var(--brand-primary)]">
                                         {event.price}
                                     </span>
-                                    <button className="text-sm font-semibold text-gray-700 hover:text-[var(--brand-primary)] transition-colors">
+                                    <span className="text-sm font-semibold text-gray-700 group-hover:text-[var(--brand-primary)] transition-colors">
                                         View Details →
-                                    </button>
+                                    </span>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     );
                 })}
             </div>
 
             {/* View All Button */}
             <div className="mt-10 text-center">
-                <button className="bg-[var(--brand-primary)] hover:opacity-90 text-white font-semibold py-3 px-8 rounded-full transition-opacity">
+                <Link
+                    to="/events"
+                    className="inline-block bg-[var(--brand-primary)] hover:opacity-90 text-white font-semibold py-3 px-8 rounded-full transition-opacity"
+                >
                     View All Events
-                </button>
+                </Link>
             </div>
         </div>
     );

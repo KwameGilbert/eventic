@@ -3,6 +3,7 @@ export const featuredEvents = [
     {
         id: 1,
         title: "ProSoccer FC vs Tigers FC",
+        eventSlug: "prosoccer-fc-vs-tigers-fc",
         venue: "ProSoccer Stadium: Fulham, United Kingdom",
         date: "Sat 27 Dec 2025, 9:00 PM EST",
         image: "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1920&q=80",
@@ -11,6 +12,7 @@ export const featuredEvents = [
     {
         id: 2,
         title: "Summer Music Festival 2025",
+        eventSlug: "summer-music-festival-2025",
         venue: "Central Park Arena: New York, United States",
         date: "Fri 15 Aug 2025, 6:00 PM EDT",
         image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80",
@@ -19,6 +21,7 @@ export const featuredEvents = [
     {
         id: 3,
         title: "Tech Innovation Summit",
+        eventSlug: "tech-innovation-summit",
         venue: "Convention Center: San Francisco, United States",
         date: "Mon 10 Nov 2025, 9:00 AM PST",
         image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1920&q=80",
@@ -27,6 +30,7 @@ export const featuredEvents = [
     {
         id: 4,
         title: "Broadway Night: Hamilton",
+        eventSlug: "broadway-night-hamilton",
         venue: "Grand Theater: London, United Kingdom",
         date: "Thu 5 Sep 2025, 7:30 PM GMT",
         image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=1920&q=80",
@@ -35,6 +39,7 @@ export const featuredEvents = [
     {
         id: 5,
         title: "Marathon Challenge 2025",
+        eventSlug: "marathon-challenge-2025",
         venue: "City Marathon Route: Boston, United States",
         date: "Sun 20 Apr 2025, 7:00 AM EDT",
         image: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=1920&q=80",
@@ -43,6 +48,302 @@ export const featuredEvents = [
 ];
 
 export const upcomingEvents = [
+    // Featured Events (also in carousel)
+    {
+        id: 1,
+        title: "ProSoccer FC vs Tigers FC",
+        eventSlug: "prosoccer-fc-vs-tigers-fc",
+        description: "Experience the thrill of live football as ProSoccer FC takes on Tigers FC in this highly anticipated match. Watch world-class players compete in an electrifying atmosphere at the iconic ProSoccer Stadium. This Premier League showdown promises to deliver non-stop action, incredible goals, and unforgettable moments.",
+        venue: "ProSoccer Stadium",
+        location: "Fulham",
+        country: "United Kingdom",
+        date: "2025-12-27",
+        time: "9:00 PM EST",
+        price: "$75",
+        numericPrice: 75,
+        category: "Sport / Fitness",
+        slug: "sport-fitness",
+        audience: "Sports Fans, Families, All Ages",
+        isOnline: false,
+        image: "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1920&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2484.!2d-0.221!3d51.475!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTHCsDI4JzMwLjAiTiAwwrAxMycxNS42Ilc!5e0!3m2!1sen!2suk!4v1234567890",
+        tags: ["Football", "Soccer", "Premier League", "Sports"],
+        ticketTypes: [
+            {
+                name: "General Admission",
+                price: 75,
+                originalPrice: 95,
+                available: true,
+                availableQuantity: 5000,
+                maxPerAttendee: 8,
+                description: "Standard stadium seating with great views"
+            },
+            {
+                name: "Premium Seats",
+                price: 150,
+                originalPrice: 180,
+                available: true,
+                availableQuantity: 500,
+                maxPerAttendee: 6,
+                description: "Premium seating closer to the pitch"
+            },
+            {
+                name: "VIP Box",
+                price: 350,
+                available: true,
+                availableQuantity: 50,
+                maxPerAttendee: 4,
+                description: "Private box with catering and premium amenities"
+            }
+        ],
+        contact: {
+            website: "https://prosoccerfc.com",
+            email: "tickets@prosoccerfc.com",
+            phone: "+44 20 7946 0958"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/prosoccerfc",
+            twitter: "https://twitter.com/prosoccerfc",
+            instagram: "https://www.instagram.com/prosoccerfc"
+        },
+        videoUrl: "https://www.youtube.com/embed/MusyO7J2inM"
+    },
+    {
+        id: 2,
+        title: "Summer Music Festival 2025",
+        eventSlug: "summer-music-festival-2025",
+        description: "Join us for the biggest music event of the summer! Summer Music Festival 2025 features over 50 artists across multiple stages, including headliners from pop, rock, hip-hop, and electronic music. Enjoy food trucks, art installations, and an unforgettable weekend of live music in the heart of Central Park.",
+        venue: "Central Park Arena",
+        location: "New York",
+        country: "United States",
+        date: "2025-08-15",
+        time: "6:00 PM EDT",
+        price: "$120",
+        numericPrice: 120,
+        category: "Concert / Music",
+        slug: "concert-music",
+        audience: "Music Lovers, Young Adults, Festival Goers",
+        isOnline: false,
+        image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.!2d-73.968!3d40.785!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ3JzA2LjAiTiA3M8KwNTgnMDQuOCJX!5e0!3m2!1sen!2sus!4v1234567890",
+        tags: ["Music Festival", "Live Music", "Summer", "Outdoor"],
+        ticketTypes: [
+            {
+                name: "General Admission",
+                price: 120,
+                originalPrice: 150,
+                available: true,
+                availableQuantity: 10000,
+                maxPerAttendee: 6,
+                description: "Access to all stages and festival grounds"
+            },
+            {
+                name: "VIP Pass",
+                price: 250,
+                originalPrice: 300,
+                available: true,
+                availableQuantity: 1000,
+                maxPerAttendee: 4,
+                description: "VIP viewing areas, express entry, and exclusive lounge access"
+            },
+            {
+                name: "Weekend Pass",
+                price: 350,
+                available: true,
+                availableQuantity: 500,
+                maxPerAttendee: 2,
+                description: "All-access 3-day pass with backstage tours"
+            }
+        ],
+        contact: {
+            website: "https://summermusicfest.com",
+            email: "info@summermusicfest.com",
+            phone: "+1 212 555 0199"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/summermusicfest",
+            twitter: "https://twitter.com/summermusicfest",
+            instagram: "https://www.instagram.com/summermusicfest",
+            linkedin: "https://www.linkedin.com/company/summer-music-festival"
+        },
+        videoUrl: "https://www.youtube.com/embed/IHNzOHi8sJs"
+    },
+    {
+        id: 3,
+        title: "Tech Innovation Summit",
+        eventSlug: "tech-innovation-summit",
+        description: "The premier technology conference bringing together industry leaders, innovators, and entrepreneurs. Explore cutting-edge technologies, attend keynote speeches from tech giants, participate in workshops, and network with professionals from around the world. Topics include AI, blockchain, cloud computing, and sustainable tech.",
+        venue: "Convention Center",
+        location: "San Francisco",
+        country: "United States",
+        date: "2025-11-10",
+        time: "9:00 AM PST",
+        price: "$299",
+        numericPrice: 299,
+        category: "Conference",
+        slug: "conference",
+        audience: "Tech Professionals, Entrepreneurs, Developers",
+        isOnline: false,
+        image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1920&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.!2d-122.401!3d37.784!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDQ3JzAyLjQiTiAxMjLCsDI0JzAzLjYiVw!5e0!3m2!1sen!2sus!4v1234567890",
+        tags: ["Technology", "Conference", "Innovation", "Networking"],
+        ticketTypes: [
+            {
+                name: "Early Bird",
+                price: 299,
+                originalPrice: 399,
+                available: true,
+                availableQuantity: 500,
+                maxPerAttendee: 3,
+                description: "Full conference access with early bird discount"
+            },
+            {
+                name: "Professional Pass",
+                price: 499,
+                available: true,
+                availableQuantity: 1000,
+                maxPerAttendee: 5,
+                description: "Conference access plus workshop sessions"
+            },
+            {
+                name: "VIP Package",
+                price: 899,
+                available: true,
+                availableQuantity: 100,
+                maxPerAttendee: 2,
+                description: "All-access pass with exclusive networking dinners and speaker meet-and-greets"
+            }
+        ],
+        contact: {
+            website: "https://techinnovationsummit.com",
+            email: "register@techinnovationsummit.com",
+            phone: "+1 415 555 0147"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/techinnovationsummit",
+            twitter: "https://twitter.com/techinnovsummit",
+            instagram: "https://www.instagram.com/techinnovationsummit",
+            linkedin: "https://www.linkedin.com/company/tech-innovation-summit"
+        },
+        videoUrl: "https://www.youtube.com/embed/d1MWxduI_2g"
+    },
+    {
+        id: 4,
+        title: "Broadway Night: Hamilton",
+        eventSlug: "broadway-night-hamilton",
+        description: "Experience the award-winning musical phenomenon Hamilton at the Grand Theater! This revolutionary story of American founding father Alexander Hamilton is an explosive blend of hip-hop, jazz, R&B, and Broadway. Don't miss this critically acclaimed production that has captivated audiences worldwide.",
+        venue: "Grand Theater",
+        location: "London",
+        country: "United Kingdom",
+        date: "2025-09-05",
+        time: "7:30 PM GMT",
+        price: "$125",
+        numericPrice: 125,
+        category: "Theater / Arts",
+        slug: "theater-arts",
+        audience: "Theater Lovers, Families, Musical Enthusiasts",
+        isOnline: false,
+        image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=1920&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.!2d-0.128!3d51.507!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTHCsDMwJzI1LjIiTiAwwrAwNyc0MC44Ilc!5e0!3m2!1sen!2suk!4v1234567890",
+        tags: ["Musical", "Broadway", "Theater", "Hamilton"],
+        ticketTypes: [
+            {
+                name: "Balcony",
+                price: 125,
+                available: true,
+                availableQuantity: 300,
+                maxPerAttendee: 6,
+                description: "Upper level seating with full stage view"
+            },
+            {
+                name: "Orchestra",
+                price: 225,
+                originalPrice: 275,
+                available: true,
+                availableQuantity: 200,
+                maxPerAttendee: 4,
+                description: "Premium ground floor seating"
+            },
+            {
+                name: "Premium Orchestra",
+                price: 350,
+                available: true,
+                availableQuantity: 50,
+                maxPerAttendee: 4,
+                description: "Best seats in the house, center orchestra"
+            }
+        ],
+        contact: {
+            website: "https://grandtheater.co.uk",
+            email: "boxoffice@grandtheater.co.uk",
+            phone: "+44 20 7492 1500"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/grandtheaterlondon",
+            twitter: "https://twitter.com/grandtheatre",
+            instagram: "https://www.instagram.com/grandtheatrelondon"
+        },
+        videoUrl: "https://www.youtube.com/embed/VU0GYNJ8yfA"
+    },
+    {
+        id: 5,
+        title: "Marathon Challenge 2025",
+        eventSlug: "marathon-challenge-2025",
+        description: "Lace up your running shoes for the annual Boston Marathon Challenge! Choose from the full marathon (26.2 miles), half marathon (13.1 miles), or 10K fun run. The scenic route takes you through historic Boston neighborhoods with thousands of cheering spectators. All proceeds support local charities.",
+        venue: "City Marathon Route",
+        location: "Boston",
+        country: "United States",
+        date: "2025-04-20",
+        time: "7:00 AM EDT",
+        price: "$85",
+        numericPrice: 85,
+        category: "Sport / Fitness",
+        slug: "sport-fitness",
+        audience: "Runners, Fitness Enthusiasts, All Ages",
+        isOnline: false,
+        image: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=1920&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2948.!2d-71.058!3d42.361!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDLCsDIxJzM5LjYiTiA3McKwMDMnMjguOCJX!5e0!3m2!1sen!2sus!4v1234567890",
+        tags: ["Marathon", "Running", "Charity", "Fitness"],
+        ticketTypes: [
+            {
+                name: "10K Registration",
+                price: 85,
+                available: true,
+                availableQuantity: 2000,
+                maxPerAttendee: 1,
+                description: "10K fun run entry with race packet and finisher medal"
+            },
+            {
+                name: "Half Marathon",
+                price: 125,
+                available: true,
+                availableQuantity: 1500,
+                maxPerAttendee: 1,
+                description: "Half marathon entry with timing chip and official certificate"
+            },
+            {
+                name: "Full Marathon",
+                price: 175,
+                originalPrice: 200,
+                available: true,
+                availableQuantity: 1000,
+                maxPerAttendee: 1,
+                description: "Full marathon entry with premium race packet and exclusive finisher jacket"
+            }
+        ],
+        contact: {
+            website: "https://bostonmarathonchallenge.com",
+            email: "info@bostonmarathonchallenge.com",
+            phone: "+1 617 555 0189"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/bostonmarathonchallenge",
+            twitter: "https://twitter.com/bostonmarathon",
+            instagram: "https://www.instagram.com/bostonmarathonchallenge"
+        },
+        videoUrl: "https://www.youtube.com/embed/8BVc4_flBJs"
+    },
+    // Original Upcoming Events
     {
         id: 6,
         title: "Jazz Night Live",
