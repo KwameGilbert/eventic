@@ -96,6 +96,15 @@ export const upcomingEvents = [
                 description: "Private box with catering and premium amenities"
             }
         ],
+        organizer: {
+            name: "ProSoccer FC",
+            avatar: "https://ui-avatars.com/api/?name=ProSoccer+FC&background=0D47A1&color=fff&size=200",
+            bio: "Official organizer of ProSoccer FC matches and events. Bringing world-class football entertainment to fans worldwide since 1995.",
+            verified: true,
+            followers: 125000,
+            eventsOrganized: 450,
+            rating: 4.8
+        },
         contact: {
             website: "https://prosoccerfc.com",
             email: "tickets@prosoccerfc.com",
@@ -155,6 +164,15 @@ export const upcomingEvents = [
                 description: "All-access 3-day pass with backstage tours"
             }
         ],
+        organizer: {
+            name: "Live Nation Events",
+            avatar: "https://ui-avatars.com/api/?name=Live+Nation&background=E91E63&color=fff&size=200",
+            bio: "World's leading live entertainment company, producing music festivals and concerts globally since 2005.",
+            verified: true,
+            followers: 2500000,
+            eventsOrganized: 15000,
+            rating: 4.7
+        },
         contact: {
             website: "https://summermusicfest.com",
             email: "info@summermusicfest.com",
@@ -214,6 +232,15 @@ export const upcomingEvents = [
                 description: "All-access pass with exclusive networking dinners and speaker meet-and-greets"
             }
         ],
+        organizer: {
+            name: "TechCorp Global",
+            avatar: "https://ui-avatars.com/api/?name=TechCorp&background=673AB7&color=fff&size=200",
+            bio: "Leading technology conference organizer, connecting innovators and industry leaders worldwide.",
+            verified: true,
+            followers: 500000,
+            eventsOrganized: 250,
+            rating: 4.9
+        },
         contact: {
             website: "https://techinnovationsummit.com",
             email: "register@techinnovationsummit.com",
@@ -273,6 +300,15 @@ export const upcomingEvents = [
                 description: "Best seats in the house, center orchestra"
             }
         ],
+        organizer: {
+            name: "Grand Theater Productions",
+            avatar: "https://ui-avatars.com/api/?name=Grand+Theater&background=9C27B0&color=fff&size=200",
+            bio: "Premier theater production company presenting world-class performances in London's West End since 1985.",
+            verified: true,
+            followers: 350000,
+            eventsOrganized: 800,
+            rating: 4.8
+        },
         contact: {
             website: "https://grandtheater.co.uk",
             email: "boxoffice@grandtheater.co.uk",
@@ -331,6 +367,15 @@ export const upcomingEvents = [
                 description: "Full marathon entry with premium race packet and exclusive finisher jacket"
             }
         ],
+        organizer: {
+            name: "Boston Athletic Association",
+            avatar: "https://ui-avatars.com/api/?name=Boston+Athletic&background=FF5722&color=fff&size=200",
+            bio: "Non-profit organization promoting health and fitness through running events since 1887.",
+            verified: true,
+            followers: 180000,
+            eventsOrganized: 320,
+            rating: 4.9
+        },
         contact: {
             website: "https://bostonmarathonchallenge.com",
             email: "info@bostonmarathonchallenge.com",
@@ -674,4 +719,3 @@ export const categories = [
     { id: 7, name: "Exhibition", icon: "🖼️", slug: "exhibition" },
     { id: 8, name: "Workshop", icon: "🔧", slug: "workshop" },
 ];
-

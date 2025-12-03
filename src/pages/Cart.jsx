@@ -214,7 +214,7 @@ const Cart = () => {
                                                         </Link>
                                                         <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
                                                             <User size={14} />
-                                                            <span>by {item.event.organizer}</span>
+                                                            <span>by {item.event.organizer.name}</span>
                                                         </div>
                                                         <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2 text-sm text-gray-600">
                                                             <div className="flex items-center gap-1.5">
