@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Home as HomeIcon, Heart, Globe, Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Calendar, Ticket, Users, Eye, CalendarPlus, FolderOpen } from 'lucide-react';
 import { upcomingEvents } from '../data/mockEvents';
+import TicketModal from '../components/modals/TicketModal';
 
 const EventDetails = () => {
     const { slug } = useParams();
@@ -10,6 +11,7 @@ const EventDetails = () => {
     const event = upcomingEvents.find(e => e.eventSlug === slug);
 
     const [isFavorite, setIsFavorite] = useState(false);
+    const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
     if (!event) {
         return (
@@ -59,7 +61,7 @@ const EventDetails = () => {
             </div>
 
             {/* Hero Image */}
-            <div className="w-full h-96 overflow-hidden bg-gray-200">
+            <div className="w-full h-[600px] overflow-hidden bg-gray-200">
                 <img
                     src={event.image}
                     alt={event.title}
@@ -162,6 +164,23 @@ const EventDetails = () => {
                                     <img src={event.image} alt={event.title} className="w-full h-32 object-cover rounded-lg" />
                                 </div>
                             </div>
+
+                            {/* Event Video */}
+                            {event.videoUrl && (
+                                <div className="mb-8">
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Event Video</h2>
+                                    <div className="relative w-full rounded-lg overflow-hidden bg-black" style={{ paddingBottom: '56.25%' }}>
+                                        <iframe
+                                            className="absolute top-0 left-0 w-full h-full"
+                                            src={event.videoUrl}
+                                            title={`${event.title} Video`}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Contact & Social Media */}
                             {(event.contact || event.socialMedia) && (
@@ -310,7 +329,10 @@ const EventDetails = () => {
                                     </div>
                                 )}
 
-                                <button className="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-full transition-opacity mb-3 flex items-center justify-center gap-2">
+                                <button
+                                    onClick={() => setIsTicketModalOpen(true)}
+                                    className="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-full transition-opacity mb-3 flex items-center justify-center gap-2"
+                                >
                                     <Ticket size={18} />
                                     GET TICKETS
                                 </button>
@@ -386,6 +408,13 @@ const EventDetails = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Ticket Modal */}
+            <TicketModal
+                isOpen={isTicketModalOpen}
+                onClose={() => setIsTicketModalOpen(false)}
+                event={event}
+            />
         </div>
     );
 };

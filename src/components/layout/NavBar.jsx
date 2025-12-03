@@ -22,8 +22,8 @@ const NavBar = () => {
 
     return (
         <>
-            {/* Top Bar - Sticky */}
-            <div className="sticky top-0 z-1000 bg-white border-b border-gray-200">
+            {/* Top Bar */}
+            <div className="z-50 bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                     <div className="flex items-center justify-between gap-4">
                         {/* Logo */}
@@ -244,50 +244,54 @@ const NavBar = () => {
             </nav>
 
             {/* Mobile Menu Drawer */}
-            <div className={`lg:hidden fixed inset-0 bg-black/50 z-[999] transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-            >
-                <div
-                    className={`absolute top-0 left-0 right-0 bg-white shadow-xl transform transition-transform duration-300 max-h-[80vh] overflow-hidden ${isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
-                        }`}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {/* Mobile Menu Content */}
-                    <div className="flex flex-col h-full overflow-y-auto">
-                        <div className="p-6 space-y-2">
-                            {navItems.map((item) => {
-                                const Icon = item.icon;
+            {isMobileMenuOpen && (
+                <>
+                    {/* Backdrop - positioned below navbar */}
+                    <div
+                        className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
 
-                                if (item.hasDropdown) {
+                    {/* Mobile Menu - slides down below navbar */}
+                    <div className="lg:hidden relative z-50 bg-white border-b border-gray-200">
+                        <div
+                            className={`overflow-y-auto max-h-[calc(100vh-180px)] transition-all duration-300 ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+                                }`}
+                        >
+                            <div className="p-6 space-y-2">
+                                {navItems.map((item) => {
+                                    const Icon = item.icon;
+
+                                    if (item.hasDropdown) {
+                                        return (
+                                            <div key={item.path} className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3">
+                                                <Icon size={20} />
+                                                <span>{item.label}</span>
+                                                <ChevronDown size={16} className="ml-auto" />
+                                            </div>
+                                        );
+                                    }
+
                                     return (
-                                        <div key={item.path} className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3">
+                                        <Link
+                                            key={item.path}
+                                            to={item.path}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors ${item.isActive
+                                                ? 'bg-[var(--brand-primary)] text-white'
+                                                : 'text-gray-700 hover:bg-gray-50'
+                                                }`}
+                                        >
                                             <Icon size={20} />
                                             <span>{item.label}</span>
-                                            <ChevronDown size={16} className="ml-auto" />
-                                        </div>
+                                        </Link>
                                     );
-                                }
-
-                                return (
-                                    <Link
-                                        key={item.path}
-                                        to={item.path}
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors ${item.isActive
-                                            ? 'bg-[var(--brand-primary)] text-white'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <Icon size={20} />
-                                        <span>{item.label}</span>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </div>
+                                })}
+                            </div >
+                        </div >
+                    </div >
+                </>
+            )}
         </>
     );
 };

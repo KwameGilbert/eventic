@@ -63,9 +63,32 @@ export const upcomingEvents = [
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.773449735772!2d-0.186964!3d5.603717!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNcKwMzYnMTMuNCJOIDDCsDExJzEzLjEiVw!5e0!3m2!1sen!2sgh!4v1234567890",
         tags: ["Jazz", "Live Music", "Concert", "Night Event"],
         ticketTypes: [
-            { name: "Regular", price: 45, available: true },
-            { name: "VIP", price: 85, available: true },
-            { name: "Premium Table", price: 150, available: false }
+            {
+                name: "Regular",
+                price: 45,
+                originalPrice: 60,
+                available: true,
+                availableQuantity: 150,
+                maxPerAttendee: 4,
+                description: "Standard entry with general seating"
+            },
+            {
+                name: "VIP",
+                price: 85,
+                originalPrice: 100,
+                available: true,
+                availableQuantity: 50,
+                maxPerAttendee: 2,
+                description: "Premium seating, complimentary drinks, and meet & greet"
+            },
+            {
+                name: "Premium Table",
+                price: 150,
+                available: false,
+                availableQuantity: 0,
+                maxPerAttendee: 1,
+                description: "Reserved table for 4 with bottle service"
+            }
         ],
         contact: {
             website: "https://bluenoteclubaccra.com",
@@ -76,7 +99,8 @@ export const upcomingEvents = [
             facebook: "https://www.facebook.com/bluenoteclubaccra",
             twitter: "https://twitter.com/bluenotejazz",
             instagram: "https://www.instagram.com/bluenoteclubgh"
-        }
+        },
+        videoUrl: "https://www.youtube.com/embed/vmDDOFXSgAs"
     },
     {
         id: 7,
@@ -98,8 +122,24 @@ export const upcomingEvents = [
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3962.445!2d-1.623!3d6.688!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwNDEnMTYuOCJOIDHCsDM3JzIyLjgiVw!5e0!3m2!1sen!2sgh!4v1234567890",
         tags: ["Food", "Wine", "Tasting", "Culinary"],
         ticketTypes: [
-            { name: "Standard Entry", price: 30, available: true },
-            { name: "VIP Experience", price: 60, available: true }
+            {
+                name: "Standard Entry",
+                price: 30,
+                originalPrice: 40,
+                available: true,
+                availableQuantity: 500,
+                maxPerAttendee: 5,
+                description: "Access to all tastings and exhibitions"
+            },
+            {
+                name: "VIP Experience",
+                price: 60,
+                originalPrice: 80,
+                available: true,
+                availableQuantity: 100,
+                maxPerAttendee: 3,
+                description: "Includes masterclass sessions and premium wine tasting"
+            }
         ],
         contact: {
             website: "https://foodwineexpoghana.com",
@@ -111,7 +151,8 @@ export const upcomingEvents = [
             twitter: "https://twitter.com/foodwineexpo",
             instagram: "https://www.instagram.com/foodwineexpogh",
             linkedin: "https://www.linkedin.com/company/food-wine-expo-ghana"
-        }
+        },
+        videoUrl: "https://www.youtube.com/embed/Yia77tcPr9A"
     },
     {
         id: 8,
@@ -133,9 +174,32 @@ export const upcomingEvents = [
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.773449735772!2d-0.186964!3d5.603717!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNcKwMzYnMTMuNCJOIDDCsDExJzEzLjEiVw!5e0!3m2!1sen!2sgh!4v1234567890",
         tags: ["Comedy", "Stand-up", "Entertainment", "Night Out"],
         ticketTypes: [
-            { name: "General Admission", price: 35, available: true },
-            { name: "VIP Seating", price: 55, available: true },
-            { name: "Table for 4", price: 180, available: true }
+            {
+                name: "General Admission",
+                price: 35,
+                available: true,
+                availableQuantity: 200,
+                maxPerAttendee: 6,
+                description: "Standard seating with full show access"
+            },
+            {
+                name: "VIP Seating",
+                price: 55,
+                originalPrice: 70,
+                available: true,
+                availableQuantity: 75,
+                maxPerAttendee: 4,
+                description: "Front row seating with complimentary snacks"
+            },
+            {
+                name: "Table for 4",
+                price: 180,
+                originalPrice: 220,
+                available: true,
+                availableQuantity: 25,
+                maxPerAttendee: 1,
+                description: "Reserved table seating for group of 4 with table service"
+            }
         ],
         contact: {
             website: "https://laughfactoryaccra.com",
@@ -146,7 +210,8 @@ export const upcomingEvents = [
             facebook: "https://www.facebook.com/laughfactorygh",
             twitter: "https://twitter.com/laughfactorygh",
             instagram: "https://www.instagram.com/laughfactoryaccra"
-        }
+        },
+        videoUrl: "https://www.youtube.com/embed/yuXm-VHQkV8"
     },
     {
         id: 9,
