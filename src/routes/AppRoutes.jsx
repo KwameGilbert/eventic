@@ -7,6 +7,7 @@ import SignIn from "../pages/SignIn";
 import SignUpAttendee from "../pages/SignUpAttendee";
 import SignUpOrganizer from "../pages/SignUpOrganizer";
 import Cart from "../pages/Cart";
+import Checkout from "../pages/Checkout";
 import NotFound from "../pages/NotFound";
 import Layout from "../components/layout/Layout";
 
@@ -21,6 +22,7 @@ const AppRoutes = () => {
                 <Route path="/signup/attendee" element={<SignUpAttendee />} />
                 <Route path="/signup/organizer" element={<SignUpOrganizer />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </Layout>

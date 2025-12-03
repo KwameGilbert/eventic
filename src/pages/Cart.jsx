@@ -39,7 +39,7 @@ const Cart = () => {
     };
 
     const handleCheckout = () => {
-        alert('Checkout functionality coming soon!');
+        navigate('/checkout');
     };
 
     const handleQuantityChange = (itemId, ticketName, change) => {
