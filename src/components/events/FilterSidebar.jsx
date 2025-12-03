@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Search, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
+import { Search, ChevronDown, Calendar as CalendarIcon, RotateCcw } from 'lucide-react';
 
 const FilterSidebar = ({ onFilterChange }) => {
-    const [filters, setFilters] = useState({
+    const defaultFilters = {
         keyword: '',
         category: '',
         location: '',
@@ -12,13 +12,22 @@ const FilterSidebar = ({ onFilterChange }) => {
         date: '',
         priceMin: 5,
         priceMax: 10000,
-    });
+    };
+
+    const [filters, setFilters] = useState(defaultFilters);
 
     const handleChange = (name, value) => {
         const newFilters = { ...filters, [name]: value };
         setFilters(newFilters);
         if (onFilterChange) {
             onFilterChange(newFilters);
+        }
+    };
+
+    const handleReset = () => {
+        setFilters(defaultFilters);
+        if (onFilterChange) {
+            onFilterChange(defaultFilters);
         }
     };
 
@@ -35,6 +44,17 @@ const FilterSidebar = ({ onFilterChange }) => {
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
+            {/* Reset Button */}
+            <div className="mb-6">
+                <button
+                    onClick={handleReset}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+                >
+                    <RotateCcw size={18} />
+                    Reset Filters
+                </button>
+            </div>
+
             {/* Keyword Search */}
             <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -164,25 +184,81 @@ const FilterSidebar = ({ onFilterChange }) => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Price range
                 </label>
-                <div className="flex gap-4 mb-3">
-                    <div>
-                        <label className="text-xs text-gray-500">Min</label>
+
+                {/* Dual Range Slider */}
+                <div className="mb-4 px-1">
+                    <div className="relative h-2">
+                        {/* Track background */}
+                        <div className="absolute w-full h-2 bg-gray-200 rounded-lg"></div>
+
+                        {/* Active track (between min and max) */}
+                        <div
+                            className="absolute h-2 bg-[var(--brand-primary)] rounded-lg"
+                            style={{
+                                left: `${(filters.priceMin / 10000) * 100}%`,
+                                right: `${100 - (filters.priceMax / 10000) * 100}%`
+                            }}
+                        ></div>
+
+                        {/* Min range input */}
                         <input
-                            type="number"
+                            type="range"
+                            min="0"
+                            max="10000"
+                            step="5"
                             value={filters.priceMin}
-                            onChange={(e) => handleChange('priceMin', parseInt(e.target.value))}
-                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (value < filters.priceMax) {
+                                    handleChange('priceMin', value);
+                                }
+                            }}
+                            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--brand-primary)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[var(--brand-primary)] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                         />
-                    </div>
-                    <div>
-                        <label className="text-xs text-gray-500">Max</label>
+
+                        {/* Max range input */}
                         <input
-                            type="number"
+                            type="range"
+                            min="0"
+                            max="10000"
+                            step="5"
                             value={filters.priceMax}
-                            onChange={(e) => handleChange('priceMax', parseInt(e.target.value))}
-                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (value > filters.priceMin) {
+                                    handleChange('priceMax', value);
+                                }
+                            }}
+                            className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--brand-primary)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[var(--brand-primary)] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                         />
                     </div>
+                </div>
+
+                {/* Number Inputs */}
+                <div className="flex gap-2 items-center">
+                    <input
+                        type="number"
+                        value={filters.priceMin}
+                        onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            if (value < filters.priceMax) {
+                                handleChange('priceMin', value);
+                            }
+                        }}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-center"
+                    />
+                    <span className="text-gray-500">-</span>
+                    <input
+                        type="number"
+                        value={filters.priceMax}
+                        onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            if (value > filters.priceMin) {
+                                handleChange('priceMax', value);
+                            }
+                        }}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] text-center"
+                    />
                 </div>
             </div>
 
