@@ -68,8 +68,8 @@ const Cart = () => {
             <div className="bg-gray-50 min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                        {/* Sidebar */}
-                        <div className="hidden md:hidden lg:col-span-1">
+                        {/* Sidebar - Hidden on mobile */}
+                        <div className="hidden lg:block lg:col-span-1">
                             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
                                 <h3 className="text-lg font-bold text-gray-900 mb-4">My Account</h3>
                                 <nav className="space-y-1">
@@ -80,8 +80,8 @@ const Cart = () => {
                                                 key={item.path}
                                                 to={item.path}
                                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${item.active
-                                                        ? 'bg-[var(--brand-primary)] text-white'
-                                                        : 'text-gray-700 hover:bg-gray-50'
+                                                    ? 'bg-[var(--brand-primary)] text-white'
+                                                    : 'text-gray-700 hover:bg-gray-50'
                                                     }`}
                                             >
                                                 <Icon size={20} />
@@ -120,8 +120,8 @@ const Cart = () => {
         <div className="bg-gray-50 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Sidebar Menu */}
-                    <div className="lg:col-span-1">
+                    {/* Sidebar Menu - Hidden on mobile */}
+                    <div className="hidden lg:block lg:col-span-1">
                         <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">My Account</h3>
                             <nav className="space-y-1">
@@ -132,8 +132,8 @@ const Cart = () => {
                                             key={item.path}
                                             to={item.path}
                                             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${item.active
-                                                    ? 'bg-[var(--brand-primary)] text-white shadow-sm'
-                                                    : 'text-gray-700 hover:bg-gray-50'
+                                                ? 'bg-[var(--brand-primary)] text-white shadow-sm'
+                                                : 'text-gray-700 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <Icon size={20} />
@@ -156,20 +156,21 @@ const Cart = () => {
                                 <ArrowLeft size={20} />
                                 Continue Shopping
                             </Link>
-                            <div className="flex items-center justify-between">
-                                <h1 className="text-3xl font-bold text-gray-900">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                                     Shopping Cart
-                                    <span className="text-xl text-gray-500 ml-3">
+                                    <span className="text-base sm:text-xl text-gray-500 ml-2 sm:ml-3">
                                         ({getCartCount()} {getCartCount() === 1 ? 'ticket' : 'tickets'})
                                     </span>
                                 </h1>
                                 {cartItems.length > 0 && (
                                     <button
                                         onClick={clearCart}
-                                        className="text-red-600 hover:text-red-700 font-medium flex items-center gap-2 transition-colors"
+                                        className="text-red-600 hover:text-red-700 font-medium flex items-center gap-2 transition-colors w-fit"
                                     >
                                         <Trash2 size={18} />
-                                        Clear Cart
+                                        <span className="hidden sm:inline">Clear Cart</span>
+                                        <span className="sm:hidden">Clear</span>
                                     </button>
                                 )}
                             </div>
@@ -190,14 +191,14 @@ const Cart = () => {
                         <div className="space-y-4">
                             {cartItems.map((item) => (
                                 <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                                    <div className="p-6">
-                                        <div className="flex gap-6">
+                                    <div className="p-4 sm:p-6">
+                                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                                             {/* Event Image */}
                                             <div className="flex-shrink-0">
                                                 <img
                                                     src={item.event.image}
                                                     alt={item.event.title}
-                                                    className="w-32 h-32 object-cover rounded-lg"
+                                                    className="w-full sm:w-32 h-48 sm:h-32 object-cover rounded-lg"
                                                 />
                                             </div>
 
@@ -207,7 +208,7 @@ const Cart = () => {
                                                     <div>
                                                         <Link
                                                             to={`/event/${item.event.eventSlug}`}
-                                                            className="text-xl font-bold text-gray-900 hover:text-[var(--brand-primary)] transition-colors"
+                                                            className="text-lg sm:text-xl font-bold text-gray-900 hover:text-[var(--brand-primary)] transition-colors"
                                                         >
                                                             {item.event.title}
                                                         </Link>
@@ -244,16 +245,18 @@ const Cart = () => {
                                                         return (
                                                             <div
                                                                 key={ticketName}
-                                                                className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg"
+                                                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 px-3 sm:px-4 bg-gray-50 rounded-lg"
                                                             >
                                                                 <div className="flex items-center gap-3 flex-1">
                                                                     <Ticket size={16} className="text-[var(--brand-primary)]" />
-                                                                    <span className="font-medium text-gray-900">{ticketName}</span>
-                                                                    <span className="text-gray-500">${price} each</span>
+                                                                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 flex-1">
+                                                                        <span className="font-medium text-gray-900">{ticketName}</span>
+                                                                        <span className="text-sm text-gray-500">${price} each</span>
+                                                                    </div>
                                                                 </div>
 
                                                                 {/* Quantity Controls */}
-                                                                <div className="flex items-center gap-4">
+                                                                <div className="flex items-center justify-between sm:justify-end gap-4">
                                                                     <div className="flex items-center gap-2">
                                                                         <button
                                                                             onClick={() => handleQuantityChange(item.id, ticketName, -1)}

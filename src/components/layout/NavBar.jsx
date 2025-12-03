@@ -163,62 +163,143 @@ const NavBar = () => {
 
                         {/* Mobile/Tablet Auth Icons & Menu Toggle */}
                         <div className="flex lg:hidden items-center gap-2">
-                            <Link to="/signin" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-all hover:scale-105 active:scale-95">
-                                <User size={20} className="text-white" />
-                            </Link>
+                            {isAuthenticated() ? (
+                                <>
+                                    {/* Cart Icon with Badge */}
+                                    <Link
+                                        to="/cart"
+                                        className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
+                                    >
+                                        <ShoppingCart size={20} className="text-gray-700" />
+                                        {cartCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 bg-[var(--brand-primary)] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                                {cartCount}
+                                            </span>
+                                        )}
+                                    </Link>
 
-                            {/* Mobile Sign Up Dropdown */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setIsMobileSignUpOpen(!isMobileSignUpOpen)}
-                                    className="w-10 h-10 bg-[var(--brand-primary)] rounded-full flex items-center justify-center hover:opacity-90 transition-all hover:scale-105 active:scale-95"
-                                >
-                                    <UserPlus size={20} className="text-white" />
-                                </button>
+                                    {/* User Avatar Dropdown */}
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setIsMobileSignUpOpen(!isMobileSignUpOpen)}
+                                            className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden hover:opacity-80 transition-all"
+                                        >
+                                            <img
+                                                src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=f97316&color=fff'}
+                                                alt="User"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </button>
 
-                                {/* Dropdown Menu */}
-                                {isMobileSignUpOpen && (
-                                    <>
-                                        {/* Backdrop */}
-                                        <div
-                                            className="fixed inset-0 z-40 animate-in fade-in duration-200"
-                                            onClick={() => setIsMobileSignUpOpen(false)}
-                                        />
-
-                                        {/* Dropdown */}
-                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-999 animate-in slide-in-from-top duration-200">
-                                            <div className="py-2">
-                                                <Link
-                                                    to="/signup/attendee"
+                                        {/* User Dropdown Menu */}
+                                        {isMobileSignUpOpen && (
+                                            <>
+                                                {/* Backdrop */}
+                                                <div
+                                                    className="fixed inset-0 z-40 animate-in fade-in duration-200"
                                                     onClick={() => setIsMobileSignUpOpen(false)}
-                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-300"
-                                                >
-                                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                                                        <Ticket size={16} className="text-blue-600" />
+                                                />
+
+                                                {/* Dropdown */}
+                                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-in slide-in-from-top duration-200">
+                                                    <div className="py-2">
+                                                        <div className="px-4 py-3 border-b border-gray-200">
+                                                            <p className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</p>
+                                                            <p className="text-xs text-gray-500">{user?.email || ''}</p>
+                                                        </div>
+                                                        <Link
+                                                            to="/my-tickets"
+                                                            onClick={() => setIsMobileSignUpOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            <Ticket size={18} />
+                                                            <span className="text-sm font-medium">My Tickets</span>
+                                                        </Link>
+                                                        <Link
+                                                            to="/cart"
+                                                            onClick={() => setIsMobileSignUpOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            <ShoppingCart size={18} />
+                                                            <span className="text-sm font-medium">Cart ({cartCount})</span>
+                                                        </Link>
+                                                        <hr className="my-2" />
+                                                        <button
+                                                            onClick={() => {
+                                                                setIsMobileSignUpOpen(false);
+                                                                logout();
+                                                            }}
+                                                            className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors"
+                                                        >
+                                                            <LogOut size={18} />
+                                                            <span className="text-sm font-medium">Logout</span>
+                                                        </button>
                                                     </div>
-                                                    <div className="text-left">
-                                                        <div className="font-semibold text-sm">Sign up as Attendee</div>
-                                                        <div className="text-xs text-gray-500">Discover and book events</div>
-                                                    </div>
-                                                </Link>
-                                                <Link
-                                                    to="/signup/organizer"
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Link to="/signin" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-all hover:scale-105 active:scale-95">
+                                        <User size={20} className="text-white" />
+                                    </Link>
+
+                                    {/* Mobile Sign Up Dropdown */}
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setIsMobileSignUpOpen(!isMobileSignUpOpen)}
+                                            className="w-10 h-10 bg-[var(--brand-primary)] rounded-full flex items-center justify-center hover:opacity-90 transition-all hover:scale-105 active:scale-95"
+                                        >
+                                            <UserPlus size={20} className="text-white" />
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        {isMobileSignUpOpen && (
+                                            <>
+                                                {/* Backdrop */}
+                                                <div
+                                                    className="fixed inset-0 z-40 animate-in fade-in duration-200"
                                                     onClick={() => setIsMobileSignUpOpen(false)}
-                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
-                                                        <Calendar size={16} className="text-[var(--brand-primary)]" />
+                                                />
+
+                                                {/* Dropdown */}
+                                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-in slide-in-from-top duration-200">
+                                                    <div className="py-2">
+                                                        <Link
+                                                            to="/signup/attendee"
+                                                            onClick={() => setIsMobileSignUpOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-300"
+                                                        >
+                                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                                                                <Ticket size={16} className="text-blue-600" />
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <div className="font-semibold text-sm">Sign up as Attendee</div>
+                                                                <div className="text-xs text-gray-500">Discover and book events</div>
+                                                            </div>
+                                                        </Link>
+                                                        <Link
+                                                            to="/signup/organizer"
+                                                            onClick={() => setIsMobileSignUpOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
+                                                                <Calendar size={16} className="text-[var(--brand-primary)]" />
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <div className="font-semibold text-sm">Sign up as Organizer</div>
+                                                                <div className="text-xs text-gray-500">Create and manage events</div>
+                                                            </div>
+                                                        </Link>
                                                     </div>
-                                                    <div className="text-left">
-                                                        <div className="font-semibold text-sm">Sign up as Organizer</div>
-                                                        <div className="text-xs text-gray-500">Create and manage events</div>
-                                                    </div>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            )}
 
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

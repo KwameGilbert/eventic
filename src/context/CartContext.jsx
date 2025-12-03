@@ -12,19 +12,27 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        // Load cart from localStorage
+        // Load cart from localStorage on mount
         const storedCart = localStorage.getItem('cart');
         if (storedCart) {
-            setCartItems(JSON.parse(storedCart));
+            try {
+                setCartItems(JSON.parse(storedCart));
+            } catch (error) {
+                console.error('Error loading cart from localStorage:', error);
+            }
         }
+        setIsLoaded(true);
     }, []);
 
     useEffect(() => {
-        // Save cart to localStorage whenever it changes
-        localStorage.setItem('cart', JSON.stringify(cartItems));
-    }, [cartItems]);
+        // Save cart to localStorage whenever it changes (but only after initial load)
+        if (isLoaded) {
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+        }
+    }, [cartItems, isLoaded]);
 
     const addToCart = (event, tickets) => {
         const newCartItem = {
