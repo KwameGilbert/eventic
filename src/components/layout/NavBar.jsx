@@ -61,7 +61,7 @@ const NavBar = () => {
                                 </button>
 
                                 {/* Dropdown Menu */}
-                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
+                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-999 transform scale-95 group-hover:scale-100">
                                     <div className="py-2">
                                         <Link
                                             to="/signup/attendee"
@@ -118,7 +118,7 @@ const NavBar = () => {
                                         />
 
                                         {/* Dropdown */}
-                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-in slide-in-from-top duration-200">
+                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-999 animate-in slide-in-from-top duration-200">
                                             <div className="py-2">
                                                 <Link
                                                     to="/signup/attendee"
