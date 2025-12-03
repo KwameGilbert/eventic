@@ -27,7 +27,7 @@ const NavBar = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                     <div className="flex items-center justify-between gap-4">
                         {/* Logo */}
-                        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+                        <Link to="/" className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity">
                             <div className="flex items-center justify-center">
                                 <img src="/images/logo.png" alt="Eventic Logo" className="w-full h-full object-contain" />
                             </div>
@@ -41,33 +41,33 @@ const NavBar = () => {
                                     placeholder="Search for events"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
+                                    className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all"
                                 />
-                                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                                     <Search size={20} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Desktop Auth Buttons */}
-                        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
-                            <Link to="/signin" className="text-gray-700 hover:text-gray-900 font-medium">
+                        {/* Desktop Auth Buttons - only show on large screens */}
+                        <div className="hidden lg:flex items-center gap-3 shrink-0">
+                            <Link to="/signin" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">
                                 Sign in
                             </Link>
                             <div className="relative group">
-                                <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1 cursor-pointer">
+                                <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1 cursor-pointer transition-colors">
                                     Sign up
-                                    <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                                    <ChevronDown size={16} className="transition-transform duration-200 group-hover:rotate-180" />
                                 </button>
 
                                 {/* Dropdown Menu */}
-                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
                                     <div className="py-2">
                                         <Link
                                             to="/signup/attendee"
                                             className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                                         >
-                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                                                 <Ticket size={16} className="text-blue-600" />
                                             </div>
                                             <div className="text-left">
@@ -80,7 +80,7 @@ const NavBar = () => {
                                             to="/signup/organizer"
                                             className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                                         >
-                                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
                                                 <Calendar size={16} className="text-[var(--brand-primary)]" />
                                             </div>
                                             <div className="text-left">
@@ -93,9 +93,9 @@ const NavBar = () => {
                             </div>
                         </div>
 
-                        {/* Mobile Auth Icons & Menu Toggle */}
-                        <div className="flex md:hidden items-center gap-2">
-                            <Link to="/signin" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors">
+                        {/* Mobile/Tablet Auth Icons & Menu Toggle */}
+                        <div className="flex lg:hidden items-center gap-2">
+                            <Link to="/signin" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-all hover:scale-105 active:scale-95">
                                 <User size={20} className="text-white" />
                             </Link>
 
@@ -103,7 +103,7 @@ const NavBar = () => {
                             <div className="relative">
                                 <button
                                     onClick={() => setIsMobileSignUpOpen(!isMobileSignUpOpen)}
-                                    className="w-10 h-10 bg-[var(--brand-primary)] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity"
+                                    className="w-10 h-10 bg-[var(--brand-primary)] rounded-full flex items-center justify-center hover:opacity-90 transition-all hover:scale-105 active:scale-95"
                                 >
                                     <UserPlus size={20} className="text-white" />
                                 </button>
@@ -113,19 +113,19 @@ const NavBar = () => {
                                     <>
                                         {/* Backdrop */}
                                         <div
-                                            className="fixed inset-0 z-40"
+                                            className="fixed inset-0 z-40 animate-in fade-in duration-200"
                                             onClick={() => setIsMobileSignUpOpen(false)}
                                         />
 
                                         {/* Dropdown */}
-                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 animate-in slide-in-from-top duration-200">
                                             <div className="py-2">
                                                 <Link
                                                     to="/signup/attendee"
                                                     onClick={() => setIsMobileSignUpOpen(false)}
                                                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-300"
                                                 >
-                                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                                                         <Ticket size={16} className="text-blue-600" />
                                                     </div>
                                                     <div className="text-left">
@@ -138,7 +138,7 @@ const NavBar = () => {
                                                     onClick={() => setIsMobileSignUpOpen(false)}
                                                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                                                 >
-                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
                                                         <Calendar size={16} className="text-[var(--brand-primary)]" />
                                                     </div>
                                                     <div className="text-left">
@@ -154,9 +154,11 @@ const NavBar = () => {
 
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="w-10 h-10 flex items-center justify-center text-gray-700 hover:text-gray-900"
+                                className="w-10 h-10 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all hover:scale-105 active:scale-95"
                             >
-                                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                                <div className={`transition-transform duration-200 ${isMobileMenuOpen ? 'rotate-90' : 'rotate-0'}`}>
+                                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -169,9 +171,9 @@ const NavBar = () => {
                                 placeholder="Search for events"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent"
+                                className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all"
                             />
-                            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                                 <Search size={20} />
                             </button>
                         </div>
@@ -179,7 +181,7 @@ const NavBar = () => {
                 </div>
             </div>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - only on large screens */}
             <nav className="hidden lg:block bg-white shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-1">
@@ -189,14 +191,14 @@ const NavBar = () => {
                             if (item.hasDropdown) {
                                 return (
                                     <div key={item.path} className="relative group">
-                                        <button className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-colors">
+                                        <button className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 font-medium transition-all hover:scale-105">
                                             <Icon size={18} />
                                             <span>{item.label}</span>
-                                            <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                                            <ChevronDown size={16} className="transition-transform duration-200 group-hover:rotate-180" />
                                         </button>
 
                                         {/* Categories Dropdown */}
-                                        <div className="absolute left-0 top-full mt-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                        <div className="absolute left-0 top-full mt-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
                                             <div className="py-2">
                                                 <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
                                                     Browse by Category
@@ -229,10 +231,11 @@ const NavBar = () => {
                                 <Link
                                     key={item.path}
                                     to={item.path}
-                                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-opacity ${item.isActive
-                                        ? 'bg-[var(--brand-primary)] text-white hover:opacity-90'
-                                        : 'text-gray-700 hover:bg-gray-50 transition-colors'
-                                        }`}
+                                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-all hover:scale-105 ${
+                                        item.isActive
+                                            ? 'bg-[var(--brand-primary)] text-white hover:opacity-90'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
                                 >
                                     <Icon size={18} />
                                     <span>{item.label}</span>
@@ -243,28 +246,29 @@ const NavBar = () => {
                 </div>
             </nav>
 
-            {/* Mobile Menu Drawer */}
+            {/* Mobile Menu Drawer - mobile and tablet */}
             {isMobileMenuOpen && (
                 <>
                     {/* Backdrop - positioned below navbar */}
                     <div
-                        className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                        className="lg:hidden fixed inset-0 bg-black/50 z-40 animate-in fade-in duration-300"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
-
+                    
                     {/* Mobile Menu - slides down below navbar */}
                     <div className="lg:hidden relative z-50 bg-white border-b border-gray-200">
-                        <div
-                            className={`overflow-y-auto max-h-[calc(100vh-180px)] transition-all duration-300 ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-                                }`}
-                        >
+                        <div className="overflow-y-auto max-h-[calc(100vh-180px)] animate-in slide-in-from-top duration-300">
                             <div className="p-6 space-y-2">
-                                {navItems.map((item) => {
+                                {navItems.map((item, index) => {
                                     const Icon = item.icon;
 
                                     if (item.hasDropdown) {
                                         return (
-                                            <div key={item.path} className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3">
+                                            <div 
+                                                key={item.path} 
+                                                className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3 animate-in slide-in-from-left duration-300"
+                                                style={{ animationDelay: `${index * 50}ms` }}
+                                            >
                                                 <Icon size={20} />
                                                 <span>{item.label}</span>
                                                 <ChevronDown size={16} className="ml-auto" />
@@ -277,19 +281,21 @@ const NavBar = () => {
                                             key={item.path}
                                             to={item.path}
                                             onClick={() => setIsMobileMenuOpen(false)}
-                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors ${item.isActive
-                                                ? 'bg-[var(--brand-primary)] text-white'
-                                                : 'text-gray-700 hover:bg-gray-50'
-                                                }`}
+                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 animate-in slide-in-from-left ${
+                                                item.isActive
+                                                    ? 'bg-[var(--brand-primary)] text-white shadow-md'
+                                                    : 'text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                            style={{ animationDelay: `${index * 50}ms`, animationDuration: '300ms' }}
                                         >
                                             <Icon size={20} />
                                             <span>{item.label}</span>
                                         </Link>
                                     );
                                 })}
-                            </div >
-                        </div >
-                    </div >
+                            </div>
+                        </div>
+                    </div>
                 </>
             )}
         </>
