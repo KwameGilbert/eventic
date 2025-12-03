@@ -50,7 +50,7 @@ const BrowseEvents = () => {
             if (filters.date && filters.date !== '') {
                 const eventDate = new Date(event.date);
                 const today = new Date();
-                today.setHours(0, 0, 0, 0); 
+                today.setHours(0, 0, 0, 0);
 
                 switch (filters.date) {
                     case 'today':
@@ -208,9 +208,10 @@ const BrowseEvents = () => {
                                 const { month, day } = formatEventDate(event.date);
 
                                 return (
-                                    <div
+                                    <Link
                                         key={event.id}
-                                        className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                                        to={`/event/${event.eventSlug}`}
+                                        className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer group block"
                                     >
                                         {/* Event Image */}
                                         <div className="relative h-48 overflow-hidden bg-gray-200">
@@ -259,12 +260,12 @@ const BrowseEvents = () => {
                                                 <span className="text-lg font-bold text-[var(--brand-primary)]">
                                                     {event.price}
                                                 </span>
-                                                <button className="text-sm font-semibold text-gray-700 hover:text-[var(--brand-primary)] transition-colors">
+                                                <span className="text-sm font-semibold text-gray-700 group-hover:text-[var(--brand-primary)] transition-colors">
                                                     View Details →
-                                                </button>
+                                                </span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 );
                             })}
                         </div>

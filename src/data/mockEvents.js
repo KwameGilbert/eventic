@@ -46,6 +46,8 @@ export const upcomingEvents = [
     {
         id: 6,
         title: "Jazz Night Live",
+        eventSlug: "jazz-night-live",
+        description: "Experience an unforgettable evening of smooth jazz with world-renowned artists. This intimate performance features a carefully curated selection of contemporary and classic jazz pieces that will transport you to a world of musical excellence. The Blue Note Club provides the perfect ambiance for an evening of sophisticated entertainment.",
         venue: "Blue Note Club",
         location: "Accra",
         country: "Ghana",
@@ -55,12 +57,32 @@ export const upcomingEvents = [
         numericPrice: 45,
         category: "Concert / Music",
         slug: "concert-music",
+        audience: "Adults, Jazz Enthusiasts, Music Lovers",
         isOnline: false,
         image: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.773449735772!2d-0.186964!3d5.603717!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNcKwMzYnMTMuNCJOIDDCsDExJzEzLjEiVw!5e0!3m2!1sen!2sgh!4v1234567890",
+        tags: ["Jazz", "Live Music", "Concert", "Night Event"],
+        ticketTypes: [
+            { name: "Regular", price: 45, available: true },
+            { name: "VIP", price: 85, available: true },
+            { name: "Premium Table", price: 150, available: false }
+        ],
+        contact: {
+            website: "https://bluenoteclubaccra.com",
+            email: "info@bluenoteclubaccra.com",
+            phone: "+233 30 276 5432"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/bluenoteclubaccra",
+            twitter: "https://twitter.com/bluenotejazz",
+            instagram: "https://www.instagram.com/bluenoteclubgh"
+        }
     },
     {
         id: 7,
         title: "Food & Wine Expo",
+        eventSlug: "food-wine-expo",
+        description: "Indulge in a culinary journey featuring the finest local and international cuisines. Meet renowned chefs, sample exclusive wines, and participate in cooking demonstrations. This expo celebrates the rich flavors of Ghana and beyond, offering tastings, masterclasses, and networking opportunities for food enthusiasts.",
         venue: "Exhibition Hall",
         location: "Kumasi",
         country: "Ghana",
@@ -70,12 +92,32 @@ export const upcomingEvents = [
         numericPrice: 30,
         category: "Food & Drink",
         slug: "food-drink",
+        audience: "Food Enthusiasts, Wine Lovers, All Ages",
         isOnline: false,
         image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3962.445!2d-1.623!3d6.688!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwNDEnMTYuOCJOIDHCsDM3JzIyLjgiVw!5e0!3m2!1sen!2sgh!4v1234567890",
+        tags: ["Food", "Wine", "Tasting", "Culinary"],
+        ticketTypes: [
+            { name: "Standard Entry", price: 30, available: true },
+            { name: "VIP Experience", price: 60, available: true }
+        ],
+        contact: {
+            website: "https://foodwineexpoghana.com",
+            email: "hello@foodwineexpo.com",
+            phone: "+233 32 202 8765"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/foodwineexpogh",
+            twitter: "https://twitter.com/foodwineexpo",
+            instagram: "https://www.instagram.com/foodwineexpogh",
+            linkedin: "https://www.linkedin.com/company/food-wine-expo-ghana"
+        }
     },
     {
         id: 8,
         title: "Comedy Show",
+        eventSlug: "comedy-show",
+        description: "Get ready for a night of non-stop laughter with Ghana's top comedians! This hilarious show features stand-up performances, improv comedy, and special guest appearances. Perfect for a fun evening out with friends and family. Doors open at 8:30 PM for pre-show entertainment.",
         venue: "Laugh Factory",
         location: "Accra",
         country: "Ghana",
@@ -85,12 +127,31 @@ export const upcomingEvents = [
         numericPrice: 35,
         category: "Entertainment",
         slug: "entertainment",
+        audience: "Adults, Families, Comedy Fans",
         isOnline: false,
         image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800&q=80",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.773449735772!2d-0.186964!3d5.603717!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNcKwMzYnMTMuNCJOIDDCsDExJzEzLjEiVw!5e0!3m2!1sen!2sgh!4v1234567890",
+        tags: ["Comedy", "Stand-up", "Entertainment", "Night Out"],
+        ticketTypes: [
+            { name: "General Admission", price: 35, available: true },
+            { name: "VIP Seating", price: 55, available: true },
+            { name: "Table for 4", price: 180, available: true }
+        ],
+        contact: {
+            website: "https://laughfactoryaccra.com",
+            email: "bookings@laughfactory.gh",
+            phone: "+233 24 567 8901"
+        },
+        socialMedia: {
+            facebook: "https://www.facebook.com/laughfactorygh",
+            twitter: "https://twitter.com/laughfactorygh",
+            instagram: "https://www.instagram.com/laughfactoryaccra"
+        }
     },
     {
         id: 9,
         title: "Art Gallery Opening",
+        eventSlug: "art-gallery-opening",
         venue: "Modern Art Museum",
         location: "Takoradi",
         country: "Ghana",
@@ -106,6 +167,7 @@ export const upcomingEvents = [
     {
         id: 10,
         title: "Basketball Championship",
+        eventSlug: "basketball-championship",
         venue: "Sports Arena",
         location: "Accra",
         country: "Ghana",
@@ -121,6 +183,7 @@ export const upcomingEvents = [
     {
         id: 11,
         title: "Digital Marketing Summit",
+        eventSlug: "digital-marketing-summit",
         venue: "Business Convention Center",
         location: "Online",
         country: "USA",
@@ -136,6 +199,7 @@ export const upcomingEvents = [
     {
         id: 12,
         title: "Indie Film Festival",
+        eventSlug: "indie-film-festival",
         venue: "Grand Cinema",
         location: "Kumasi",
         country: "Ghana",
@@ -151,6 +215,7 @@ export const upcomingEvents = [
     {
         id: 13,
         title: "Rock Concert: The Legends",
+        eventSlug: "rock-concert-the-legends",
         venue: "Stadium Arena",
         location: "Accra",
         country: "Ghana",
@@ -166,6 +231,7 @@ export const upcomingEvents = [
     {
         id: 14,
         title: "Yoga & Wellness Retreat",
+        eventSlug: "yoga-wellness-retreat",
         venue: "Serenity Wellness Center",
         location: "Takoradi",
         country: "Ghana",
