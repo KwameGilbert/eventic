@@ -3,12 +3,18 @@ import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
 import "./index.css"
 import AppRoutes from "./routes/AppRoutes"
+import { AuthProvider } from "./context/AuthContext"
+import { CartProvider } from "./context/CartContext"
 
 const App = () => {
   return (
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <CartProvider>
+          <AppRoutes />
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

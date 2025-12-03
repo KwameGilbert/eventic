@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Home, Calendar, Compass, MapPin, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus } from 'lucide-react';
+import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut } from 'lucide-react';
 import { categories } from '../../data/mockEvents';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 
 const NavBar = () => {
+    const { user, isAuthenticated, logout } = useAuth();
+    const { getCartCount } = useCart();
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobileSignUpOpen, setIsMobileSignUpOpen] = useState(false);
+
+    const cartCount = getCartCount();
 
     // Navigation items configuration
     const navItems = [
@@ -49,48 +55,110 @@ const NavBar = () => {
                             </div>
                         </div>
 
-                        {/* Desktop Auth Buttons - only show on large screens */}
-                        <div className="hidden lg:flex items-center gap-3 shrink-0">
-                            <Link to="/signin" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">
-                                Sign in
-                            </Link>
-                            <div className="relative group">
-                                <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1 cursor-pointer transition-colors">
-                                    Sign up
-                                    <ChevronDown size={16} className="transition-transform duration-200 group-hover:rotate-180" />
-                                </button>
+                        {/* Desktop Auth/Cart Section - only show on large screens */}
+                        <div className="hidden lg:flex items-center gap-4 shrink-0">
+                            {isAuthenticated() ? (
+                                <>
+                                    {/* Cart Icon with Badge */}
+                                    <Link
+                                        to="/cart"
+                                        className="relative text-gray-700 hover:text-gray-900 transition-colors"
+                                    >
+                                        <ShoppingCart size={24} />
+                                        {cartCount > 0 && (
+                                            <span className="absolute -top-2 -right-2 bg-[var(--brand-primary)] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                                {cartCount}
+                                            </span>
+                                        )}
+                                    </Link>
 
-                                {/* Dropdown Menu */}
-                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-999 transform scale-95 group-hover:scale-100">
-                                    <div className="py-2">
-                                        <Link
-                                            to="/signup/attendee"
-                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                                                <Ticket size={16} className="text-blue-600" />
+                                    {/* User Menu */}
+                                    <div className="relative group">
+                                        <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors">
+                                            <div className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden">
+                                                <img
+                                                    src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=f97316&color=fff'}
+                                                    alt="User"
+                                                    className="w-full h-full object-cover"
+                                                />
                                             </div>
-                                            <div className="text-left">
-                                                <div className="font-semibold text-sm">Sign up as Attendee</div>
-                                                <div className="text-xs text-gray-500">Discover and book events</div>
-                                            </div>
-                                        </Link>
+                                            <span className="font-medium">{user?.name || 'User'}</span>
+                                            <ChevronDown size={16} className="transition-transform duration-200 group-hover:rotate-180" />
+                                        </button>
 
-                                        <Link
-                                            to="/signup/organizer"
-                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
-                                                <Calendar size={16} className="text-[var(--brand-primary)]" />
+                                        {/* User Dropdown */}
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
+                                            <div className="py-2">
+                                                <Link
+                                                    to="/my-tickets"
+                                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <Ticket size={16} />
+                                                    <span className="text-sm">My Tickets</span>
+                                                </Link>
+                                                <Link
+                                                    to="/cart"
+                                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <ShoppingCart size={16} />
+                                                    <span className="text-sm">Cart ({cartCount})</span>
+                                                </Link>
+                                                <hr className="my-2" />
+                                                <button
+                                                    onClick={logout}
+                                                    className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                                                >
+                                                    <LogOut size={16} />
+                                                    <span className="text-sm">Logout</span>
+                                                </button>
                                             </div>
-                                            <div className="text-left">
-                                                <div className="font-semibold text-sm">Sign up as Organizer</div>
-                                                <div className="text-xs text-gray-500">Create and manage events</div>
-                                            </div>
-                                        </Link>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Link to="/signin" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">
+                                        Sign in
+                                    </Link>
+                                    <div className="relative group">
+                                        <button className="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1 cursor-pointer transition-colors">
+                                            Sign up
+                                            <ChevronDown size={16} className="transition-transform duration-200 group-hover:rotate-180" />
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
+                                            <div className="py-2">
+                                                <Link
+                                                    to="/signup/attendee"
+                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                                                        <Ticket size={16} className="text-blue-600" />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="font-semibold text-sm">Sign up as Attendee</div>
+                                                        <div className="text-xs text-gray-500">Discover and book events</div>
+                                                    </div>
+                                                </Link>
+
+                                                <Link
+                                                    to="/signup/organizer"
+                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
+                                                        <Calendar size={16} className="text-[var(--brand-primary)]" />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="font-semibold text-sm">Sign up as Organizer</div>
+                                                        <div className="text-xs text-gray-500">Create and manage events</div>
+                                                    </div>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Mobile/Tablet Auth Icons & Menu Toggle */}
@@ -231,11 +299,10 @@ const NavBar = () => {
                                 <Link
                                     key={item.path}
                                     to={item.path}
-                                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-all hover:scale-105 ${
-                                        item.isActive
-                                            ? 'bg-[var(--brand-primary)] text-white hover:opacity-90'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                    }`}
+                                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-all hover:scale-105 ${item.isActive
+                                        ? 'bg-[var(--brand-primary)] text-white hover:opacity-90'
+                                        : 'text-gray-700 hover:bg-gray-50'
+                                        }`}
                                 >
                                     <Icon size={18} />
                                     <span>{item.label}</span>
@@ -254,7 +321,7 @@ const NavBar = () => {
                         className="lg:hidden fixed inset-0 bg-black/50 z-40 animate-in fade-in duration-300"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
-                    
+
                     {/* Mobile Menu - slides down below navbar */}
                     <div className="lg:hidden relative z-50 bg-white border-b border-gray-200">
                         <div className="overflow-y-auto max-h-[calc(100vh-180px)] animate-in slide-in-from-top duration-300">
@@ -264,8 +331,8 @@ const NavBar = () => {
 
                                     if (item.hasDropdown) {
                                         return (
-                                            <div 
-                                                key={item.path} 
+                                            <div
+                                                key={item.path}
                                                 className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3 animate-in slide-in-from-left duration-300"
                                                 style={{ animationDelay: `${index * 50}ms` }}
                                             >
@@ -281,11 +348,10 @@ const NavBar = () => {
                                             key={item.path}
                                             to={item.path}
                                             onClick={() => setIsMobileMenuOpen(false)}
-                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 animate-in slide-in-from-left ${
-                                                item.isActive
-                                                    ? 'bg-[var(--brand-primary)] text-white shadow-md'
-                                                    : 'text-gray-700 hover:bg-gray-50'
-                                            }`}
+                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 animate-in slide-in-from-left ${item.isActive
+                                                ? 'bg-[var(--brand-primary)] text-white shadow-md'
+                                                : 'text-gray-700 hover:bg-gray-50'
+                                                }`}
                                             style={{ animationDelay: `${index * 50}ms`, animationDuration: '300ms' }}
                                         >
                                             <Icon size={20} />

@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { X, MapPin, Calendar, Ticket, Minus, Plus } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 
 const TicketModal = ({ isOpen, onClose, event }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { isAuthenticated } = useAuth();
+    const { addToCart } = useCart();
+
     const [selectedTickets, setSelectedTickets] = useState({});
     const [isAnimating, setIsAnimating] = useState(false);
     const [shouldRender, setShouldRender] = useState(false);
@@ -55,21 +63,38 @@ const TicketModal = ({ isOpen, onClose, event }) => {
         }) + ', ' + event.time;
     };
 
+    const handleCheckout = () => {
+        if (!isAuthenticated()) {
+            // Save current page location and redirect to login
+            navigate('/signin', { state: { from: location.pathname } });
+            onClose();
+            return;
+        }
+
+        // Add to cart
+        addToCart(event, selectedTickets);
+
+        // Show success message (optional - could use a toast notification)
+        alert(`${getTotalTickets()} ticket(s) added to cart!`);
+
+        // Close modal and navigate to cart
+        onClose();
+        navigate('/cart');
+    };
+
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
             {/* Backdrop */}
             <div
-                className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-all duration-300 ${
-                    isAnimating ? 'opacity-100' : 'opacity-0'
-                }`}
+                className={`fixed inset-0 bg-black/50 backdrop-blur-xs transition-all duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'
+                    }`}
                 onClick={onClose}
             ></div>
 
             {/* Modal */}
             <div className="flex min-h-full items-center justify-center p-4">
-                <div className={`relative bg-white rounded-xl shadow-2xl w-full max-w-3xl transition-all duration-300 ${
-                    isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                }`}>
+                <div className={`relative bg-white rounded-xl shadow-2xl w-full max-w-3xl transition-all duration-300 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                    }`}>
                     {/* Compact Header */}
                     <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -110,13 +135,12 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                                     return (
                                         <div
                                             key={index}
-                                            className={`border-2 rounded-lg p-3.5 transition-all ${
-                                                isAvailable
-                                                    ? quantity > 0 
+                                            className={`border-2 rounded-lg p-3.5 transition-all ${isAvailable
+                                                    ? quantity > 0
                                                         ? 'border-[var(--brand-primary)] bg-blue-50'
                                                         : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                                                     : 'border-gray-200 bg-gray-50 opacity-60'
-                                            }`}
+                                                }`}
                                         >
                                             <div className="flex items-start justify-between gap-4">
                                                 {/* Ticket Info */}
@@ -137,7 +161,7 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                                                     {ticket.description && (
                                                         <p className="text-xs text-gray-600 mb-2 line-clamp-1">{ticket.description}</p>
                                                     )}
-                                                    
+
                                                     {/* Compact Info Tags */}
                                                     <div className="flex flex-wrap gap-1.5">
                                                         {ticket.availableQuantity && (
@@ -165,11 +189,10 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                                                             <button
                                                                 onClick={() => handleQuantityChange(ticket.name, -1)}
                                                                 disabled={quantity === 0}
-                                                                className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all ${
-                                                                    quantity === 0
+                                                                className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all ${quantity === 0
                                                                         ? 'border-gray-200 text-gray-300 cursor-not-allowed'
                                                                         : 'border-[var(--brand-primary)] text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-white active:scale-90'
-                                                                }`}
+                                                                    }`}
                                                             >
                                                                 <Minus size={14} />
                                                             </button>
@@ -225,14 +248,14 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                                     Cancel
                                 </button>
                                 <button
+                                    onClick={handleCheckout}
                                     disabled={getTotalTickets() === 0}
-                                    className={`px-6 py-2.5 font-semibold text-sm rounded-lg transition-all ${
-                                        getTotalTickets() === 0
+                                    className={`px-6 py-2.5 font-semibold text-sm rounded-lg transition-all ${getTotalTickets() === 0
                                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                             : 'bg-[var(--brand-primary)] text-white hover:opacity-90 shadow-md hover:shadow-lg active:scale-95'
-                                    }`}
+                                        }`}
                                 >
-                                    Proceed to Checkout
+                                    {isAuthenticated() ? 'Add to Cart' : 'Sign In to Continue'}
                                 </button>
                             </div>
                         </div>
