@@ -14,6 +14,8 @@ import {
     Users,
     TicketCheck,
     TrendingUp,
+    LayoutGrid,
+    List,
     ChevronDown
 } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
@@ -25,6 +27,7 @@ const Events = () => {
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
     // Stats
     const stats = [
@@ -145,6 +148,220 @@ const Events = () => {
         setOpenDropdown(openDropdown === id ? null : id);
     };
 
+    // Grid View Component
+    const GridView = () => (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredEvents.map((event) => (
+                <Card key={event.id} className="overflow-hidden group">
+                    {/* Event Image */}
+                    <div className="relative h-48 overflow-hidden">
+                        <img
+                            src={event.image}
+                            alt={event.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-3 left-3 flex gap-2">
+                            <Badge variant={getStatusStyle(event.status)}>
+                                {event.status}
+                            </Badge>
+                            <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-gray-700">
+                                {event.category}
+                            </Badge>
+                        </div>
+                        {/* Actions Dropdown */}
+                        <div className="absolute top-3 right-3">
+                            <div className="relative">
+                                <button
+                                    onClick={() => toggleDropdown(event.id)}
+                                    className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                                >
+                                    <MoreVertical size={16} className="text-gray-700" />
+                                </button>
+                                {openDropdown === event.id && (
+                                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                            <Eye size={14} />
+                                            View Details
+                                        </button>
+                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                            <Edit size={14} />
+                                            Edit Event
+                                        </button>
+                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                            <Copy size={14} />
+                                            Duplicate
+                                        </button>
+                                        <hr className="my-1" />
+                                        <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                            <Trash2 size={14} />
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Event Content */}
+                    <CardContent className="p-4">
+                        <h3 className="font-semibold text-gray-900 group-hover:text-(--brand-primary) transition-colors line-clamp-1">
+                            {event.name}
+                        </h3>
+
+                        <div className="mt-3 space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <Calendar size={14} />
+                                <span>{event.date} at {event.time}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <MapPin size={14} />
+                                <span className="truncate">{event.location}</span>
+                            </div>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-1 text-sm text-gray-600">
+                                    <Users size={14} />
+                                    <span>{event.ticketsSold}/{event.totalTickets} sold</span>
+                                </div>
+                                <span className="text-sm font-semibold text-(--brand-primary)">
+                                    ${event.revenue.toLocaleString()}
+                                </span>
+                            </div>
+                            {/* Progress Bar */}
+                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-(--brand-primary) rounded-full transition-all"
+                                    style={{ width: `${(event.ticketsSold / event.totalTickets) * 100}%` }}
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
+
+    // Table/List View Component
+    const ListView = () => (
+        <Card>
+            <div className="overflow-x-auto">
+                <table className="w-full table-fixed">
+                    <thead>
+                        <tr className="border-b border-gray-100">
+                            <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[210px]">Event</th>
+                            <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[120px]">Date & Time</th>
+                            <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[120px]">Location</th>
+                            <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[100px]">Status</th>
+                            <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[100px]">Tickets</th>
+                            <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[100px]">Revenue</th>
+                            <th className="text-right py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[60px]">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredEvents.map((event) => (
+                            <tr key={event.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors group">
+                                {/* Event */}
+                                <td className="py-4 px-4">
+                                    <div className="flex items-center gap-3">
+                                        <img
+                                            src={event.image}
+                                            alt={event.name}
+                                            className="w-10 h-10 rounded-lg object-cover shrink-0"
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-medium text-gray-900 truncate group-hover:text-(--brand-primary) transition-colors" title={event.name}>
+                                                {event.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">{event.category}</p>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {/* Date & Time */}
+                                <td className="py-4 px-4">
+                                    <p className="text-sm text-gray-900 whitespace-nowrap">{event.date}</p>
+                                    <p className="text-xs text-gray-500">{event.time}</p>
+                                </td>
+
+                                {/* Location */}
+                                <td className="py-4 px-4">
+                                    <p className="text-sm text-gray-600 truncate" title={event.location}>{event.location}</p>
+                                </td>
+
+                                {/* Status */}
+                                <td className="py-4 px-4">
+                                    <Badge variant={getStatusStyle(event.status)}>
+                                        {event.status}
+                                    </Badge>
+                                </td>
+
+                                {/* Tickets */}
+                                <td className="py-4 px-4">
+                                    <div className="space-y-1">
+                                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-(--brand-primary) rounded-full"
+                                                style={{ width: `${(event.ticketsSold / event.totalTickets) * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-sm text-gray-900">
+                                            {event.ticketsSold}/{event.totalTickets}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                {/* Revenue */}
+                                <td className="py-4 px-4">
+                                    <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                        ${event.revenue.toLocaleString()}
+                                    </span>
+                                </td>
+
+                                {/* Actions */}
+                                <td className="py-4 px-4">
+                                    <div className="flex items-center justify-end">
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => toggleDropdown(`list-${event.id}`)}
+                                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                            >
+                                                <MoreVertical size={16} />
+                                            </button>
+                                            {openDropdown === `list-${event.id}` && (
+                                                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                                                    <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                                        <Eye size={14} />
+                                                        View Details
+                                                    </button>
+                                                    <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                                        <Edit size={14} />
+                                                        Edit Event
+                                                    </button>
+                                                    <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                                        <Copy size={14} />
+                                                        Duplicate
+                                                    </button>
+                                                    <hr className="my-1" />
+                                                    <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                                        <Trash2 size={14} />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </Card>
+    );
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -214,7 +431,7 @@ const Events = () => {
                             ))}
                         </div>
 
-                        {/* Search & Filter */}
+                        {/* Search, View Toggle & Filter */}
                         <div className="flex gap-2">
                             <div className="relative flex-1 lg:w-64">
                                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -226,6 +443,35 @@ const Events = () => {
                                     className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
                                 />
                             </div>
+
+                            {/* View Toggle */}
+                            <div className="flex bg-gray-100 rounded-lg p-0.5">
+                                <button
+                                    onClick={() => setViewMode('grid')}
+                                    className={cn(
+                                        "p-2 rounded-md transition-all",
+                                        viewMode === 'grid'
+                                            ? "bg-white text-gray-900 shadow-sm"
+                                            : "text-gray-500 hover:text-gray-700"
+                                    )}
+                                    title="Grid view"
+                                >
+                                    <LayoutGrid size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={cn(
+                                        "p-2 rounded-md transition-all",
+                                        viewMode === 'list'
+                                            ? "bg-white text-gray-900 shadow-sm"
+                                            : "text-gray-500 hover:text-gray-700"
+                                    )}
+                                    title="List view"
+                                >
+                                    <List size={18} />
+                                </button>
+                            </div>
+
                             <Button variant="outline" size="icon">
                                 <Filter size={16} />
                             </Button>
@@ -234,99 +480,8 @@ const Events = () => {
                 </CardContent>
             </Card>
 
-            {/* Events Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredEvents.map((event) => (
-                    <Card key={event.id} className="overflow-hidden group">
-                        {/* Event Image */}
-                        <div className="relative h-48 overflow-hidden">
-                            <img
-                                src={event.image}
-                                alt={event.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute top-3 left-3 flex gap-2">
-                                <Badge variant={getStatusStyle(event.status)}>
-                                    {event.status}
-                                </Badge>
-                                <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-gray-700">
-                                    {event.category}
-                                </Badge>
-                            </div>
-                            {/* Actions Dropdown */}
-                            <div className="absolute top-3 right-3">
-                                <div className="relative">
-                                    <button
-                                        onClick={() => toggleDropdown(event.id)}
-                                        className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
-                                    >
-                                        <MoreVertical size={16} className="text-gray-700" />
-                                    </button>
-                                    {openDropdown === event.id && (
-                                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                                <Eye size={14} />
-                                                View Details
-                                            </button>
-                                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                                <Edit size={14} />
-                                                Edit Event
-                                            </button>
-                                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                                <Copy size={14} />
-                                                Duplicate
-                                            </button>
-                                            <hr className="my-1" />
-                                            <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                                <Trash2 size={14} />
-                                                Delete
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Event Content */}
-                        <CardContent className="p-4">
-                            <h3 className="font-semibold text-gray-900 group-hover:text-(--brand-primary) transition-colors line-clamp-1">
-                                {event.name}
-                            </h3>
-
-                            <div className="mt-3 space-y-2">
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                    <Calendar size={14} />
-                                    <span>{event.date} at {event.time}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                    <MapPin size={14} />
-                                    <span className="truncate">{event.location}</span>
-                                </div>
-                            </div>
-
-                            {/* Stats */}
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                                        <Users size={14} />
-                                        <span>{event.ticketsSold}/{event.totalTickets} sold</span>
-                                    </div>
-                                    <span className="text-sm font-semibold text-(--brand-primary)">
-                                        ${event.revenue.toLocaleString()}
-                                    </span>
-                                </div>
-                                {/* Progress Bar */}
-                                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-(--brand-primary) rounded-full transition-all"
-                                        style={{ width: `${(event.ticketsSold / event.totalTickets) * 100}%` }}
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+            {/* Events View */}
+            {viewMode === 'grid' ? <GridView /> : <ListView />}
 
             {/* Empty State */}
             {filteredEvents.length === 0 && (

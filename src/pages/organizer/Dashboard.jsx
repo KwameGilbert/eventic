@@ -182,14 +182,14 @@ const Dashboard = () => {
             <div className="grid grid-cols-12 gap-6">
                 {/* Left Column */}
                 <div className="col-span-12 xl:col-span-8 space-y-6">
-                    {/* Stats Row */}
+                    {/* Stats */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {stats.map((stat, index) => (
                             <StatCard key={index} {...stat} />
                         ))}
                     </div>
 
-                    {/* Charts Row */}
+                    {/* Charts */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <TicketSalesDonut data={ticketSalesData} />
                         <SalesRevenueChart weeklyData={weeklyRevenueData} monthlyData={monthlyRevenueData} />

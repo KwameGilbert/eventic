@@ -11,9 +11,9 @@ const StatCard = ({ label, value, change, icon: Icon, color = '#f97316', trend =
     return (
         <Card className="hover:shadow-md transition-all duration-200">
             <CardContent className="p-5">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                     {/* Ring Progress Indicator using Recharts */}
-                    <div className="relative w-16 h-16 shrink-0">
+                    <div className="relative w-12 h-12 shrink-0">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadialBarChart
                                 cx="50%"
@@ -45,8 +45,8 @@ const StatCard = ({ label, value, change, icon: Icon, color = '#f97316', trend =
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-500 font-medium">{label}</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
-                        {change && (
+                        <p className="text-xl font-bold text-gray-900 mt-0.5">{value}</p>
+                        {/* {change && (
                             <p className={cn(
                                 "text-xs font-medium mt-1 flex items-center gap-1",
                                 trend === 'up' ? 'text-green-600' : 'text-red-500'
@@ -57,7 +57,7 @@ const StatCard = ({ label, value, change, icon: Icon, color = '#f97316', trend =
                                 )}>↑</span>
                                 {change} vs last month
                             </p>
-                        )}
+                        )} */}
                     </div>
                 </div>
             </CardContent>
