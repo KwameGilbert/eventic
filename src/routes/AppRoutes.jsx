@@ -12,6 +12,8 @@ import NotFound from "../pages/NotFound";
 import Layout from "../components/layout/Layout";
 import MyTickets from "../pages/MyTickets";
 import HowItWorks from "../pages/HowItWorks";
+import Settings from "../pages/Settings";
+import ChangePassword from "../pages/ChangePassword";
 
 const AppRoutes = () => {
     return (
@@ -27,6 +29,8 @@ const AppRoutes = () => {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/my-tickets" element={<MyTickets />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </Layout>
