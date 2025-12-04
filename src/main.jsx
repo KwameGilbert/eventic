@@ -5,13 +5,16 @@ import "./index.css"
 import AppRoutes from "./routes/AppRoutes"
 import { AuthProvider } from "./context/AuthContext"
 import { CartProvider } from "./context/CartContext"
+import { TicketProvider } from "./context/TicketContext"
 
 const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <AppRoutes />
+          <TicketProvider>
+            <AppRoutes />
+          </TicketProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

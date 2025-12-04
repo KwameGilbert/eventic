@@ -10,6 +10,8 @@ import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
 import NotFound from "../pages/NotFound";
 import Layout from "../components/layout/Layout";
+import MyTickets from "../pages/MyTickets";
+import HowItWorks from "../pages/HowItWorks";
 
 const AppRoutes = () => {
     return (
@@ -23,6 +25,8 @@ const AppRoutes = () => {
                 <Route path="/signup/organizer" element={<SignUpOrganizer />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/my-tickets" element={<MyTickets />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </Layout>

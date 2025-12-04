@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Home, ChevronRight, Clock, CreditCard, Building, MapPin, Calendar, User, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useTickets } from '../context/TicketContext';
 
 const Checkout = () => {
     const navigate = useNavigate();
-    const { cartItems, getCartTotal } = useCart();
+    const { cartItems, getCartTotal, clearCart } = useCart();
     const { isAuthenticated, user } = useAuth();
+    const { addTickets } = useTickets();
     const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes in seconds
     const [paymentMethod, setPaymentMethod] = useState('paypal');
 
@@ -57,6 +59,33 @@ const Checkout = () => {
         });
     };
 
+    const handlePayment = () => {
+        // Process payment (mock)
+        // Create ticket objects from cart items
+        const newTickets = cartItems.flatMap(item => {
+            return Object.entries(item.tickets).map(([ticketName, qty]) => {
+                if (qty === 0) return null;
+                const ticketType = item.event.ticketTypes?.find(t => t.name === ticketName);
+
+                // Create individual tickets based on quantity
+                return Array(qty).fill().map(() => ({
+                    id: Math.random().toString(36).substr(2, 9),
+                    eventId: item.event.id,
+                    event: item.event,
+                    ticketName: ticketName,
+                    price: ticketType?.price || 0,
+                    purchaseDate: new Date().toISOString(),
+                    status: 'valid',
+                    qrCode: Math.random().toString(36).substr(2, 9) // Mock QR code
+                }));
+            }).filter(Boolean).flat();
+        });
+
+        addTickets(newTickets);
+        clearCart();
+        navigate('/my-tickets');
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
             {/* Mobile Sticky Timer */}
@@ -71,13 +100,13 @@ const Checkout = () => {
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900">Checkout</h1>
                         <nav className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
-                            <Link to="/" className="hover:text-[var(--brand-primary)] flex items-center gap-1">
+                            <Link to="/" className="hover:text-(--brand-primary) flex items-center gap-1">
                                 <Home size={16} />
                             </Link>
                             <ChevronRight size={16} />
                             <span>Dashboard</span>
                             <ChevronRight size={16} />
-                            <Link to="/cart" className="hover:text-[var(--brand-primary)]">My cart</Link>
+                            <Link to="/cart" className="hover:text-(--brand-primary)">My cart</Link>
                             <ChevronRight size={16} />
                             <span className="text-gray-900 font-medium">Checkout</span>
                         </nav>
@@ -122,7 +151,7 @@ const Checkout = () => {
                                                             />
                                                             <div className="flex-1">
                                                                 <h3 className="font-bold text-gray-900 mb-1 line-clamp-1">{item.event.title}</h3>
-                                                                <p className="text-sm text-[var(--brand-primary)] font-medium mb-2">{ticketName}</p>
+                                                                <p className="text-sm text-(--brand-primary) font-medium mb-2">{ticketName}</p>
 
                                                                 {/* Mobile Price/Qty Row */}
                                                                 <div className="flex md:hidden items-center justify-between mt-2 bg-gray-50 p-2 rounded-lg">
@@ -149,7 +178,7 @@ const Checkout = () => {
                                                     <div className="hidden md:block col-span-2 text-center py-2 text-gray-900">
                                                         {qty}
                                                     </div>
-                                                    <div className="hidden md:block col-span-2 text-right py-2 font-bold text-[var(--brand-primary)]">
+                                                    <div className="hidden md:block col-span-2 text-right py-2 font-bold text-(--brand-primary)">
                                                         ${price * qty}
                                                     </div>
                                                 </div>
@@ -172,7 +201,7 @@ const Checkout = () => {
                                         <input
                                             type="text"
                                             defaultValue={user?.firstName || ''}
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="John"
                                         />
                                     </div>
@@ -181,7 +210,7 @@ const Checkout = () => {
                                         <input
                                             type="text"
                                             defaultValue={user?.lastName || ''}
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="Doe"
                                         />
                                     </div>
@@ -190,13 +219,13 @@ const Checkout = () => {
                                         <input
                                             type="email"
                                             defaultValue={user?.email || ''}
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="yourmail@gmail.com"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Country*</label>
-                                        <select className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none">
+                                        <select className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none">
                                             <option>United States</option>
                                             <option>United Kingdom</option>
                                             <option>Ghana</option>
@@ -206,7 +235,7 @@ const Checkout = () => {
                                         <label className="block text-sm font-bold text-gray-700 mb-2">State*</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="State"
                                         />
                                     </div>
@@ -214,7 +243,7 @@ const Checkout = () => {
                                         <label className="block text-sm font-bold text-gray-700 mb-2">City*</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="City"
                                         />
                                     </div>
@@ -222,7 +251,7 @@ const Checkout = () => {
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Postal code*</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="Postal code"
                                         />
                                     </div>
@@ -230,7 +259,7 @@ const Checkout = () => {
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Street*</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="Street address"
                                         />
                                     </div>
@@ -238,7 +267,7 @@ const Checkout = () => {
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Street 2</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
                                             placeholder="Apartment, suite, etc."
                                         />
                                     </div>
@@ -263,8 +292,8 @@ const Checkout = () => {
                                         <label
                                             key={method.id}
                                             className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === method.id
-                                                    ? 'border-[var(--brand-primary)] bg-blue-50 ring-1 ring-[var(--brand-primary)]'
-                                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                ? 'border-(--brand-primary) bg-blue-50 ring-1 ring-(--brand-primary)'
+                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <div className="relative flex items-center justify-center">
@@ -274,10 +303,10 @@ const Checkout = () => {
                                                     value={method.id}
                                                     checked={paymentMethod === method.id}
                                                     onChange={(e) => setPaymentMethod(e.target.value)}
-                                                    className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-[var(--brand-primary)] checked:border-4 transition-all"
+                                                    className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-(--brand-primary) checked:border-4 transition-all"
                                                 />
                                             </div>
-                                            <span className={`font-bold ${paymentMethod === method.id ? 'text-[var(--brand-primary)]' : 'text-gray-700'}`}>
+                                            <span className={`font-bold ${paymentMethod === method.id ? 'text-(--brand-primary)' : 'text-gray-700'}`}>
                                                 {method.label}
                                             </span>
                                         </label>
@@ -286,7 +315,10 @@ const Checkout = () => {
                             </div>
                         </div>
 
-                        <button className="w-full bg-[var(--brand-primary)] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[var(--brand-primary)]/30 flex items-center justify-center gap-2 text-lg uppercase transform hover:-translate-y-0.5">
+                        <button
+                            onClick={handlePayment}
+                            className="w-full bg-(--brand-primary) text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-(--brand-primary)/30 flex items-center justify-center gap-2 text-lg uppercase transform hover:-translate-y-0.5"
+                        >
                             <CreditCard size={24} />
                             Pay Now
                         </button>
@@ -315,7 +347,7 @@ const Checkout = () => {
                                     </div>
                                     <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
                                         <span className="text-xl font-bold text-gray-900">Total</span>
-                                        <span className="text-2xl font-bold text-[var(--brand-primary)]">${total}</span>
+                                        <span className="text-2xl font-bold text-(--brand-primary)">${total}</span>
                                     </div>
                                 </div>
 
