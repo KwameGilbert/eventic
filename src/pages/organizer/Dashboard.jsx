@@ -9,6 +9,7 @@ const Dashboard = () => {
         { label: 'Total Revenue', value: '$45,678', icon: DollarSign, color: 'bg-orange-500' },
     ];
 
+    
     return (
         <div className="space-y-8">
             {/* Header */}
