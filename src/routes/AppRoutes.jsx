@@ -16,6 +16,7 @@ import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
 import Dashboard from "../pages/organizer/Dashboard";
+import Events from "../pages/organizer/Events";
 
 const AppRoutes = () => {
     return (
@@ -40,7 +41,8 @@ const AppRoutes = () => {
             <Route path="/organizer" element={<DashboardLayout />}>
                 <Route index element={<Navigate to="/organizer/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
-                {/* Add other organizer routes here as they are created */}
+                <Route path="events" element={<Events />} />
+               
             </Route>
 
             <Route path="*" element={<Layout><NotFound /></Layout>} />
