@@ -29,7 +29,7 @@ const NavBar = () => {
     const userMenuItems = [
         { path: '/my-tickets', label: 'My Tickets', icon: Ticket },
         { path: '/cart', label: `Cart (${cartCount})`, icon: ShoppingCart },
-        { path: '/favorites', label: 'My Favorites', icon: Heart },
+        // { path: '/favorites', label: 'My Favorites', icon: Heart },
         { path: '/reviews', label: 'My Reviews', icon: Star },
         { path: '/following', label: 'Following', icon: Users },
         { path: '/settings', label: 'Settings', icon: Settings },
