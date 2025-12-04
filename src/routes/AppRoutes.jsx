@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
 import BrowseEvents from "../pages/BrowseEvents";
 import EventDetails from "../pages/EventDetails";
@@ -14,11 +14,14 @@ import MyTickets from "../pages/MyTickets";
 import HowItWorks from "../pages/HowItWorks";
 import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
+import DashboardLayout from "../components/organizer/layout/DashboardLayout";
+import Dashboard from "../pages/organizer/Dashboard";
 
 const AppRoutes = () => {
     return (
-        <Layout>
-            <Routes>
+        <Routes>
+            {/* Public Routes with Main Layout */}
+            <Route element={<Layout><Outlet /></Layout>}>
                 <Route path="/" element={<Home />} />
                 <Route path="/events" element={<BrowseEvents />} />
                 <Route path="/event/:slug" element={<EventDetails />} />
@@ -31,9 +34,17 @@ const AppRoutes = () => {
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/change-password" element={<ChangePassword />} />
-                <Route path="*" element={<NotFound />} />
-            </Routes>
-        </Layout>
+            </Route>
+
+            {/* Organizer Dashboard Routes */}
+            <Route path="/organizer" element={<DashboardLayout />}>
+                <Route index element={<Navigate to="/organizer/dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                {/* Add other organizer routes here as they are created */}
+            </Route>
+
+            <Route path="*" element={<Layout><NotFound /></Layout>} />
+        </Routes>
     )
 }
 
