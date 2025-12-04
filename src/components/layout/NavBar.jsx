@@ -29,8 +29,9 @@ const NavBar = () => {
     return (
         <>
             {/* Top Bar */}
-            <div className="z-50 bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="sticky top-0 z-50">
+                <div className="bg-white border-b border-gray-200">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
                     <div className="flex items-center justify-between gap-4">
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity">
@@ -47,7 +48,7 @@ const NavBar = () => {
                                     placeholder="Search for events"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all"
+                                    className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all"
                                 />
                                 <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                                     <Search size={20} />
@@ -66,7 +67,7 @@ const NavBar = () => {
                                     >
                                         <ShoppingCart size={24} />
                                         {cartCount > 0 && (
-                                            <span className="absolute -top-2 -right-2 bg-[var(--brand-primary)] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                            <span className="absolute -top-2 -right-2 bg-(--brand-primary) text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                                                 {cartCount}
                                             </span>
                                         )}
@@ -147,7 +148,7 @@ const NavBar = () => {
                                                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                                                 >
                                                     <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
-                                                        <Calendar size={16} className="text-[var(--brand-primary)]" />
+                                                        <Calendar size={16} className="text-(--brand-primary)" />
                                                     </div>
                                                     <div className="text-left">
                                                         <div className="font-semibold text-sm">Sign up as Organizer</div>
@@ -172,7 +173,7 @@ const NavBar = () => {
                                     >
                                         <ShoppingCart size={20} className="text-gray-700" />
                                         {cartCount > 0 && (
-                                            <span className="absolute -top-1 -right-1 bg-[var(--brand-primary)] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                            <span className="absolute -top-1 -right-1 bg-(--brand-primary) text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                                                 {cartCount}
                                             </span>
                                         )}
@@ -250,7 +251,7 @@ const NavBar = () => {
                                     <div className="relative">
                                         <button
                                             onClick={() => setIsMobileSignUpOpen(!isMobileSignUpOpen)}
-                                            className="w-10 h-10 bg-[var(--brand-primary)] rounded-full flex items-center justify-center hover:opacity-90 transition-all hover:scale-105 active:scale-95"
+                                            className="w-10 h-10 bg-(--brand-primary) rounded-full flex items-center justify-center hover:opacity-90 transition-all hover:scale-105 active:scale-95"
                                         >
                                             <UserPlus size={20} className="text-white" />
                                         </button>
@@ -286,7 +287,7 @@ const NavBar = () => {
                                                             className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                                                         >
                                                             <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
-                                                                <Calendar size={16} className="text-[var(--brand-primary)]" />
+                                                                <Calendar size={16} className="text-(--brand-primary)" />
                                                             </div>
                                                             <div className="text-left">
                                                                 <div className="font-semibold text-sm">Sign up as Organizer</div>
@@ -312,22 +313,61 @@ const NavBar = () => {
                         </div>
                     </div>
 
-                    {/* Mobile Search Bar */}
-                    <div className="md:hidden mt-3">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search for events"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent transition-all"
-                            />
-                            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                <Search size={20} />
-                            </button>
-                        </div>
+
                     </div>
                 </div>
+
+                {/* Mobile Menu Drawer */}
+                {isMobileMenuOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className="lg:hidden fixed inset-0 bg-black/50 -z-10 animate-in fade-in duration-300"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        />
+
+                        {/* Mobile Menu */}
+                        <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-lg">
+                            <div className="overflow-y-auto max-h-[calc(100vh-180px)] animate-in slide-in-from-top duration-300">
+                                <div className="p-6 space-y-2">
+                                    {navItems.map((item, index) => {
+                                        const Icon = item.icon;
+
+                                        if (item.hasDropdown) {
+                                            return (
+                                                <div
+                                                    key={item.path}
+                                                    className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3 animate-in slide-in-from-left duration-300"
+                                                    style={{ animationDelay: `${index * 50}ms` }}
+                                                >
+                                                    <Icon size={20} />
+                                                    <span>{item.label}</span>
+                                                    <ChevronDown size={16} className="ml-auto" />
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <Link
+                                                key={item.path}
+                                                to={item.path}
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 animate-in slide-in-from-left ${item.isActive
+                                                    ? 'bg-(--brand-primary) text-white shadow-md'
+                                                    : 'text-gray-700 hover:bg-gray-50'
+                                                    }`}
+                                                style={{ animationDelay: `${index * 50}ms`, animationDuration: '300ms' }}
+                                            >
+                                                <Icon size={20} />
+                                                <span>{item.label}</span>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Desktop Navigation - only on large screens */}
@@ -365,7 +405,7 @@ const NavBar = () => {
                                                 <div className="border-t border-gray-100 mt-2 pt-2">
                                                     <Link
                                                         to="/categories"
-                                                        className="flex items-center justify-center gap-2 px-4 py-2.5 text-[var(--brand-primary)] hover:bg-gray-50 transition-colors text-sm font-semibold"
+                                                        className="flex items-center justify-center gap-2 px-4 py-2.5 text-(--brand-primary) hover:bg-gray-50 transition-colors text-sm font-semibold"
                                                     >
                                                         View All Categories →
                                                     </Link>
@@ -381,7 +421,7 @@ const NavBar = () => {
                                     key={item.path}
                                     to={item.path}
                                     className={`flex items-center gap-2 px-4 py-3 font-medium transition-all hover:scale-105 ${item.isActive
-                                        ? 'bg-[var(--brand-primary)] text-white hover:opacity-90'
+                                        ? 'bg-(--brand-primary) text-white hover:opacity-90'
                                         : 'text-gray-700 hover:bg-gray-50'
                                         }`}
                                 >
@@ -394,57 +434,7 @@ const NavBar = () => {
                 </div>
             </nav>
 
-            {/* Mobile Menu Drawer - mobile and tablet */}
-            {isMobileMenuOpen && (
-                <>
-                    {/* Backdrop - positioned below navbar */}
-                    <div
-                        className="lg:hidden fixed inset-0 bg-black/50 z-40 animate-in fade-in duration-300"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                    />
 
-                    {/* Mobile Menu - slides down below navbar */}
-                    <div className="lg:hidden relative z-50 bg-white border-b border-gray-200">
-                        <div className="overflow-y-auto max-h-[calc(100vh-180px)] animate-in slide-in-from-top duration-300">
-                            <div className="p-6 space-y-2">
-                                {navItems.map((item, index) => {
-                                    const Icon = item.icon;
-
-                                    if (item.hasDropdown) {
-                                        return (
-                                            <div
-                                                key={item.path}
-                                                className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3 animate-in slide-in-from-left duration-300"
-                                                style={{ animationDelay: `${index * 50}ms` }}
-                                            >
-                                                <Icon size={20} />
-                                                <span>{item.label}</span>
-                                                <ChevronDown size={16} className="ml-auto" />
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <Link
-                                            key={item.path}
-                                            to={item.path}
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 animate-in slide-in-from-left ${item.isActive
-                                                ? 'bg-[var(--brand-primary)] text-white shadow-md'
-                                                : 'text-gray-700 hover:bg-gray-50'
-                                                }`}
-                                            style={{ animationDelay: `${index * 50}ms`, animationDuration: '300ms' }}
-                                        >
-                                            <Icon size={20} />
-                                            <span>{item.label}</span>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
         </>
     );
 };
