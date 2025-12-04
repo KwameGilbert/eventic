@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut } from 'lucide-react';
+import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Heart, Star, Users, Settings, Lock } from 'lucide-react';
 import { categories } from '../../data/mockEvents';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -24,6 +24,16 @@ const NavBar = () => {
         { path: '/blog', label: 'Blog', icon: FileText },
         { path: '/my-tickets', label: 'My tickets', icon: Ticket },
         { path: '/add-event', label: 'Add my event', icon: Plus },
+    ];
+
+    const userMenuItems = [
+        { path: '/my-tickets', label: 'My Tickets', icon: Ticket },
+        { path: '/cart', label: `Cart (${cartCount})`, icon: ShoppingCart },
+        { path: '/favorites', label: 'My Favorites', icon: Heart },
+        { path: '/reviews', label: 'My Reviews', icon: Star },
+        { path: '/following', label: 'Following', icon: Users },
+        { path: '/settings', label: 'Settings', icon: Settings },
+        { path: '/change-password', label: 'Change Password', icon: Lock },
     ];
 
     return (
@@ -90,27 +100,23 @@ const NavBar = () => {
                                         {/* User Dropdown */}
                                         <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
                                             <div className="py-2">
-                                                <Link
-                                                    to="/my-tickets"
-                                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <Ticket size={16} />
-                                                    <span className="text-sm">My Tickets</span>
-                                                </Link>
-                                                <Link
-                                                    to="/cart"
-                                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <ShoppingCart size={16} />
-                                                    <span className="text-sm">Cart ({cartCount})</span>
-                                                </Link>
+                                                {userMenuItems.map((item) => (
+                                                    <Link
+                                                        key={item.path}
+                                                        to={item.path}
+                                                        className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <item.icon size={16} />
+                                                        <span className="text-sm">{item.label}</span>
+                                                    </Link>
+                                                ))}
                                                 <hr className="my-2" />
                                                 <button
                                                     onClick={logout}
                                                     className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
                                                 >
                                                     <LogOut size={16} />
-                                                    <span className="text-sm">Logout</span>
+                                                    <span className="text-sm">Sign Out</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -208,22 +214,17 @@ const NavBar = () => {
                                                             <p className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</p>
                                                             <p className="text-xs text-gray-500">{user?.email || ''}</p>
                                                         </div>
-                                                        <Link
-                                                            to="/my-tickets"
-                                                            onClick={() => setIsMobileSignUpOpen(false)}
-                                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                                                        >
-                                                            <Ticket size={18} />
-                                                            <span className="text-sm font-medium">My Tickets</span>
-                                                        </Link>
-                                                        <Link
-                                                            to="/cart"
-                                                            onClick={() => setIsMobileSignUpOpen(false)}
-                                                            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                                                        >
-                                                            <ShoppingCart size={18} />
-                                                            <span className="text-sm font-medium">Cart ({cartCount})</span>
-                                                        </Link>
+                                                        {userMenuItems.map((item) => (
+                                                            <Link
+                                                                key={item.path}
+                                                                to={item.path}
+                                                                onClick={() => setIsMobileSignUpOpen(false)}
+                                                                className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                            >
+                                                                <item.icon size={18} />
+                                                                <span className="text-sm font-medium">{item.label}</span>
+                                                            </Link>
+                                                        ))}
                                                         <hr className="my-2" />
                                                         <button
                                                             onClick={() => {
@@ -233,7 +234,7 @@ const NavBar = () => {
                                                             className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors"
                                                         >
                                                             <LogOut size={18} />
-                                                            <span className="text-sm font-medium">Logout</span>
+                                                            <span className="text-sm font-medium">Sign Out</span>
                                                         </button>
                                                     </div>
                                                 </div>
