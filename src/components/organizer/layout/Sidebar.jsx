@@ -32,7 +32,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
     return (
         <>
-            {/* Mobile Sidebar Overlay */}
+            
             {isSidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -71,11 +71,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                         </div>
                     </div>
 
-                    {/* Navigation */}
+                    
                     <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                         {navigation.map((item) => {
                             const Icon = item.icon;
-                            const isActive = location.pathname === item.href;
+                            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
                             return (
                                 <Link
                                     key={item.name}
@@ -96,7 +96,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                         })}
                     </nav>
 
-                    {/* Logout Button */}
+                    
                     <div className="p-4 border-t border-gray-200 shrink-0">
                         <button
                             onClick={handleLogout}

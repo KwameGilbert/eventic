@@ -17,6 +17,7 @@ import ChangePassword from "../pages/ChangePassword";
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
 import Dashboard from "../pages/organizer/Dashboard";
 import Events from "../pages/organizer/Events";
+import CreateEvent from "../pages/organizer/CreateEvent";
 
 const AppRoutes = () => {
     return (
@@ -42,7 +43,7 @@ const AppRoutes = () => {
                 <Route index element={<Navigate to="/organizer/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="events" element={<Events />} />
-               
+                <Route path="events/create" element={<CreateEvent />} />
             </Route>
 
             <Route path="*" element={<Layout><NotFound /></Layout>} />

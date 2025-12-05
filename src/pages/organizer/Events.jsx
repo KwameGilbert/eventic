@@ -370,10 +370,12 @@ const Events = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Events</h1>
                     <p className="text-gray-500 mt-1">Manage and monitor all your events</p>
                 </div>
-                <Button className="gap-2">
-                    <Plus size={18} />
-                    Create Event
-                </Button>
+                <Link to="/organizer/events/create">
+                    <Button className="gap-2">
+                        <Plus size={18} />
+                        Create Event
+                    </Button>
+                </Link>
             </div>
 
             {/* Stats */}
@@ -497,10 +499,12 @@ const Events = () => {
                                 : "Get started by creating your first event"
                             }
                         </p>
-                        <Button className="gap-2">
-                            <Plus size={18} />
-                            Create Event
-                        </Button>
+                        <Link to="/organizer/events/create">
+                            <Button className="gap-2">
+                                <Plus size={18} />
+                                Create Event
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
             )}
