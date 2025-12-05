@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
     Calendar,
-    Clock,
     MapPin,
     Image,
     Plus,
@@ -18,20 +17,21 @@ import {
     Globe,
     Phone,
     Video,
-    Link as LinkIcon,
     Facebook,
     Instagram,
     Twitter,
     Map,
-    Images
+    Images,
+    Save
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { cn } from '../../lib/utils';
 
-const CreateEvent = () => {
+const EditEvent = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
+    const [isLoading, setIsLoading] = useState(true);
 
     // Event form state
     const [eventData, setEventData] = useState({
@@ -54,20 +54,19 @@ const CreateEvent = () => {
         twitter: '',
         instagram: '',
         phone: '',
-        audience: ''
+        audience: '',
+        status: ''
     });
 
     // Tags state
     const [tags, setTags] = useState([]);
     const [tagInput, setTagInput] = useState('');
 
-    // Event photos state (multiple)
+    // Event photos state
     const [eventPhotos, setEventPhotos] = useState([]);
 
     // Tickets state
-    const [tickets, setTickets] = useState([
-        { id: 1, name: '', price: '', promoPrice: '', saleStartDate: '', saleEndDate: '', quantity: '', maxPerOrder: '', description: '' }
-    ]);
+    const [tickets, setTickets] = useState([]);
 
     // Categories
     const categories = [
@@ -92,6 +91,61 @@ const CreateEvent = () => {
         'Adults Only (18+)',
         'Adults Only (21+)',
     ];
+
+    // Status options
+    const statusOptions = [
+        'Draft',
+        'Published',
+        'Cancelled'
+    ];
+
+    // Load event data
+    useEffect(() => {
+        // Simulate API call to fetch event data
+        const mockEvent = {
+            id: parseInt(id),
+            name: 'Summer Music Festival 2024',
+            description: 'Join us for the biggest music festival of the summer! Featuring top artists from around the world, delicious food vendors, and an unforgettable atmosphere.',
+            category: 'Music',
+            audience: 'Everyone',
+            status: 'Published',
+            date: '2024-06-15',
+            startTime: '18:00',
+            endTime: '23:00',
+            venue: 'Central Park Amphitheater',
+            address: '123 Park Avenue',
+            city: 'New York',
+            country: 'United States',
+            mapsUrl: 'https://maps.google.com/?q=Central+Park',
+            mainImagePreview: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&h=400&fit=crop',
+            videoUrl: 'https://youtube.com/watch?v=example',
+            website: 'https://summerfest2024.com',
+            facebook: 'https://facebook.com/summerfest',
+            twitter: 'https://twitter.com/summerfest',
+            instagram: 'https://instagram.com/summerfest',
+            phone: '+1 234 567 8900',
+        };
+
+        const mockTags = ['music', 'festival', 'summer', 'outdoor', 'live'];
+
+        const mockPhotos = [
+            { id: 1, preview: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=200&fit=crop' },
+            { id: 2, preview: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=300&h=200&fit=crop' },
+        ];
+
+        const mockTickets = [
+            { id: 1, name: 'General Admission', price: '59', promoPrice: '49', saleStartDate: '2024-05-01', saleEndDate: '2024-05-15', quantity: '500', maxPerOrder: '10', description: 'Standard entry ticket' },
+            { id: 2, name: 'VIP Pass', price: '150', promoPrice: '', saleStartDate: '', saleEndDate: '', quantity: '100', maxPerOrder: '4', description: 'VIP access with exclusive perks' },
+        ];
+
+        setTimeout(() => {
+            setEventData(mockEvent);
+            setTags(mockTags);
+            setEventPhotos(mockPhotos);
+            setTickets(mockTickets);
+            setIsLoading(false);
+        }, 500);
+    }, [id]);
 
     // Handle event data change
     const handleEventChange = (e) => {
@@ -166,7 +220,7 @@ const CreateEvent = () => {
 
     // Add new ticket
     const addTicket = () => {
-        const newId = Math.max(...tickets.map(t => t.id)) + 1;
+        const newId = tickets.length > 0 ? Math.max(...tickets.map(t => t.id)) + 1 : 1;
         setTickets(prev => [...prev, { id: newId, name: '', price: '', promoPrice: '', saleStartDate: '', saleEndDate: '', quantity: '', maxPerOrder: '', description: '' }]);
     };
 
@@ -180,29 +234,53 @@ const CreateEvent = () => {
     // Handle form submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Event Data:', eventData);
+        console.log('Updated Event Data:', eventData);
         console.log('Tags:', tags);
         console.log('Photos:', eventPhotos);
         console.log('Tickets:', tickets);
-        navigate('/organizer/events');
+        // Navigate back to event view
+        navigate(`/organizer/events/${id}`);
     };
 
     // Calculate total tickets
     const totalTickets = tickets.reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0);
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-96">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-(--brand-primary)"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/organizer/events')}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-gray-600" />
-                </button>
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Create New Event</h1>
-                    <p className="text-gray-500 mt-1">Fill in the details to create your event</p>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(`/organizer/events/${id}`)}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                        <ArrowLeft size={20} className="text-gray-600" />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Edit Event</h1>
+                        <p className="text-gray-500 mt-1">Update your event details</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(`/organizer/events/${id}`)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSubmit} className="gap-2">
+                        <Save size={16} />
+                        Save Changes
+                    </Button>
                 </div>
             </div>
 
@@ -210,6 +288,41 @@ const CreateEvent = () => {
                 <div className="grid grid-cols-12 gap-6">
                     {/* Left Column - Event Details */}
                     <div className="col-span-12 lg:col-span-8 space-y-6">
+                        {/* Status */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Event Status</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex gap-3">
+                                    {statusOptions.map((status) => (
+                                        <label
+                                            key={status}
+                                            className={`
+                                                flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all
+                                                ${eventData.status === status
+                                                    ? 'border-(--brand-primary) bg-(--brand-primary)/5'
+                                                    : 'border-gray-200 hover:border-gray-300'
+                                                }
+                                            `}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="status"
+                                                value={status}
+                                                checked={eventData.status === status}
+                                                onChange={handleEventChange}
+                                                className="sr-only"
+                                            />
+                                            <span className={`font-medium ${eventData.status === status ? 'text-(--brand-primary)' : 'text-gray-700'}`}>
+                                                {status}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {/* Basic Information */}
                         <Card>
                             <CardHeader>
@@ -219,7 +332,6 @@ const CreateEvent = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {/* Event Name */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         Event Name *
@@ -235,7 +347,6 @@ const CreateEvent = () => {
                                     />
                                 </div>
 
-                                {/* Description */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         Description *
@@ -251,7 +362,6 @@ const CreateEvent = () => {
                                     />
                                 </div>
 
-                                {/* Category & Audience */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -323,7 +433,6 @@ const CreateEvent = () => {
                                             className="flex-1 min-w-[120px] border-none outline-none text-sm bg-transparent"
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1">Press Enter or comma to add a tag</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -469,7 +578,6 @@ const CreateEvent = () => {
                                         placeholder="https://maps.google.com/..."
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
                                     />
-                                    <p className="text-xs text-gray-400 mt-1">Paste a Google Maps link for attendees to find the venue</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -507,7 +615,6 @@ const CreateEvent = () => {
                                         <label className="flex flex-col items-center justify-center w-full max-w-md h-48 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-(--brand-primary) hover:bg-gray-50 transition-colors">
                                             <Upload size={32} className="text-gray-400 mb-2" />
                                             <span className="text-sm text-gray-500">Click to upload main image</span>
-                                            <span className="text-xs text-gray-400 mt-1">This will be the featured image</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -570,7 +677,6 @@ const CreateEvent = () => {
                                         placeholder="https://youtube.com/watch?v=..."
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
                                     />
-                                    <p className="text-xs text-gray-400 mt-1">YouTube or Vimeo link</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -777,7 +883,6 @@ const CreateEvent = () => {
                                                         className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
                                                     />
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-1">Limit per user/order</p>
                                             </div>
                                         </div>
 
@@ -828,7 +933,6 @@ const CreateEvent = () => {
                                                     />
                                                 </div>
                                             </div>
-                                            <p className="text-xs text-amber-700">During the sale period, the promotional price will be used instead of the regular price.</p>
                                         </div>
 
                                         <div>
@@ -854,15 +958,13 @@ const CreateEvent = () => {
                         </Card>
                     </div>
 
-                    {/* Right Column - Summary & Actions */}
+                    {/* Right Column - Summary */}
                     <div className="col-span-12 lg:col-span-4 space-y-6">
-                        {/* Preview Card */}
                         <Card className="sticky top-6">
                             <CardHeader>
-                                <CardTitle className="text-lg">Event Preview</CardTitle>
+                                <CardTitle className="text-lg">Event Summary</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {/* Main Image Preview */}
                                 {eventData.mainImagePreview ? (
                                     <img
                                         src={eventData.mainImagePreview}
@@ -875,8 +977,13 @@ const CreateEvent = () => {
                                     </div>
                                 )}
 
-                                {/* Summary */}
                                 <div className="space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Status</span>
+                                        <Badge variant={eventData.status === 'Published' ? 'success' : 'secondary'}>
+                                            {eventData.status || '—'}
+                                        </Badge>
+                                    </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Event Name</span>
                                         <span className="text-gray-900 font-medium truncate ml-4 max-w-[150px]">
@@ -890,23 +997,9 @@ const CreateEvent = () => {
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Audience</span>
-                                        <span className="text-gray-900 font-medium">
-                                            {eventData.audience || '—'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Date</span>
                                         <span className="text-gray-900 font-medium">
                                             {eventData.date || '—'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Time</span>
-                                        <span className="text-gray-900 font-medium">
-                                            {eventData.startTime && eventData.endTime
-                                                ? `${eventData.startTime} - ${eventData.endTime}`
-                                                : '—'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
@@ -917,15 +1010,7 @@ const CreateEvent = () => {
                                                 : '—'}
                                         </span>
                                     </div>
-                                    <hr className="my-2" />
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Tags</span>
-                                        <span className="text-gray-900 font-medium">{tags.length}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Photos</span>
-                                        <span className="text-gray-900 font-medium">{eventPhotos.length + (eventData.mainImage ? 1 : 0)}</span>
-                                    </div>
+                                    <hr />
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Ticket Types</span>
                                         <span className="text-gray-900 font-medium">{tickets.length}</span>
@@ -940,14 +1025,15 @@ const CreateEvent = () => {
 
                         {/* Actions */}
                         <div className="space-y-3 sticky top-[420px]">
-                            <Button type="submit" className="w-full gap-2">
-                                Create Event
+                            <Button onClick={handleSubmit} className="w-full gap-2">
+                                <Save size={16} />
+                                Save Changes
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => navigate('/organizer/events')}
+                                onClick={() => navigate(`/organizer/events/${id}`)}
                             >
                                 Cancel
                             </Button>
@@ -959,4 +1045,4 @@ const CreateEvent = () => {
     );
 };
 
-export default CreateEvent;
+export default EditEvent;

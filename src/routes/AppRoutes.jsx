@@ -14,10 +14,14 @@ import MyTickets from "../pages/MyTickets";
 import HowItWorks from "../pages/HowItWorks";
 import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
+
+
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
 import Dashboard from "../pages/organizer/Dashboard";
 import Events from "../pages/organizer/Events";
 import CreateEvent from "../pages/organizer/CreateEvent";
+import ViewEvent from "../pages/organizer/ViewEvent";
+import EditEvent from "../pages/organizer/EditEvent";
 
 const AppRoutes = () => {
     return (
@@ -44,6 +48,8 @@ const AppRoutes = () => {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="events" element={<Events />} />
                 <Route path="events/create" element={<CreateEvent />} />
+                <Route path="events/:id" element={<ViewEvent />} />
+                <Route path="events/:id/edit" element={<EditEvent />} />
             </Route>
 
             <Route path="*" element={<Layout><NotFound /></Layout>} />

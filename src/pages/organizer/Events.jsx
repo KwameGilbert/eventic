@@ -179,14 +179,20 @@ const Events = () => {
                                 </button>
                                 {openDropdown === event.id && (
                                     <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                        <Link
+                                            to={`/organizer/events/${event.id}`}
+                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                        >
                                             <Eye size={14} />
                                             View Details
-                                        </button>
-                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                        </Link>
+                                        <Link
+                                            to={`/organizer/events/${event.id}/edit`}
+                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                        >
                                             <Edit size={14} />
                                             Edit Event
-                                        </button>
+                                        </Link>
                                         <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                                             <Copy size={14} />
                                             Duplicate
@@ -332,14 +338,20 @@ const Events = () => {
                                             </button>
                                             {openDropdown === `list-${event.id}` && (
                                                 <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                                    <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                                    <Link
+                                                        to={`/organizer/events/${event.id}`}
+                                                        className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                    >
                                                         <Eye size={14} />
                                                         View Details
-                                                    </button>
-                                                    <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                                    </Link>
+                                                    <Link
+                                                        to={`/organizer/events/${event.id}/edit`}
+                                                        className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                    >
                                                         <Edit size={14} />
                                                         Edit Event
-                                                    </button>
+                                                    </Link>
                                                     <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                                                         <Copy size={14} />
                                                         Duplicate
