@@ -15,13 +15,15 @@ import HowItWorks from "../pages/HowItWorks";
 import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
 
-
+// Organizer Dashboard
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
 import Dashboard from "../pages/organizer/Dashboard";
 import Events from "../pages/organizer/Events";
 import CreateEvent from "../pages/organizer/CreateEvent";
 import ViewEvent from "../pages/organizer/ViewEvent";
 import EditEvent from "../pages/organizer/EditEvent";
+import Orders from "../pages/organizer/Orders";
+import ViewOrder from "../pages/organizer/ViewOrder";
 
 const AppRoutes = () => {
     return (
@@ -50,6 +52,8 @@ const AppRoutes = () => {
                 <Route path="events/create" element={<CreateEvent />} />
                 <Route path="events/:id" element={<ViewEvent />} />
                 <Route path="events/:id/edit" element={<EditEvent />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="orders/:id" element={<ViewOrder />} />
             </Route>
 
             <Route path="*" element={<Layout><NotFound /></Layout>} />
