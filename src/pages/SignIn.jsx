@@ -30,7 +30,7 @@ const SignIn = () => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-        // Clear error when user types
+        // Clear error when user types  
         if (error) setError('');
     };
 
