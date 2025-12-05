@@ -24,16 +24,27 @@ import {
     TicketCheck,
     TrendingUp,
     Eye,
-    ShoppingCart
+    ShoppingCart,
+    Search,
+    Mail,
+    CheckCircle,
+    XCircle,
+    Download,
+    UserCheck,
+    Filter,
+    ChevronDown
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
+import { cn } from '../../lib/utils';
 
 const ViewEvent = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [openDropdown, setOpenDropdown] = useState(false);
+    const [attendeeSearch, setAttendeeSearch] = useState('');
+    const [attendeeFilter, setAttendeeFilter] = useState('all');
 
     // Mock event data - would be fetched from API
     const event = {
@@ -80,6 +91,101 @@ const ViewEvent = () => {
         updatedAt: '2024-05-20'
     };
 
+    // Mock attendees data
+    const attendees = [
+        {
+            id: 1,
+            name: 'John Doe',
+            email: 'john.doe@email.com',
+            phone: '+1 234 567 8901',
+            avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=fff',
+            ticketType: 'VIP Pass',
+            ticketCount: 2,
+            orderId: 'ORD-001248',
+            orderDate: '2024-05-28',
+            checkedIn: true,
+            checkInTime: '2024-06-15T17:45:00'
+        },
+        {
+            id: 2,
+            name: 'Sarah Wilson',
+            email: 'sarah.w@email.com',
+            phone: '+1 234 567 8902',
+            avatar: 'https://ui-avatars.com/api/?name=Sarah+Wilson&background=22c55e&color=fff',
+            ticketType: 'General Admission',
+            ticketCount: 4,
+            orderId: 'ORD-001247',
+            orderDate: '2024-05-27',
+            checkedIn: true,
+            checkInTime: '2024-06-15T18:02:00'
+        },
+        {
+            id: 3,
+            name: 'Mike Johnson',
+            email: 'mike.j@email.com',
+            phone: '+1 234 567 8903',
+            avatar: 'https://ui-avatars.com/api/?name=Mike+Johnson&background=f59e0b&color=fff',
+            ticketType: 'General Admission',
+            ticketCount: 2,
+            orderId: 'ORD-001246',
+            orderDate: '2024-05-26',
+            checkedIn: false,
+            checkInTime: null
+        },
+        {
+            id: 4,
+            name: 'Emily Brown',
+            email: 'emily.b@email.com',
+            phone: '+1 234 567 8904',
+            avatar: 'https://ui-avatars.com/api/?name=Emily+Brown&background=8b5cf6&color=fff',
+            ticketType: 'Backstage Experience',
+            ticketCount: 2,
+            orderId: 'ORD-001245',
+            orderDate: '2024-05-25',
+            checkedIn: true,
+            checkInTime: '2024-06-15T17:30:00'
+        },
+        {
+            id: 5,
+            name: 'David Lee',
+            email: 'david.lee@email.com',
+            phone: '+1 234 567 8905',
+            avatar: 'https://ui-avatars.com/api/?name=David+Lee&background=ef4444&color=fff',
+            ticketType: 'VIP Pass',
+            ticketCount: 1,
+            orderId: 'ORD-001244',
+            orderDate: '2024-05-24',
+            checkedIn: false,
+            checkInTime: null
+        },
+        {
+            id: 6,
+            name: 'Lisa Chen',
+            email: 'lisa.c@email.com',
+            phone: '+1 234 567 8906',
+            avatar: 'https://ui-avatars.com/api/?name=Lisa+Chen&background=ec4899&color=fff',
+            ticketType: 'General Admission',
+            ticketCount: 3,
+            orderId: 'ORD-001243',
+            orderDate: '2024-05-23',
+            checkedIn: false,
+            checkInTime: null
+        },
+    ];
+
+    // Filter attendees
+    const filteredAttendees = attendees.filter(attendee => {
+        const matchesSearch = attendee.name.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
+            attendee.email.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
+            attendee.orderId.toLowerCase().includes(attendeeSearch.toLowerCase());
+        const matchesFilter = attendeeFilter === 'all' ||
+            (attendeeFilter === 'checked-in' && attendee.checkedIn) ||
+            (attendeeFilter === 'not-checked-in' && !attendee.checkedIn);
+        return matchesSearch && matchesFilter;
+    });
+
+    const checkedInCount = attendees.filter(a => a.checkedIn).length;
+
     const getStatusStyle = (status) => {
         switch (status.toLowerCase()) {
             case 'published': return 'success';
@@ -105,6 +211,15 @@ const ViewEvent = () => {
         const ampm = hour >= 12 ? 'PM' : 'AM';
         const hour12 = hour % 12 || 12;
         return `${hour12}:${minutes} ${ampm}`;
+    };
+
+    const formatDateTime = (dateStr) => {
+        return new Date(dateStr).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     return (
@@ -334,6 +449,121 @@ const ViewEvent = () => {
                                     </div>
                                 </div>
                             ))}
+                        </CardContent>
+                    </Card>
+
+                    {/* Attendees */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Users size={20} className="text-(--brand-primary)" />
+                                    Attendees ({attendees.length})
+                                </CardTitle>
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="success" className="gap-1">
+                                        <UserCheck size={12} />
+                                        {checkedInCount} checked in
+                                    </Badge>
+                                    <Button variant="outline" size="sm" className="gap-1">
+                                        <Download size={14} />
+                                        Export
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {/* Search and Filter */}
+                            <div className="flex gap-3 mb-4">
+                                <div className="flex-1 relative">
+                                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={attendeeSearch}
+                                        onChange={(e) => setAttendeeSearch(e.target.value)}
+                                        placeholder="Search attendees..."
+                                        className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <select
+                                        value={attendeeFilter}
+                                        onChange={(e) => setAttendeeFilter(e.target.value)}
+                                        className="appearance-none bg-white pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                    >
+                                        <option value="all">All</option>
+                                        <option value="checked-in">Checked In</option>
+                                        <option value="not-checked-in">Not Checked In</option>
+                                    </select>
+                                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
+
+                            {/* Attendees List */}
+                            <div className="space-y-3">
+                                {filteredAttendees.map((attendee) => (
+                                    <div
+                                        key={attendee.id}
+                                        className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        <img
+                                            src={attendee.avatar}
+                                            alt={attendee.name}
+                                            className="w-10 h-10 rounded-full"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-medium text-gray-900">{attendee.name}</p>
+                                                {attendee.checkedIn ? (
+                                                    <Badge variant="success" className="gap-1 text-xs py-0">
+                                                        <CheckCircle size={10} />
+                                                        Checked in
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="secondary" className="gap-1 text-xs py-0">
+                                                        <XCircle size={10} />
+                                                        Not checked in
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                                <span>{attendee.email}</span>
+                                                <span>•</span>
+                                                <span>{attendee.ticketType} × {attendee.ticketCount}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right text-xs text-gray-500">
+                                            <Link
+                                                to={`/organizer/orders/${attendee.orderId}`}
+                                                className="text-(--brand-primary) hover:underline font-medium"
+                                            >
+                                                {attendee.orderId}
+                                            </Link>
+                                            {attendee.checkedIn && attendee.checkInTime && (
+                                                <p className="mt-1">
+                                                    Checked in {formatDateTime(attendee.checkInTime)}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {filteredAttendees.length === 0 && (
+                                    <div className="text-center py-8">
+                                        <Users size={32} className="mx-auto text-gray-300 mb-2" />
+                                        <p className="text-gray-500 text-sm">No attendees found</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* View All Link */}
+                            {attendees.length > 6 && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+                                    <Button variant="outline" size="sm">
+                                        View All Attendees
+                                    </Button>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
