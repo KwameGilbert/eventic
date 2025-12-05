@@ -24,8 +24,10 @@ import ViewEvent from "../pages/organizer/ViewEvent";
 import EditEvent from "../pages/organizer/EditEvent";
 import Orders from "../pages/organizer/Orders";
 import ViewOrder from "../pages/organizer/ViewOrder";
+import Attendees from "../pages/organizer/Attendees";
 import Finance from "../pages/organizer/Finance";
 import FinanceEventDetails from "../pages/organizer/FinanceEventDetails";
+import OrganizerSettings from "../pages/organizer/OrganizerSettings";
 
 const AppRoutes = () => {
     return (
@@ -56,8 +58,11 @@ const AppRoutes = () => {
                 <Route path="events/:id/edit" element={<EditEvent />} />
                 <Route path="orders" element={<Orders />} />
                 <Route path="orders/:id" element={<ViewOrder />} />
+                <Route path="attendees" element={<Attendees />} />
                 <Route path="finance" element={<Finance />} />
                 <Route path="finance/events/:id" element={<FinanceEventDetails />} />
+                <Route path="settings" element={<OrganizerSettings />} />
+                <Route path="*" element={<Navigate to="/organizer/dashboard" replace />} />
             </Route>
 
             <Route path="*" element={<Layout><NotFound /></Layout>} />
