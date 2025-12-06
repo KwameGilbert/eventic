@@ -1,26 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, ChevronRight, Clock, CreditCard, Building, MapPin, Calendar, User, CheckCircle } from 'lucide-react';
+import { Home, ChevronRight, Clock, CreditCard, MapPin, Calendar, CheckCircle, Loader2, Shield, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { useTickets } from '../context/TicketContext';
+import orderService from '../services/orderService';
+
+// Paystack public key
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
 const Checkout = () => {
     const navigate = useNavigate();
     const { cartItems, getCartTotal, clearCart } = useCart();
-    const { isAuthenticated, user } = useAuth();
-    const { addTickets } = useTickets();
-    const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes in seconds
-    const [paymentMethod, setPaymentMethod] = useState('paypal');
+    const { user } = useAuth();
 
-    // Redirect if cart is empty or not authenticated
+    const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [paystackLoaded, setPaystackLoaded] = useState(false);
+    const [error, setError] = useState('');
+
+    // Billing form state
+    const [billingInfo, setBillingInfo] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+    });
+
+    // Initialize billing info from user data
     useEffect(() => {
-        if (!isAuthenticated()) {
-            navigate('/signin', { state: { from: '/checkout' } });
-        } else if (cartItems.length === 0) {
+        if (user) {
+            const nameParts = (user.name || '').split(' ');
+            setBillingInfo({
+                firstName: nameParts[0] || '',
+                lastName: nameParts.slice(1).join(' ') || '',
+                email: user.email || '',
+                phone: user.phone || '',
+            });
+        }
+    }, [user]);
+
+    // Load Paystack script
+    useEffect(() => {
+        const existingScript = document.querySelector('script[src="https://js.paystack.co/v1/inline.js"]');
+
+        if (existingScript) {
+            setPaystackLoaded(true);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v1/inline.js';
+        script.async = true;
+        script.onload = () => setPaystackLoaded(true);
+        document.body.appendChild(script);
+
+        return () => {
+            // Don't remove script on unmount as it might be needed later
+        };
+    }, []);
+
+    // Redirect if cart is empty
+    useEffect(() => {
+        if (cartItems.length === 0) {
             navigate('/cart');
         }
-    }, [isAuthenticated, cartItems, navigate]);
+    }, [cartItems, navigate]);
 
     // Timer countdown
     useEffect(() => {
@@ -28,7 +72,7 @@ const Checkout = () => {
             setTimeLeft((prev) => {
                 if (prev <= 0) {
                     clearInterval(timer);
-                    // Handle timeout (e.g., release tickets)
+                    navigate('/cart', { state: { message: 'Your session expired. Please try again.' } });
                     return 0;
                 }
                 return prev - 1;
@@ -36,7 +80,7 @@ const Checkout = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [navigate]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -44,9 +88,8 @@ const Checkout = () => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const subtotal = getCartTotal();
-    const fees = 3; // Hardcoded fee from design
-    const total = subtotal + fees;
+    // Calculate totals using orderService
+    const { subtotal, fees, total, itemCount } = orderService.calculateTotal(cartItems);
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -59,31 +102,111 @@ const Checkout = () => {
         });
     };
 
-    const handlePayment = () => {
-        // Process payment (mock)
-        // Create ticket objects from cart items
-        const newTickets = cartItems.flatMap(item => {
-            return Object.entries(item.tickets).map(([ticketName, qty]) => {
-                if (qty === 0) return null;
-                const ticketType = item.event.ticketTypes?.find(t => t.name === ticketName);
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setBillingInfo(prev => ({ ...prev, [name]: value }));
+        setError('');
+    };
 
-                // Create individual tickets based on quantity
-                return Array(qty).fill().map(() => ({
-                    id: Math.random().toString(36).substr(2, 9),
-                    eventId: item.event.id,
-                    event: item.event,
-                    ticketName: ticketName,
-                    price: ticketType?.price || 0,
-                    purchaseDate: new Date().toISOString(),
-                    status: 'valid',
-                    qrCode: Math.random().toString(36).substr(2, 9) // Mock QR code
-                }));
-            }).filter(Boolean).flat();
-        });
+    // Handle Paystack payment
+    const handlePaystackPayment = async () => {
+        // Validate billing info
+        if (!billingInfo.email || !billingInfo.firstName) {
+            setError('Please fill in your name and email address');
+            return;
+        }
 
-        addTickets(newTickets);
-        clearCart();
-        navigate('/my-tickets');
+        if (!paystackLoaded || !window.PaystackPop) {
+            setError('Payment system is loading. Please try again.');
+            return;
+        }
+
+        setIsProcessing(true);
+        setError('');
+
+        try {
+            // Create order on backend first
+            const result = await orderService.processCheckout(cartItems, billingInfo);
+
+            if (!result.success) {
+                setError(result.error || 'Failed to create order. Please try again.');
+                setIsProcessing(false);
+                return;
+            }
+
+            const { order, paystack } = result;
+
+            // Initialize Paystack popup
+            const handler = window.PaystackPop.setup({
+                key: PAYSTACK_PUBLIC_KEY,
+                email: paystack.email,
+                amount: paystack.amount,
+                currency: 'GHS',
+                ref: paystack.reference,
+                metadata: {
+                    order_id: paystack.orderId,
+                    customer_name: `${billingInfo.firstName} ${billingInfo.lastName}`,
+                    custom_fields: [
+                        {
+                            display_name: "Order ID",
+                            variable_name: "order_id",
+                            value: paystack.orderId.toString()
+                        },
+                        {
+                            display_name: "Customer Phone",
+                            variable_name: "phone",
+                            value: billingInfo.phone || 'N/A'
+                        }
+                    ]
+                },
+                callback: async function (response) {
+                    try {
+                        // Verify payment with backend
+                        const verifyResult = await orderService.verifyPayment(
+                            paystack.orderId,
+                            response.reference
+                        );
+
+                        if (verifyResult.success || verifyResult.data?.status === 'paid') {
+                            // Payment successful
+                            clearCart();
+                            navigate('/my-tickets', {
+                                state: {
+                                    paymentSuccess: true,
+                                    orderId: paystack.orderId,
+                                    reference: response.reference
+                                }
+                            });
+                        } else {
+                            setError('Payment verification failed. Please contact support.');
+                        }
+                    } catch (err) {
+                        // Even if verification fails, payment might be successful
+                        // Redirect to tickets page where they can see their tickets
+                        clearCart();
+                        navigate('/my-tickets', {
+                            state: {
+                                paymentSuccess: true,
+                                reference: response.reference,
+                                message: 'Payment completed. Your tickets will appear shortly.'
+                            }
+                        });
+                    }
+                    setIsProcessing(false);
+                },
+                onClose: function () {
+                    setIsProcessing(false);
+                    // Don't show error - user intentionally closed
+                }
+            });
+
+            handler.openIframe();
+
+        } catch (err) {
+            console.error('Checkout error:', err);
+            setError(err.message || 'Something went wrong. Please try again.');
+            setIsProcessing(false);
+        }
     };
 
     return (
@@ -100,13 +223,11 @@ const Checkout = () => {
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900">Checkout</h1>
                         <nav className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
-                            <Link to="/" className="hover:text-(--brand-primary) flex items-center gap-1">
+                            <Link to="/" className="hover:text-[var(--brand-primary)] flex items-center gap-1">
                                 <Home size={16} />
                             </Link>
                             <ChevronRight size={16} />
-                            <span>Dashboard</span>
-                            <ChevronRight size={16} />
-                            <Link to="/cart" className="hover:text-(--brand-primary)">My cart</Link>
+                            <Link to="/cart" className="hover:text-[var(--brand-primary)]">My cart</Link>
                             <ChevronRight size={16} />
                             <span className="text-gray-900 font-medium">Checkout</span>
                         </nav>
@@ -115,6 +236,17 @@ const Checkout = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Error Alert */}
+                {error && (
+                    <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                        <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+                        <div>
+                            <h4 className="font-semibold text-red-800">Error</h4>
+                            <p className="text-red-700 text-sm">{error}</p>
+                        </div>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
@@ -122,7 +254,7 @@ const Checkout = () => {
                         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                             <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
                                 <h2 className="text-lg font-bold text-gray-900">Order summary</h2>
-                                <span className="text-sm text-gray-500">{cartItems.length} items</span>
+                                <span className="text-sm text-gray-500">{itemCount} tickets</span>
                             </div>
                             <div className="p-6">
                                 {/* Desktop Header */}
@@ -151,12 +283,12 @@ const Checkout = () => {
                                                             />
                                                             <div className="flex-1">
                                                                 <h3 className="font-bold text-gray-900 mb-1 line-clamp-1">{item.event.title}</h3>
-                                                                <p className="text-sm text-(--brand-primary) font-medium mb-2">{ticketName}</p>
+                                                                <p className="text-sm text-[var(--brand-primary)] font-medium mb-2">{ticketName}</p>
 
                                                                 {/* Mobile Price/Qty Row */}
                                                                 <div className="flex md:hidden items-center justify-between mt-2 bg-gray-50 p-2 rounded-lg">
-                                                                    <span className="text-sm text-gray-600">${price} × {qty}</span>
-                                                                    <span className="font-bold text-gray-900">${price * qty}</span>
+                                                                    <span className="text-sm text-gray-600">GH₵{price} × {qty}</span>
+                                                                    <span className="font-bold text-gray-900">GH₵{(price * qty).toFixed(2)}</span>
                                                                 </div>
 
                                                                 <div className="hidden md:block space-y-1 text-xs text-gray-500 mt-1">
@@ -172,14 +304,14 @@ const Checkout = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="hidden md:block col-span-2 text-center py-2 text-gray-900">
-                                                        ${price}
+                                                    <div className="hidden md:flex col-span-2 items-center justify-center text-gray-900">
+                                                        GH₵{price.toFixed(2)}
                                                     </div>
-                                                    <div className="hidden md:block col-span-2 text-center py-2 text-gray-900">
+                                                    <div className="hidden md:flex col-span-2 items-center justify-center text-gray-900">
                                                         {qty}
                                                     </div>
-                                                    <div className="hidden md:block col-span-2 text-right py-2 font-bold text-(--brand-primary)">
-                                                        ${price * qty}
+                                                    <div className="hidden md:flex col-span-2 items-center justify-end font-bold text-[var(--brand-primary)]">
+                                                        GH₵{(price * qty).toFixed(2)}
                                                     </div>
                                                 </div>
                                             );
@@ -189,139 +321,119 @@ const Checkout = () => {
                             </div>
                         </div>
 
-                        {/* Billing Information */}
+                        {/* Contact Information */}
                         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                             <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                                <h2 className="text-lg font-bold text-gray-900">Billing information</h2>
+                                <h2 className="text-lg font-bold text-gray-900">Contact Information</h2>
                             </div>
                             <div className="p-6">
-                                <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">First name*</label>
                                         <input
                                             type="text"
-                                            defaultValue={user?.firstName || ''}
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
+                                            name="firstName"
+                                            value={billingInfo.firstName}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
                                             placeholder="John"
+                                            required
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Last name*</label>
                                         <input
                                             type="text"
-                                            defaultValue={user?.lastName || ''}
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
+                                            name="lastName"
+                                            value={billingInfo.lastName}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
                                             placeholder="Doe"
+                                            required
                                         />
                                     </div>
-                                    <div className="md:col-span-2">
+                                    <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Email*</label>
                                         <input
                                             type="email"
-                                            defaultValue={user?.email || ''}
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
+                                            name="email"
+                                            value={billingInfo.email}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
                                             placeholder="yourmail@gmail.com"
+                                            required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Country*</label>
-                                        <select className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none">
-                                            <option>United States</option>
-                                            <option>United Kingdom</option>
-                                            <option>Ghana</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">State*</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Phone (optional)</label>
                                         <input
-                                            type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
-                                            placeholder="State"
+                                            type="tel"
+                                            name="phone"
+                                            value={billingInfo.phone}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
+                                            placeholder="+233 XX XXX XXXX"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">City*</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
-                                            placeholder="City"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Postal code*</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
-                                            placeholder="Postal code"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Street*</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
-                                            placeholder="Street address"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Street 2</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-3 rounded-lg bg-gray-50 border-transparent focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
-                                            placeholder="Apartment, suite, etc."
-                                        />
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        {/* Payment Method */}
-                        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-                            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                                <h2 className="text-lg font-bold text-gray-900">Payment method</h2>
-                            </div>
-                            <div className="p-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[
-                                        { id: 'paypal', label: 'Paypal Express Checkout' },
-                                        { id: 'stripe', label: 'Stripe Checkout' },
-                                        { id: 'mercadopago', label: 'Mercado Pago' },
-                                        { id: 'flutterwave', label: 'Flutterwave' },
-                                        { id: 'bank', label: 'Bank Transfer' }
-                                    ].map((method) => (
-                                        <label
-                                            key={method.id}
-                                            className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === method.id
-                                                ? 'border-(--brand-primary) bg-blue-50 ring-1 ring-(--brand-primary)'
-                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <div className="relative flex items-center justify-center">
-                                                <input
-                                                    type="radio"
-                                                    name="payment"
-                                                    value={method.id}
-                                                    checked={paymentMethod === method.id}
-                                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                                    className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-(--brand-primary) checked:border-4 transition-all"
-                                                />
-                                            </div>
-                                            <span className={`font-bold ${paymentMethod === method.id ? 'text-(--brand-primary)' : 'text-gray-700'}`}>
-                                                {method.label}
-                                            </span>
-                                        </label>
-                                    ))}
                                 </div>
                             </div>
                         </div>
 
-                        <button
-                            onClick={handlePayment}
-                            className="w-full bg-(--brand-primary) text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-(--brand-primary)/30 flex items-center justify-center gap-2 text-lg uppercase transform hover:-translate-y-0.5"
-                        >
-                            <CreditCard size={24} />
-                            Pay Now
-                        </button>
+                        {/* Payment Section */}
+                        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                                <h2 className="text-lg font-bold text-gray-900">Payment</h2>
+                            </div>
+                            <div className="p-6">
+                                {/* Paystack Info */}
+                                <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg border border-green-200 mb-6">
+                                    <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <Shield className="text-white" size={24} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-green-800">Secure Payment with Paystack</h3>
+                                        <p className="text-sm text-green-700">Pay securely using your card, mobile money, or bank transfer</p>
+                                    </div>
+                                </div>
+
+                                {/* Accepted Payment Methods */}
+                                <div className="flex flex-wrap items-center gap-3 mb-6">
+                                    <span className="text-sm text-gray-500">We accept:</span>
+                                    <div className="flex gap-2">
+                                        <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">Visa</div>
+                                        <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">Mastercard</div>
+                                        <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">MTN MoMo</div>
+                                        <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">Vodafone Cash</div>
+                                    </div>
+                                </div>
+
+                                {/* Pay Button */}
+                                <button
+                                    onClick={handlePaystackPayment}
+                                    disabled={isProcessing || !paystackLoaded}
+                                    className="w-full bg-[var(--brand-primary)] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[var(--brand-primary)]/30 flex items-center justify-center gap-2 text-lg uppercase transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader2 className="animate-spin" size={24} />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard size={24} />
+                                            Pay GH₵{total.toFixed(2)} Now
+                                        </>
+                                    )}
+                                </button>
+
+                                {!paystackLoaded && (
+                                    <p className="text-center text-sm text-gray-500 mt-2">
+                                        <Loader2 className="inline animate-spin mr-1" size={14} />
+                                        Loading payment system...
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Sidebar */}
@@ -330,7 +442,7 @@ const Checkout = () => {
                             {/* Desktop Timer */}
                             <div className="hidden lg:flex bg-orange-400 text-white p-4 rounded-xl items-center justify-center gap-2 font-bold shadow-md">
                                 <Clock size={20} />
-                                <span>{formatTime(timeLeft)} left before tickets are released</span>
+                                <span>{formatTime(timeLeft)} left</span>
                             </div>
 
                             {/* Total Summary */}
@@ -338,31 +450,31 @@ const Checkout = () => {
                                 <h3 className="text-lg font-bold text-gray-900 mb-4">Summary</h3>
                                 <div className="space-y-3 mb-6">
                                     <div className="flex items-center justify-between text-gray-600 font-medium">
-                                        <span>Tickets ({cartItems.length})</span>
-                                        <span>${subtotal}</span>
+                                        <span>Subtotal ({itemCount} tickets)</span>
+                                        <span>GH₵{subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-gray-600 font-medium">
-                                        <span>Fees</span>
-                                        <span>${fees}</span>
+                                        <span>Processing Fee (1.5%)</span>
+                                        <span>GH₵{fees.toFixed(2)}</span>
                                     </div>
                                     <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
                                         <span className="text-xl font-bold text-gray-900">Total</span>
-                                        <span className="text-2xl font-bold text-(--brand-primary)">${total}</span>
+                                        <span className="text-2xl font-bold text-[var(--brand-primary)]">GH₵{total.toFixed(2)}</span>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 justify-center opacity-60 grayscale hover:grayscale-0 transition-all">
-                                    {/* Placeholder icons for payment methods */}
-                                    <div className="h-8 w-12 bg-blue-600 rounded"></div>
-                                    <div className="h-8 w-12 bg-blue-800 rounded"></div>
-                                    <div className="h-8 w-12 bg-red-600 rounded"></div>
-                                    <div className="h-8 w-12 bg-orange-500 rounded"></div>
-                                </div>
-
-                                <div className="mt-6 flex items-start gap-3 p-3 bg-green-50 rounded-lg text-sm text-green-800">
+                                <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg text-sm text-green-800">
                                     <CheckCircle size={16} className="shrink-0 mt-0.5" />
                                     <p>Your transaction is secured with SSL encryption.</p>
                                 </div>
+                            </div>
+
+                            {/* Refund Policy */}
+                            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                <h3 className="font-bold text-gray-900 mb-2">Refund Policy</h3>
+                                <p className="text-sm text-gray-600">
+                                    Tickets are non-refundable. However, you may transfer your ticket to another person up to 24 hours before the event.
+                                </p>
                             </div>
                         </div>
                     </div>

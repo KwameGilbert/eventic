@@ -65,7 +65,16 @@ const SignUpOrganizer = () => {
                 });
             }, 1500);
         } catch (err) {
-            setFormError(err.message || 'Registration failed. Please try again.');
+            // Handle specific backend errors
+            if (err.status === 409) {
+                setFormError('An account with this email already exists');
+            } else if (err.errors) {
+                // Handle validation errors from backend
+                const errorMessages = Object.values(err.errors).join('. ');
+                setFormError(errorMessages);
+            } else {
+                setFormError(err.message || 'Registration failed. Please try again.');
+            }
         }
     };
 

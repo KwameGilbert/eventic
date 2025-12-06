@@ -8,7 +8,7 @@
 import axios from 'axios';
 
 // Base API URL - update this based on your environment
-const API_BASE_URL = import.meta.env.VITE_API_URL ;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Create axios instance with default config
 const api = axios.create({
@@ -78,8 +78,20 @@ api.interceptors.request.use(
 // Response interceptor - Handle token refresh and errors
 api.interceptors.response.use(
     (response) => {
-        // Return the data directly for successful responses
-        return response.data;
+        // Ensure data is parsed as JSON
+        let data = response.data;
+
+        // If data is a string, try to parse it as JSON
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                console.warn('Response is not valid JSON:', e);
+            }
+        }
+
+        // Return the parsed data
+        return data;
     },
     async (error) => {
         const originalRequest = error.config;

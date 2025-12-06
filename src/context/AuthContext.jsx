@@ -20,17 +20,25 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const initAuth = async () => {
             try {
-                // First check if we have stored user data
+                // Check if we have stored user data and valid token
                 const storedUser = authService.getStoredUser();
 
                 if (storedUser && authService.isAuthenticated()) {
-                    // Optionally verify with server
+                    // User is already logged in from previous session
+                    setUser(storedUser);
+
+                    // Optionally verify with server (silently in background)
                     try {
                         const response = await authService.getCurrentUser();
-                        setUser(response.data || storedUser);
+                        // Backend /auth/me returns user data directly in response.data
+                        if (response.data) {
+                            const freshUser = response.data;
+                            setUser(freshUser);
+                            localStorage.setItem('user', JSON.stringify(freshUser));
+                        }
                     } catch {
-                        // If server check fails, use stored data
-                        setUser(storedUser);
+                        // If server check fails, keep using stored data
+                        // Token might still be valid
                     }
                 }
             } catch (err) {
@@ -56,8 +64,11 @@ export const AuthProvider = ({ children }) => {
 
         try {
             const response = await authService.login(email, password);
+            // Response structure: { success, message, data: { user, access_token, ... } }
             const userData = response.data?.user;
-            setUser(userData);
+            if (userData) {
+                setUser(userData);
+            }
             return userData;
         } catch (err) {
             setError(err.message || 'Login failed');
@@ -68,9 +79,9 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     /**
-     * Register a new attendee
-     * @param {Object} userData - { name, email, password }
-     * @returns {Promise<Object>} Registration response
+     * Register a new attendee and auto-login
+     * @param {Object} userData - { name, email, password, phone? }
+     * @returns {Promise<Object>} Registration response with user
      */
     const registerAttendee = useCallback(async (userData) => {
         setError(null);
@@ -78,9 +89,11 @@ export const AuthProvider = ({ children }) => {
 
         try {
             const response = await authService.registerAttendee(userData);
-            // Auto-login after registration if tokens are returned
-            if (response.data?.user) {
-                setUser(response.data.user);
+            // Response structure: { success, message, data: { user, access_token, refresh_token, ... } }
+            // authService already stores tokens, we just need to set user state
+            const registeredUser = response.data?.user;
+            if (registeredUser) {
+                setUser(registeredUser);
             }
             return response;
         } catch (err) {
@@ -92,9 +105,9 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     /**
-     * Register a new organizer
-     * @param {Object} userData - { name, email, password, organizerName }
-     * @returns {Promise<Object>} Registration response
+     * Register a new organizer and auto-login
+     * @param {Object} userData - { name, email, password, phone? }
+     * @returns {Promise<Object>} Registration response with user
      */
     const registerOrganizer = useCallback(async (userData) => {
         setError(null);
@@ -102,9 +115,11 @@ export const AuthProvider = ({ children }) => {
 
         try {
             const response = await authService.registerOrganizer(userData);
-            // Auto-login after registration if tokens are returned
-            if (response.data?.user) {
-                setUser(response.data.user);
+            // Response structure: { success, message, data: { user, access_token, refresh_token, ... } }
+            // authService already stores tokens, we just need to set user state
+            const registeredUser = response.data?.user;
+            if (registeredUser) {
+                setUser(registeredUser);
             }
             return response;
         } catch (err) {
@@ -116,9 +131,9 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     /**
-     * Generic register (specify role in userData)
-     * @param {Object} userData - { name, email, password, role }
-     * @returns {Promise<Object>} Registration response
+     * Generic register (specify role in userData) and auto-login
+     * @param {Object} userData - { name, email, password, role?, phone? }
+     * @returns {Promise<Object>} Registration response with user
      */
     const register = useCallback(async (userData) => {
         setError(null);
@@ -126,9 +141,11 @@ export const AuthProvider = ({ children }) => {
 
         try {
             const response = await authService.register(userData);
-            // Auto-login after registration if tokens are returned
-            if (response.data?.user) {
-                setUser(response.data.user);
+            // Response structure: { success, message, data: { user, access_token, refresh_token, ... } }
+            // authService already stores tokens, we just need to set user state
+            const registeredUser = response.data?.user;
+            if (registeredUser) {
+                setUser(registeredUser);
             }
             return response;
         } catch (err) {
@@ -146,6 +163,9 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(true);
         try {
             await authService.logout();
+        } catch (err) {
+            // Even if logout API fails, clear local state
+            console.error('Logout error:', err);
         } finally {
             setUser(null);
             setIsLoading(false);
@@ -225,6 +245,7 @@ export const AuthProvider = ({ children }) => {
     const refreshUser = useCallback(async () => {
         try {
             const response = await authService.getCurrentUser();
+            // Backend /auth/me returns user data in response.data
             const userData = response.data;
             if (userData) {
                 setUser(userData);

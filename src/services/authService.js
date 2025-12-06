@@ -152,16 +152,33 @@ const authService = {
             password,
         });
 
+        // Debug: Log the full response to see structure
+        console.log('Login response:', response);
+        console.log('typeof response:', typeof response);
+        console.log('response.data:', response.data);
+        console.log('response.access_token:', response.access_token);
+
+        // The API interceptor returns response.data directly from axios
+        // So the structure is: { success, message, data: { user, access_token, ... } }
+        // Access the nested data object
+        const authData = response.data || response;
+
+        console.log('authData:', authData);
+
         // Store tokens if login successful
-        if (response.data?.access_token) {
+        if (authData?.access_token) {
+            console.log('Storing tokens...');
             TokenManager.setTokens(
-                response.data.access_token,
-                response.data.refresh_token
+                authData.access_token,
+                authData.refresh_token
             );
             // Store user data (includes role from backend)
-            if (response.data.user) {
-                localStorage.setItem('user', JSON.stringify(response.data.user));
+            if (authData.user) {
+                console.log('Storing user:', authData.user);
+                localStorage.setItem('user', JSON.stringify(authData.user));
             }
+        } else {
+            console.log('No access_token found. Checking all keys:', Object.keys(response));
         }
 
         return response;

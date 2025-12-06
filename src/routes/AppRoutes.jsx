@@ -15,6 +15,9 @@ import HowItWorks from "../pages/HowItWorks";
 import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
 
+// Auth Components
+import ProtectedRoute, { OrganizerRoute } from "../components/auth/ProtectedRoute";
+
 // Organizer Dashboard
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
 import Dashboard from "../pages/organizer/Dashboard";
@@ -32,24 +35,30 @@ import OrganizerSettings from "../pages/organizer/OrganizerSettings";
 const AppRoutes = () => {
     return (
         <Routes>
-            {/* Public Routes with Main Layout */}
             <Route element={<Layout><Outlet /></Layout>}>
+                {/* Home & Browse */}
                 <Route path="/" element={<Home />} />
                 <Route path="/events" element={<BrowseEvents />} />
                 <Route path="/event/:slug" element={<EventDetails />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+
+                {/* Authentication */}
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup/attendee" element={<SignUpAttendee />} />
                 <Route path="/signup/organizer" element={<SignUpOrganizer />} />
+                
                 <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/my-tickets" element={<MyTickets />} />
-                <Route path="/how-it-works" element={<HowItWorks />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/change-password" element={<ChangePassword />} />
             </Route>
 
-            {/* Organizer Dashboard Routes */}
-            <Route path="/organizer" element={<DashboardLayout />}>
+            <Route element={<Layout><Outlet /></Layout>}>
+                <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                <Route path="/my-tickets" element={<ProtectedRoute><MyTickets /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+            </Route>
+
+            {/* ORGANIZER DASHBOARD ROUTES */}
+            <Route path="/organizer" element={<OrganizerRoute><DashboardLayout /></OrganizerRoute>}>
                 <Route index element={<Navigate to="/organizer/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="events" element={<Events />} />
@@ -65,6 +74,7 @@ const AppRoutes = () => {
                 <Route path="*" element={<Navigate to="/organizer/dashboard" replace />} />
             </Route>
 
+            {/* 404 NOT FOUND */}
             <Route path="*" element={<Layout><NotFound /></Layout>} />
         </Routes>
     )

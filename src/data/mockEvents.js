@@ -70,6 +70,7 @@ export const upcomingEvents = [
         tags: ["Football", "Soccer", "Premier League", "Sports"],
         ticketTypes: [
             {
+                id: 1,
                 name: "General Admission",
                 price: 75,
                 originalPrice: 95,
@@ -79,6 +80,7 @@ export const upcomingEvents = [
                 description: "Standard stadium seating with great views"
             },
             {
+                id: 2,
                 name: "Premium Seats",
                 price: 150,
                 originalPrice: 180,
@@ -88,6 +90,7 @@ export const upcomingEvents = [
                 description: "Premium seating closer to the pitch"
             },
             {
+                id: 3,
                 name: "VIP Box",
                 price: 350,
                 available: true,
@@ -138,6 +141,7 @@ export const upcomingEvents = [
         tags: ["Music Festival", "Live Music", "Summer", "Outdoor"],
         ticketTypes: [
             {
+                id: 4,
                 name: "General Admission",
                 price: 120,
                 originalPrice: 150,
@@ -147,6 +151,7 @@ export const upcomingEvents = [
                 description: "Access to all stages and festival grounds"
             },
             {
+                id: 5,
                 name: "VIP Pass",
                 price: 250,
                 originalPrice: 300,
@@ -156,6 +161,7 @@ export const upcomingEvents = [
                 description: "VIP viewing areas, express entry, and exclusive lounge access"
             },
             {
+                id: 6,
                 name: "Weekend Pass",
                 price: 350,
                 available: true,

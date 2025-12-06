@@ -1,20 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Trash2, Calendar, MapPin, Ticket, ArrowLeft, CreditCard, AlertTriangle, User, Minus, Plus, Heart, Star, Users, Settings } from 'lucide-react';
+import { ShoppingCart, Trash2, Calendar, MapPin, Ticket, ArrowLeft, CreditCard, AlertTriangle, Minus, Plus, Shield, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
 
 const Cart = () => {
     const navigate = useNavigate();
-    const { cartItems, removeFromCart, clearCart, getCartCount, updateCartItemQuantity } = useCart();
-    const { isAuthenticated } = useAuth();
-
-    // Redirect to home if not authenticated
-    React.useEffect(() => {
-        if (!isAuthenticated()) {
-            navigate('/signin', { state: { from: '/cart' } });
-        }
-    }, [isAuthenticated, navigate]);
+    const { cartItems, removeFromCart, clearCart, getCartCount, updateCartItemQuantity, getCartTotal } = useCart();
 
     const calculateItemTotal = (item) => {
         return Object.entries(item.tickets).reduce((total, [ticketName, qty]) => {
@@ -24,9 +15,9 @@ const Cart = () => {
         }, 0);
     };
 
-    const calculateCartTotal = () => {
-        return cartItems.reduce((total, item) => total + calculateItemTotal(item), 0);
-    };
+    const subtotal = getCartTotal();
+    const fees = Math.round(subtotal * 0.015 * 100) / 100; // 1.5% fee
+    const total = subtotal + fees;
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -54,62 +45,30 @@ const Cart = () => {
         updateCartItemQuantity(itemId, ticketName, Math.min(newQty, maxAllowed));
     };
 
-    const sidebarMenuItems = [
-        { path: '/my-tickets', label: 'My Tickets', icon: Ticket, active: false },
-        { path: '/cart', label: 'My Cart', icon: ShoppingCart, active: true },
-        { path: '/favorites', label: 'My Favorites', icon: Heart, active: false },
-        { path: '/reviews', label: 'My Reviews', icon: Star, active: false },
-        { path: '/following', label: 'Following', icon: Users, active: false },
-        { path: '/account', label: 'Account', icon: Settings, active: false },
-    ];
-
+    // Empty Cart State
     if (cartItems.length === 0) {
         return (
-            <div className="bg-gray-50 min-h-screen">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                        {/* Sidebar - Hidden on mobile */}
-                        <div className="hidden lg:block lg:col-span-1">
-                            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
-                                <h3 className="text-lg font-bold text-gray-900 mb-4">My Account</h3>
-                                <nav className="space-y-1">
-                                    {sidebarMenuItems.map((item) => {
-                                        const Icon = item.icon;
-                                        return (
-                                            <Link
-                                                key={item.path}
-                                                to={item.path}
-                                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${item.active
-                                                    ? 'bg-[var(--brand-primary)] text-white'
-                                                    : 'text-gray-700 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                <Icon size={20} />
-                                                <span className="font-medium">{item.label}</span>
-                                            </Link>
-                                        );
-                                    })}
-                                </nav>
-                            </div>
-                        </div>
+            <div className="min-h-screen bg-gray-50 pb-12">
+                <div className="bg-white border-b border-gray-200">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                        <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
+                    </div>
+                </div>
 
-                        {/* Empty State */}
-                        <div className="lg:col-span-3">
-                            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                                <ShoppingCart size={80} className="mx-auto text-gray-300 mb-6" />
-                                <h2 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
-                                <p className="text-gray-600 mb-8">
-                                    Looks like you haven't added any tickets to your cart yet.
-                                </p>
-                                <Link
-                                    to="/events"
-                                    className="inline-flex items-center gap-2 bg-[var(--brand-primary)] text-white font-semibold py-3 px-8 rounded-full hover:opacity-90 transition-opacity"
-                                >
-                                    <ArrowLeft size={20} />
-                                    Browse Events
-                                </Link>
-                            </div>
-                        </div>
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                        <ShoppingCart size={80} className="mx-auto text-gray-300 mb-6" />
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
+                        <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                            Looks like you haven't added any tickets to your cart yet. Browse our events to find something you'll love!
+                        </p>
+                        <Link
+                            to="/events"
+                            className="inline-flex items-center gap-2 bg-[var(--brand-primary)] text-white font-semibold py-3 px-8 rounded-full hover:opacity-90 transition-opacity"
+                        >
+                            <ArrowLeft size={20} />
+                            Browse Events
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -117,72 +76,48 @@ const Cart = () => {
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Sidebar Menu - Hidden on mobile */}
-                    <div className="hidden lg:block lg:col-span-1">
-                        <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">My Account</h3>
-                            <nav className="space-y-1">
-                                {sidebarMenuItems.map((item) => {
-                                    const Icon = item.icon;
-                                    return (
-                                        <Link
-                                            key={item.path}
-                                            to={item.path}
-                                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${item.active
-                                                ? 'bg-[var(--brand-primary)] text-white shadow-sm'
-                                                : 'text-gray-700 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <Icon size={20} />
-                                            <span className="font-medium">{item.label}</span>
-                                        </Link>
-                                    );
-                                })}
-                            </nav>
-                        </div>
+        <div className="min-h-screen bg-gray-50 pb-12">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            Shopping Cart
+                            <span className="text-base text-gray-500 ml-3">
+                                ({getCartCount()} {getCartCount() === 1 ? 'ticket' : 'tickets'})
+                            </span>
+                        </h1>
+                        <button
+                            onClick={clearCart}
+                            className="text-red-600 hover:text-red-700 font-medium flex items-center gap-2 transition-colors"
+                        >
+                            <Trash2 size={18} />
+                            <span className="hidden sm:inline">Clear Cart</span>
+                        </button>
                     </div>
+                </div>
+            </div>
 
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
-                    <div className="lg:col-span-3 space-y-6">
-                        {/* Header */}
-                        <div>
-                            <Link
-                                to="/events"
-                                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium mb-4 transition-colors"
-                            >
-                                <ArrowLeft size={20} />
-                                Continue Shopping
-                            </Link>
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                                    Shopping Cart
-                                    <span className="text-base sm:text-xl text-gray-500 ml-2 sm:ml-3">
-                                        ({getCartCount()} {getCartCount() === 1 ? 'ticket' : 'tickets'})
-                                    </span>
-                                </h1>
-                                {cartItems.length > 0 && (
-                                    <button
-                                        onClick={clearCart}
-                                        className="text-red-600 hover:text-red-700 font-medium flex items-center gap-2 transition-colors w-fit"
-                                    >
-                                        <Trash2 size={18} />
-                                        <span className="hidden sm:inline">Clear Cart</span>
-                                        <span className="sm:hidden">Clear</span>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Back Link */}
+                        <Link
+                            to="/events"
+                            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                        >
+                            <ArrowLeft size={20} />
+                            Continue Shopping
+                        </Link>
 
                         {/* Warning Banner */}
-                        <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 flex gap-3">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
                             <AlertTriangle size={24} className="text-amber-600 flex-shrink-0 mt-0.5" />
                             <div>
-                                <h4 className="font-bold text-amber-900 mb-1">Important Notice</h4>
+                                <h4 className="font-bold text-amber-900 mb-1">Tickets are not reserved</h4>
                                 <p className="text-sm text-amber-800">
-                                    Your tickets are <strong>not reserved</strong> until checkout. The quantity you intend to buy might not be available if you do not proceed to checkout right away.
+                                    Complete your checkout soon! The tickets you want might not be available if you don't proceed quickly.
                                 </p>
                             </div>
                         </div>
@@ -190,9 +125,9 @@ const Cart = () => {
                         {/* Cart Items */}
                         <div className="space-y-4">
                             {cartItems.map((item) => (
-                                <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                                    <div className="p-4 sm:p-6">
-                                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                                <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                                    <div className="p-6">
+                                        <div className="flex flex-col sm:flex-row gap-6">
                                             {/* Event Image */}
                                             <div className="flex-shrink-0">
                                                 <img
@@ -208,14 +143,10 @@ const Cart = () => {
                                                     <div>
                                                         <Link
                                                             to={`/event/${item.event.eventSlug}`}
-                                                            className="text-lg sm:text-xl font-bold text-gray-900 hover:text-[var(--brand-primary)] transition-colors"
+                                                            className="text-xl font-bold text-gray-900 hover:text-[var(--brand-primary)] transition-colors"
                                                         >
                                                             {item.event.title}
                                                         </Link>
-                                                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                                                            <User size={14} />
-                                                            <span>by {item.event.organizer.name}</span>
-                                                        </div>
                                                         <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2 text-sm text-gray-600">
                                                             <div className="flex items-center gap-1.5">
                                                                 <Calendar size={16} className="text-gray-400" />
@@ -223,20 +154,20 @@ const Cart = () => {
                                                             </div>
                                                             <div className="flex items-center gap-1.5">
                                                                 <MapPin size={16} className="text-gray-400" />
-                                                                <span>{item.event.venue}, {item.event.location}</span>
+                                                                <span>{item.event.venue}</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <button
                                                         onClick={() => removeFromCart(item.id)}
-                                                        className="text-gray-400 hover:text-red-600 transition-colors"
+                                                        className="text-gray-400 hover:text-red-600 transition-colors p-1"
                                                         title="Remove from cart"
                                                     >
                                                         <Trash2 size={20} />
                                                     </button>
                                                 </div>
 
-                                                {/* Ticket Details with Quantity Controls */}
+                                                {/* Ticket Details */}
                                                 <div className="space-y-2">
                                                     {Object.entries(item.tickets).map(([ticketName, qty]) => {
                                                         const ticketType = item.event.ticketTypes?.find(t => t.name === ticketName);
@@ -245,13 +176,13 @@ const Cart = () => {
                                                         return (
                                                             <div
                                                                 key={ticketName}
-                                                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 px-3 sm:px-4 bg-gray-50 rounded-lg"
+                                                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 px-4 bg-gray-50 rounded-lg"
                                                             >
                                                                 <div className="flex items-center gap-3 flex-1">
                                                                     <Ticket size={16} className="text-[var(--brand-primary)]" />
                                                                     <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 flex-1">
                                                                         <span className="font-medium text-gray-900">{ticketName}</span>
-                                                                        <span className="text-sm text-gray-500">${price} each</span>
+                                                                        <span className="text-sm text-gray-500">GH₵{price} each</span>
                                                                     </div>
                                                                 </div>
 
@@ -274,8 +205,8 @@ const Cart = () => {
                                                                             <Plus size={14} />
                                                                         </button>
                                                                     </div>
-                                                                    <span className="font-semibold text-gray-900 min-w-[80px] text-right">
-                                                                        ${price * qty}
+                                                                    <span className="font-bold text-gray-900 min-w-[100px] text-right">
+                                                                        GH₵{(price * qty).toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -287,7 +218,7 @@ const Cart = () => {
                                                 <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
                                                     <span className="text-gray-600 font-medium">Item Total:</span>
                                                     <span className="text-xl font-bold text-[var(--brand-primary)]">
-                                                        ${calculateItemTotal(item)}
+                                                        GH₵{calculateItemTotal(item).toFixed(2)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -296,51 +227,70 @@ const Cart = () => {
                                 </div>
                             ))}
                         </div>
+                    </div>
 
-                        {/* Order Summary */}
-                        <div className="bg-white rounded-xl shadow-sm p-6">
-                            <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                    {/* Sidebar - Order Summary */}
+                    <div className="lg:col-span-1">
+                        <div className="sticky top-4 space-y-6">
+                            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
 
-                            <div className="space-y-3 mb-6">
-                                <div className="flex items-center justify-between text-gray-600">
-                                    <span>Subtotal</span>
-                                    <span className="font-semibold">${calculateCartTotal()}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-gray-600">
-                                    <span>Service Fee</span>
-                                    <span className="font-semibold">$0</span>
-                                </div>
-                                <div className="border-t border-gray-200 pt-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-lg font-bold text-gray-900">Total</span>
-                                        <span className="text-2xl font-bold text-[var(--brand-primary)]">
-                                            ${calculateCartTotal()}
-                                        </span>
+                                <div className="space-y-3 mb-6">
+                                    <div className="flex items-center justify-between text-gray-600">
+                                        <span>Subtotal</span>
+                                        <span className="font-semibold">GH₵{subtotal.toFixed(2)}</span>
                                     </div>
+                                    <div className="flex items-center justify-between text-gray-600">
+                                        <span>Processing Fee (1.5%)</span>
+                                        <span className="font-semibold">GH₵{fees.toFixed(2)}</span>
+                                    </div>
+                                    <div className="border-t border-gray-200 pt-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-lg font-bold text-gray-900">Total</span>
+                                            <span className="text-2xl font-bold text-[var(--brand-primary)]">
+                                                GH₵{total.toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleCheckout}
+                                    className="w-full bg-[var(--brand-primary)] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[var(--brand-primary)]/30 flex items-center justify-center gap-2 mb-4"
+                                >
+                                    <CreditCard size={20} />
+                                    Proceed to Checkout
+                                </button>
+
+                                <Link
+                                    to="/events"
+                                    className="block w-full text-center border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition-colors"
+                                >
+                                    Continue Shopping
+                                </Link>
+
+                                {/* Security Info */}
+                                <div className="mt-6 flex items-start gap-3 p-3 bg-green-50 rounded-lg text-sm text-green-800">
+                                    <CheckCircle size={16} className="shrink-0 mt-0.5" />
+                                    <p>Secure checkout with Paystack. Your payment is protected.</p>
                                 </div>
                             </div>
 
-                            <button
-                                onClick={handleCheckout}
-                                className="w-full bg-[var(--brand-primary)] text-white font-bold py-4 rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2 mb-4"
-                            >
-                                <CreditCard size={20} />
-                                Proceed to Checkout
-                            </button>
-
-                            <Link
-                                to="/events"
-                                className="block w-full text-center border-2 border-gray-300 text-gray-700 font-semibold py-3 rounded-full hover:bg-gray-50 transition-colors"
-                            >
-                                Continue Shopping
-                            </Link>
-
-                            {/* Info */}
-                            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                                <p className="text-xs text-blue-800">
-                                    <strong>Secure Checkout</strong><br />
-                                    Your payment information is encrypted and secure
+                            {/* Payment Methods */}
+                            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Shield size={20} className="text-green-600" />
+                                    <span className="font-semibold text-gray-900">Secure Payment</span>
+                                </div>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    We accept the following payment methods:
                                 </p>
+                                <div className="flex flex-wrap gap-2">
+                                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">Visa</div>
+                                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">Mastercard</div>
+                                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">Mobile Money</div>
+                                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">Bank Transfer</div>
+                                </div>
                             </div>
                         </div>
                     </div>

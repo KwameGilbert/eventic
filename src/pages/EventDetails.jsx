@@ -1,25 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Home as HomeIcon, Heart, Globe, Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Calendar, Ticket, Users, Eye, CalendarPlus, FolderOpen } from 'lucide-react';
-import { upcomingEvents } from '../data/mockEvents';
+import { MapPin, Home as HomeIcon, Heart, Globe, Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Calendar, Ticket, Users, Eye, CalendarPlus, FolderOpen, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import TicketModal from '../components/modals/TicketModal';
+import eventService from '../services/eventService';
 
 const EventDetails = () => {
     const { slug } = useParams();
-
-    // Find event by slug
-    const event = upcomingEvents.find(e => e.eventSlug === slug);
-
+    const [event, setEvent] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [isFavorite, setIsFavorite] = useState(false);
     const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
+    useEffect(() => {
+        const fetchEvent = async () => {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const response = await eventService.getBySlug(slug);
+                const eventData = response?.data || response;
+                setEvent(eventData);
+            } catch (err) {
+                console.error('Failed to fetch event:', err);
+                setError('Failed to load event details. Please try again.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchEvent();
+    }, [slug]);
+
+    const handleRetry = () => {
+        setIsLoading(true);
+        setError(null);
+        eventService.getBySlug(slug)
+            .then(response => {
+                const eventData = response?.data || response;
+                setEvent(eventData);
+            })
+            .catch(err => {
+                console.error('Failed to fetch event:', err);
+                setError('Failed to load event details. Please try again.');
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    };
+
+    // Loading State
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-(--brand-primary) mx-auto mb-4" />
+                    <p className="text-gray-600">Loading event details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error State
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center bg-white p-8 rounded-xl shadow-sm max-w-md">
+                    <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Event</h2>
+                    <p className="text-gray-600 mb-6">{error}</p>
+                    <div className="flex gap-3 justify-center">
+                        <button
+                            onClick={handleRetry}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-(--brand-primary) text-white rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                            <RefreshCw size={18} />
+                            Try Again
+                        </button>
+                        <Link
+                            to="/events"
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            Browse Events
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Not Found State
     if (!event) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center bg-white p-8 rounded-xl shadow-sm">
+                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Not Found</h2>
-                    <p className="text-gray-600 mb-6">The event you're looking for doesn't exist.</p>
-                    <Link to="/events" className="text-[var(--brand-primary)] hover:underline">
+                    <p className="text-gray-600 mb-6">The event you're looking for doesn't exist or has been removed.</p>
+                    <Link to="/events" className="text-(--brand-primary) hover:underline font-semibold">
                         Browse all events →
                     </Link>
                 </div>
@@ -28,6 +106,7 @@ const EventDetails = () => {
     }
 
     const formatEventDate = (dateString) => {
+        if (!dateString) return { day: '--', month: '---', year: '----' };
         const date = new Date(dateString);
         return {
             day: date.getDate(),
@@ -43,29 +122,32 @@ const EventDetails = () => {
             {/* Page Header with Breadcrumb */}
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-bold text-gray-900">{event.title}</h1>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                        <h1 className="text-2xl font-bold text-gray-900 truncate">{event.title}</h1>
 
                         {/* Breadcrumb */}
                         <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Link to="/" className="hover:text-[var(--brand-primary)]">
+                            <Link to="/" className="hover:text-(--brand-primary)">
                                 <HomeIcon size={16} />
                             </Link>
                             <span>/</span>
-                            <Link to="/events" className="hover:text-[var(--brand-primary)]">Events</Link>
+                            <Link to="/events" className="hover:text-(--brand-primary)">Events</Link>
                             <span>/</span>
-                            <span className="text-gray-900 font-medium">{event.title}</span>
+                            <span className="text-gray-900 font-medium truncate max-w-[200px]">{event.title}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Hero Image */}
-            <div className="w-full h-[600px] overflow-hidden bg-gray-200">
+            <div className="w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden bg-gray-200">
                 <img
-                    src={event.image}
+                    src={event.image || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80'}
                     alt={event.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920&q=80';
+                    }}
                 />
             </div>
 
@@ -78,9 +160,11 @@ const EventDetails = () => {
                             {/* Title */}
                             <div className="mb-6">
                                 <h1 className="text-3xl font-bold text-gray-900 mb-3">{event.title}</h1>
-                                <span className="inline-block px-4 py-2 bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] rounded-full text-sm font-semibold">
-                                    {event.category}
-                                </span>
+                                {event.category && (
+                                    <span className="inline-block px-4 py-2 bg-(--brand-primary)/10 text-(--brand-primary) rounded-full text-sm font-semibold">
+                                        {event.category}
+                                    </span>
+                                )}
                             </div>
 
                             {/* Description */}
@@ -92,29 +176,29 @@ const EventDetails = () => {
                             )}
 
                             {/* Event Info Grid */}
-                            <div className="mb-8 grid grid-cols-2 gap-6">
+                            <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
                                         <Calendar size={16} />
                                         <h3>Date & Time</h3>
                                     </div>
-                                    <p className="text-gray-900 font-medium">{event.date}</p>
-                                    <p className="text-gray-600 text-sm">{event.time}</p>
+                                    <p className="text-gray-900 font-medium">{event.date || 'TBA'}</p>
+                                    <p className="text-gray-600 text-sm">{event.time || ''}</p>
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
                                         <MapPin size={16} />
                                         <h3>Venue</h3>
                                     </div>
-                                    <p className="text-gray-900 font-medium">{event.venue}</p>
-                                    <p className="text-gray-600 text-sm">{event.location}, {event.country}</p>
+                                    <p className="text-gray-900 font-medium">{event.venue || 'TBA'}</p>
+                                    <p className="text-gray-600 text-sm">{event.location}{event.country ? `, ${event.country}` : ''}</p>
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
                                         <Ticket size={16} />
                                         <h3>Starting Price</h3>
                                     </div>
-                                    <p className="text-gray-900 font-bold text-xl">{event.price}</p>
+                                    <p className="text-gray-900 font-bold text-xl">{event.price || 'Free'}</p>
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
@@ -128,7 +212,7 @@ const EventDetails = () => {
                                         <FolderOpen size={16} />
                                         <h3>Category</h3>
                                     </div>
-                                    <p className="text-gray-900 font-medium">{event.category}</p>
+                                    <p className="text-gray-900 font-medium">{event.category || 'General'}</p>
                                 </div>
                                 {event.audience && (
                                     <div>
@@ -147,7 +231,7 @@ const EventDetails = () => {
                                     <h2 className="text-xl font-bold text-gray-900 mb-3">Tags</h2>
                                     <div className="flex flex-wrap gap-2">
                                         {event.tags.map((tag, index) => (
-                                            <span key={index} className="px-4 py-2 bg-gray-100text-gray-700 rounded-full font-semibold text-sm">
+                                            <span key={index} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full font-semibold text-sm">
                                                 {tag}
                                             </span>
                                         ))}
@@ -156,82 +240,21 @@ const EventDetails = () => {
                             )}
 
                             {/* Event Photos */}
-                            <div className="mb-8">
-                                <h2 className="text-xl font-bold text-gray-900 mb-4">Event Photos</h2>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <img src={event.image} alt={event.title} className="w-full h-32 object-cover rounded-lg" />
-                                    <img src={event.image} alt={event.title} className="w-full h-32 object-cover rounded-lg" />
-                                    <img src={event.image} alt={event.title} className="w-full h-32 object-cover rounded-lg" />
-                                </div>
-                            </div>
-
-                            {/* Event Video */}
-                            {event.videoUrl && (
+                            {event.images && event.images.length > 0 && (
                                 <div className="mb-8">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Event Video</h2>
-                                    <div className="relative w-full rounded-lg overflow-hidden bg-black" style={{ paddingBottom: '56.25%' }}>
-                                        <iframe
-                                            className="absolute top-0 left-0 w-full h-full"
-                                            src={event.videoUrl}
-                                            title={`${event.title} Video`}
-                                            frameBorder="0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        ></iframe>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Contact & Social Media */}
-                            {(event.contact || event.socialMedia) && (
-                                <div className="mb-8">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Contact & Social Media</h2>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        {/* Contact Information */}
-                                        {event.contact?.website && (
-                                            <a href={event.contact.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--brand-primary)] hover:underline">
-                                                <Globe size={16} />
-                                                <span>Visit Website</span>
-                                            </a>
-                                        )}
-                                        {event.contact?.email && (
-                                            <a href={`mailto:${event.contact.email}`} className="flex items-center gap-2 text-[var(--brand-primary)] hover:underline">
-                                                <Mail size={16} />
-                                                <span>{event.contact.email}</span>
-                                            </a>
-                                        )}
-                                        {event.contact?.phone && (
-                                            <a href={`tel:${event.contact.phone.replace(/\s/g, '')}`} className="flex items-center gap-2 text-[var(--brand-primary)] hover:underline">
-                                                <Phone size={16} />
-                                                <span>{event.contact.phone}</span>
-                                            </a>
-                                        )}
-
-                                        {/* Social Media Links */}
-                                        {event.socialMedia?.facebook && (
-                                            <a href={event.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--brand-primary)] hover:underline">
-                                                <Facebook size={16} />
-                                                <span>Facebook</span>
-                                            </a>
-                                        )}
-                                        {event.socialMedia?.twitter && (
-                                            <a href={event.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--brand-primary)] hover:underline">
-                                                <Twitter size={16} />
-                                                <span>Twitter</span>
-                                            </a>
-                                        )}
-                                        {event.socialMedia?.instagram && (
-                                            <a href={event.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--brand-primary)] hover:underline">
-                                                <Instagram size={16} />
-                                                <span>Instagram</span>
-                                            </a>
-                                        )}
-                                        {event.socialMedia?.linkedin && (
-                                            <a href={event.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--brand-primary)] hover:underline">
-                                                <Linkedin size={16} />
-                                                <span>LinkedIn</span>
-                                            </a>
-                                        )}
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Event Photos</h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {event.images.map((img, index) => (
+                                            <img
+                                                key={index}
+                                                src={img}
+                                                alt={`${event.title} - Photo ${index + 1}`}
+                                                className="w-full h-32 object-cover rounded-lg"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                }}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                             )}
@@ -239,7 +262,7 @@ const EventDetails = () => {
                             {/* Share Buttons */}
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900 mb-4">Share This Event</h2>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 flex-wrap">
                                     <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold transition-colors">
                                         Share on Facebook
                                     </button>
@@ -261,11 +284,11 @@ const EventDetails = () => {
                             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                                 <h3 className="text-sm font-semibold text-gray-500 mb-4">Event Date</h3>
                                 <div className="text-center mb-4">
-                                    <div className="text-5xl font-bold text-[var(--brand-primary)]">{day}</div>
+                                    <div className="text-5xl font-bold text-(--brand-primary)">{day}</div>
                                     <div className="text-lg text-gray-600 font-medium">{month} {year}</div>
                                     <div className="text-sm text-gray-500 mt-2">{event.time}</div>
                                 </div>
-                                <button className="w-full text-[var(--brand-primary)] text-sm font-semibold hover:underline flex items-center justify-center gap-1">
+                                <button className="w-full text-(--brand-primary) text-sm font-semibold hover:underline flex items-center justify-center gap-1">
                                     <CalendarPlus size={16} />
                                     Add to Calendar
                                 </button>
@@ -274,10 +297,10 @@ const EventDetails = () => {
                             {/* Venue Card with Map */}
                             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                                 <h3 className="text-sm font-semibold text-gray-500 mb-4">Venue</h3>
-                                <h4 className="font-bold text-gray-900 mb-2">{event.venue.toUpperCase()}</h4>
-                                <p className="text-sm text-gray-600 mb-4">{event.location}, {event.country}</p>
+                                <h4 className="font-bold text-gray-900 mb-2">{(event.venue || 'TBA').toUpperCase()}</h4>
+                                <p className="text-sm text-gray-600 mb-4">{event.location}{event.country ? `, ${event.country}` : ''}</p>
 
-                                {/* Map - Embedded or Placeholder */}
+                                {/* Map */}
                                 {event.mapUrl ? (
                                     <div className="rounded-lg overflow-hidden h-48 mb-4">
                                         <iframe
@@ -298,7 +321,7 @@ const EventDetails = () => {
                                 )}
                             </div>
 
-                            {/* Tickets Card with Multiple Types */}
+                            {/* Tickets Card */}
                             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                                 <h3 className="text-sm font-semibold text-gray-500 mb-4">Tickets</h3>
 
@@ -306,14 +329,14 @@ const EventDetails = () => {
                                 {event.ticketTypes && event.ticketTypes.length > 0 ? (
                                     <div className="space-y-3 mb-6">
                                         {event.ticketTypes.map((ticket, index) => (
-                                            <div key={index} className={`p-4 rounded-lg border-2 ${ticket.available ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/5' : 'border-gray-300 bg-gray-50'}`}>
+                                            <div key={ticket.id || index} className={`p-4 rounded-lg border-2 ${ticket.available ? 'border-(--brand-primary) bg-(--brand-primary)/5' : 'border-gray-300 bg-gray-50'}`}>
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className="font-bold text-gray-900">{ticket.name}</span>
-                                                    <span className="text-lg font-bold text-[var(--brand-primary)]">${ticket.price}</span>
+                                                    <span className="text-lg font-bold text-(--brand-primary)">GH₵{ticket.price}</span>
                                                 </div>
                                                 <div className="text-xs text-gray-500">
                                                     {ticket.available ? (
-                                                        <span className="text-green-600 font-semibold">✓ Available</span>
+                                                        <span className="text-green-600 font-semibold">✓ {ticket.availableQuantity || 'Available'} left</span>
                                                     ) : (
                                                         <span className="text-red-500 font-semibold">✗ Sold Out</span>
                                                     )}
@@ -324,14 +347,14 @@ const EventDetails = () => {
                                 ) : (
                                     <div className="mb-6">
                                         <div className="text-center">
-                                            <span className="text-4xl font-bold text-[var(--brand-primary)]">{event.price}</span>
+                                            <span className="text-4xl font-bold text-(--brand-primary)">{event.price || 'Free'}</span>
                                         </div>
                                     </div>
                                 )}
 
                                 <button
                                     onClick={() => setIsTicketModalOpen(true)}
-                                    className="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-full transition-opacity mb-3 flex items-center justify-center gap-2"
+                                    className="w-full bg-(--brand-primary) hover:opacity-90 text-white font-bold py-3 px-4 rounded-full transition-opacity mb-3 flex items-center justify-center gap-2"
                                 >
                                     <Ticket size={18} />
                                     GET TICKETS
@@ -339,7 +362,7 @@ const EventDetails = () => {
 
                                 <button
                                     onClick={() => setIsFavorite(!isFavorite)}
-                                    className={`w-full border-2 ${isFavorite ? 'border-red-500 text-red-500 bg-red-50' : 'border-[var(--brand-primary)] text-[var(--brand-primary)]'} hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] font-bold py-3 px-4 rounded-full transition-colors flex items-center justify-center gap-2`}
+                                    className={`w-full border-2 ${isFavorite ? 'border-red-500 text-red-500 bg-red-50' : 'border-(--brand-primary) text-(--brand-primary)'} hover:bg-(--brand-primary) hover:text-white hover:border-(--brand-primary) font-bold py-3 px-4 rounded-full transition-colors flex items-center justify-center gap-2`}
                                 >
                                     <Heart size={18} className={isFavorite ? 'fill-current' : ''} />
                                     {isFavorite ? 'FAVORITED' : 'ADD TO FAVORITES'}
@@ -347,49 +370,35 @@ const EventDetails = () => {
                             </div>
 
                             {/* Organizer Card */}
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                <h3 className="text-sm font-semibold text-gray-500 mb-4">Organizer</h3>
+                            {event.organizer && (
+                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                    <h3 className="text-sm font-semibold text-gray-500 mb-4">Organizer</h3>
 
-                                <div className="relative h-32 rounded-lg overflow-hidden mb-4">
-                                    <img
-                                        src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&q=80"
-                                        alt="Organizer"
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
-                                        <h4 className="text-white font-bold">Eventic Organizers</h4>
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <img
+                                            src={event.organizer.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(event.organizer.name)}&background=ff6b35&color=fff`}
+                                            alt={event.organizer.name}
+                                            className="w-16 h-16 rounded-full object-cover"
+                                        />
+                                        <div>
+                                            <h4 className="font-bold text-gray-900">{event.organizer.name}</h4>
+                                            <p className="text-sm text-gray-600">{event.organizer.eventsOrganized || 0} events organized</p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <button className="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-2 px-4 rounded-full transition-opacity flex items-center justify-center gap-2">
-                                    <Mail size={16} />
-                                    FOLLOW ORGANIZER
-                                </button>
-                            </div>
+                                    {event.organizer.bio && (
+                                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">{event.organizer.bio}</p>
+                                    )}
 
-                            {/* Attendees Card */}
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-sm font-semibold text-gray-500">Attendees</h3>
-                                    <button className="text-[var(--brand-primary)] text-sm font-semibold hover:underline flex items-center gap-1">
-                                        <Eye size={14} />
-                                        See all
+                                    <button className="w-full bg-(--brand-primary) hover:opacity-90 text-white font-bold py-2 px-4 rounded-full transition-opacity flex items-center justify-center gap-2">
+                                        <Mail size={16} />
+                                        FOLLOW ORGANIZER
                                     </button>
                                 </div>
-
-                                <div className="flex items-center gap-2">
-                                    <img src="https://ui-avatars.com/api/?name=User+1&background=ff6b35" alt="User" className="w-10 h-10 rounded-full" />
-                                    <img src="https://ui-avatars.com/api/?name=User+2&background=f7931e" alt="User" className="w-10 h-10 rounded-full" />
-                                    <img src="https://ui-avatars.com/api/?name=User+3&background=004e89" alt="User" className="w-10 h-10 rounded-full" />
-                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
-                                        +47
-                                    </div>
-                                </div>
-                                <p className="text-sm text-gray-500 mt-3">50 people are attending</p>
-                            </div>
+                            )}
 
                             {/* Newsletter Card */}
-                            <div className="bg-[var(--brand-primary)] rounded-lg p-6 text-white">
+                            <div className="bg-(--brand-primary) rounded-lg p-6 text-white">
                                 <h3 className="font-bold mb-4 flex items-center gap-2">
                                     <Mail size={18} />
                                     <span>Subscribe to Updates</span>

@@ -14,6 +14,10 @@ const eventService = {
      * @param {string} [params.status] - Event status filter
      * @param {number} [params.event_type_id] - Event type ID filter
      * @param {number} [params.organizer_id] - Organizer ID filter
+     * @param {string} [params.category] - Category slug filter
+     * @param {string} [params.search] - Search query
+     * @param {string} [params.location] - Location filter
+     * @param {boolean} [params.upcoming] - Only upcoming events
      * @param {number} [params.page] - Page number for pagination
      * @param {number} [params.per_page] - Items per page
      * @returns {Promise<Object>} List of events
@@ -47,16 +51,27 @@ const eventService = {
     },
 
     /**
+     * Get single event by slug
+     * @param {string} slug - Event slug
+     * @returns {Promise<Object>} Event details
+     */
+    getBySlug: async (slug) => {
+        const response = await api.get(`/events/${slug}`);
+        return response;
+    },
+
+    /**
      * Create a new event
      * @param {Object} eventData - Event data
      * @param {string} eventData.title - Event title
      * @param {string} eventData.description - Event description
-     * @param {string} eventData.start_date - Start date (ISO format)
-     * @param {string} eventData.end_date - End date (ISO format)
-     * @param {string} eventData.venue - Event venue
+     * @param {string} eventData.start_time - Start time (ISO format)
+     * @param {string} eventData.end_time - End time (ISO format)
+     * @param {string} eventData.venue_name - Event venue
      * @param {string} eventData.address - Event address
-     * @param {number} eventData.organizer_id - Organizer ID
      * @param {number} [eventData.event_type_id] - Event type ID
+     * @param {string} [eventData.banner_image] - Banner image URL
+     * @param {array} [eventData.tags] - Event tags
      * @returns {Promise<Object>} Created event
      */
     create: async (eventData) => {
@@ -105,20 +120,53 @@ const eventService = {
      */
     getUpcoming: async (params = {}) => {
         const response = await api.get('/events', {
-            params: { status: 'published', ...params }
+            params: { upcoming: 'true', ...params }
         });
         return response;
     },
 
     /**
-     * Get featured events
+     * Get featured events for homepage carousel
      * @param {number} limit - Number of events to return
      * @returns {Promise<Object>} List of featured events
      */
-    getFeatured: async (limit = 6) => {
-        const response = await api.get('/events', {
-            params: { status: 'published', per_page: limit }
+    getFeatured: async (limit = 5) => {
+        const response = await api.get('/events/featured', {
+            params: { limit }
         });
+        return response;
+    },
+
+    /**
+     * Get events by category
+     * @param {string} categorySlug - Category slug
+     * @param {Object} params - Additional query parameters
+     * @returns {Promise<Object>} Events in category
+     */
+    getByCategory: async (categorySlug, params = {}) => {
+        const response = await api.get('/events', {
+            params: { category: categorySlug, ...params }
+        });
+        return response;
+    },
+
+    /**
+     * Publish an event (change status to published)
+     * @param {number|string} id - Event ID
+     * @returns {Promise<Object>} Updated event
+     */
+    publish: async (id) => {
+        const response = await api.put(`/events/${id}`, { status: 'published' });
+        return response;
+    },
+
+    /**
+     * Cancel an event
+     * @param {number|string} id - Event ID
+     * @returns {Promise<Object>} Updated event
+     */
+    cancel: async (id) => {
+        const response = await api.put(`/events/${id}`, { status: 'cancelled' });
         return response;
     },
 };
