@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, MapPin, Grid, List, Home as HomeIcon, ThumbsUp, Bookmark, Rss, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Calendar, MapPin, Grid, List, Home as HomeIcon, ThumbsUp, Bookmark, Rss, Loader2, AlertCircle, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import FilterSidebar from '../components/events/FilterSidebar';
 import eventService from '../services/eventService';
@@ -17,6 +17,7 @@ const BrowseEvents = () => {
         totalPages: 0
     });
     const [currentFilters, setCurrentFilters] = useState({});
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
     // Fetch events from API
     const fetchEvents = useCallback(async (filters = {}, page = 1) => {
@@ -135,9 +136,18 @@ const BrowseEvents = () => {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Mobile Filter Drawer */}
+                <FilterSidebar
+                    onFilterChange={handleFilterChange}
+                    initialFilters={currentFilters}
+                    isOpen={isMobileFilterOpen}
+                    onClose={() => setIsMobileFilterOpen(false)}
+                    isMobile={true}
+                />
+
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Filter Sidebar */}
-                    <div className="lg:col-span-1">
+                    {/* Filter Sidebar - Desktop Only */}
+                    <div className="hidden lg:block lg:col-span-1">
                         <FilterSidebar
                             onFilterChange={handleFilterChange}
                             initialFilters={currentFilters}
@@ -148,50 +158,64 @@ const BrowseEvents = () => {
                     <div className="lg:col-span-3">
                         {/* Results Header */}
                         <div className="flex items-center justify-between mb-6">
-                            <p className="text-gray-600">
+                            <p className="text-gray-600 text-sm sm:text-base">
                                 {isLoading ? (
                                     <span>Loading events...</span>
                                 ) : (
                                     <>
-                                        <span className="font-semibold text-(--brand-primary)">{pagination.total} event(s)</span> found
+                                        <span className="font-semibold text-(--brand-primary)">{pagination.total}</span> event(s) found
                                     </>
                                 )}
                             </p>
 
                             <div className="flex items-center gap-2">
-                                {/* Action Buttons */}
+                                {/* Mobile Filter Toggle */}
                                 <button
-                                    className="p-2.5 bg-(--brand-primary) hover:opacity-90 text-white rounded-full transition-opacity"
+                                    onClick={() => setIsMobileFilterOpen(true)}
+                                    className="lg:hidden flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700 text-sm"
+                                >
+                                    <SlidersHorizontal size={18} className="text-(--brand-primary)" />
+                                    <span className="hidden xs:inline">Filters</span>
+                                    {Object.keys(currentFilters).filter(k => currentFilters[k] && currentFilters[k] !== 'Ghana').length > 0 && (
+                                        <span className="bg-(--brand-primary) text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                                            {Object.keys(currentFilters).filter(k => currentFilters[k] && currentFilters[k] !== 'Ghana').length}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {/* Action Buttons - Hide on mobile for cleaner UI */}
+                                <button
+                                    className="hidden sm:flex p-2.5 bg-(--brand-primary) hover:opacity-90 text-white rounded-full transition-opacity"
                                     title="Like"
                                 >
                                     <ThumbsUp size={20} />
                                 </button>
                                 <button
-                                    className="p-2.5 bg-(--brand-primary) hover:opacity-90 text-white rounded-full transition-opacity"
+                                    className="hidden sm:flex p-2.5 bg-(--brand-primary) hover:opacity-90 text-white rounded-full transition-opacity"
                                     title="Bookmark"
                                 >
                                     <Bookmark size={20} />
                                 </button>
                                 <button
-                                    className="p-2.5 bg-(--brand-primary) hover:opacity-90 text-white rounded-full transition-opacity"
+                                    className="hidden sm:flex p-2.5 bg-(--brand-primary) hover:opacity-90 text-white rounded-full transition-opacity"
                                     title="RSS Feed"
                                 >
                                     <Rss size={20} />
                                 </button>
 
                                 {/* View Toggle */}
-                                <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-1 ml-3">
+                                <div className="flex items-center bg-white rounded-lg border border-gray-200 p-1">
                                     <button
                                         onClick={() => setViewMode('grid')}
-                                        className={`p-2 rounded ${viewMode === 'grid' ? 'bg-(--brand-primary) text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                                        className={`p-1.5 sm:p-2 rounded ${viewMode === 'grid' ? 'bg-(--brand-primary) text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                                     >
-                                        <Grid size={20} />
+                                        <Grid size={18} className="sm:w-5 sm:h-5" />
                                     </button>
                                     <button
                                         onClick={() => setViewMode('list')}
-                                        className={`p-2 rounded ${viewMode === 'list' ? 'bg-(--brand-primary) text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                                        className={`p-1.5 sm:p-2 rounded ${viewMode === 'list' ? 'bg-(--brand-primary) text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                                     >
-                                        <List size={20} />
+                                        <List size={18} className="sm:w-5 sm:h-5" />
                                     </button>
                                 </div>
                             </div>
@@ -342,8 +366,8 @@ const BrowseEvents = () => {
                                                         key={pageNum}
                                                         onClick={() => handlePageChange(pageNum)}
                                                         className={`w-10 h-10 rounded-lg font-medium ${pagination.page === pageNum
-                                                                ? 'bg-(--brand-primary) text-white'
-                                                                : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                            ? 'bg-(--brand-primary) text-white'
+                                                            : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                                                             }`}
                                                     >
                                                         {pageNum}

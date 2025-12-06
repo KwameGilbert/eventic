@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Search, ChevronDown, Calendar as CalendarIcon, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, ChevronDown, Calendar as CalendarIcon, RotateCcw, X, SlidersHorizontal } from 'lucide-react';
 
-const FilterSidebar = ({ onFilterChange }) => {
+const FilterSidebar = ({ onFilterChange, isOpen, onClose, isMobile = false }) => {
     const defaultFilters = {
         keyword: '',
         category: '',
@@ -15,6 +15,18 @@ const FilterSidebar = ({ onFilterChange }) => {
     };
 
     const [filters, setFilters] = useState(defaultFilters);
+
+    // Prevent body scroll when mobile filter is open
+    useEffect(() => {
+        if (isMobile && isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isMobile, isOpen]);
 
     const handleChange = (name, value) => {
         const newFilters = { ...filters, [name]: value };
@@ -31,6 +43,15 @@ const FilterSidebar = ({ onFilterChange }) => {
         }
     };
 
+    const handleApplyFilters = () => {
+        if (onFilterChange) {
+            onFilterChange(filters);
+        }
+        if (onClose) {
+            onClose();
+        }
+    };
+
     const dateOptions = [
         { value: 'today', label: 'Today' },
         { value: 'tomorrow', label: 'Tomorrow' },
@@ -42,8 +63,25 @@ const FilterSidebar = ({ onFilterChange }) => {
         { value: 'pick-date', label: 'Pick a date' },
     ];
 
-    return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
+    const filterContent = (
+        <>
+            {/* Mobile Header */}
+            {isMobile && (
+                <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-200">
+                    <div className="flex items-center gap-2">
+                        <SlidersHorizontal size={20} className="text-[var(--brand-primary)]" />
+                        <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        aria-label="Close filters"
+                    >
+                        <X size={24} className="text-gray-600" />
+                    </button>
+                </div>
+            )}
+
             {/* Reset Button */}
             <div className="mb-6">
                 <button
@@ -90,7 +128,7 @@ const FilterSidebar = ({ onFilterChange }) => {
                         <option value="conference">Conference</option>
                         <option value="cinema">Cinema</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
                 </div>
             </div>
 
@@ -110,7 +148,7 @@ const FilterSidebar = ({ onFilterChange }) => {
                         <option value="kumasi">Kumasi</option>
                         <option value="takoradi">Takoradi</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
                 </div>
             </div>
 
@@ -153,7 +191,7 @@ const FilterSidebar = ({ onFilterChange }) => {
                         <option value="USA">🇺🇸 United States</option>
                         <option value="UK">🇬🇧 United Kingdom</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
                 </div>
             </div>
 
@@ -263,25 +301,62 @@ const FilterSidebar = ({ onFilterChange }) => {
             </div>
 
             {/* Search Button */}
-            <button className="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-full transition-opacity flex items-center justify-center gap-2">
+            <button
+                onClick={handleApplyFilters}
+                className="w-full bg-[var(--brand-primary)] hover:opacity-90 text-white font-bold py-3 px-4 rounded-full transition-opacity flex items-center justify-center gap-2"
+            >
                 <Search size={20} />
-                SEARCH
+                {isMobile ? 'APPLY FILTERS' : 'SEARCH'}
             </button>
 
-            {/* Newsletter Subscription */}
-            <div className="mt-8 bg-[var(--brand-primary)] rounded-lg p-4 text-white">
-                <h3 className="font-bold mb-2 flex items-center gap-2">
-                    <span>📧</span> Subscribe to our newsletter
-                </h3>
-                <input
-                    type="email"
-                    placeholder="Email address"
-                    className="w-full px-3 py-2 mb-3 rounded-lg text-gray-900 focus:outline-none"
+            {/* Newsletter Subscription - Hide on mobile for cleaner UX */}
+            {!isMobile && (
+                <div className="mt-8 bg-[var(--brand-primary)] rounded-lg p-4 text-white">
+                    <h3 className="font-bold mb-2 flex items-center gap-2">
+                        <span>📧</span>Subscribe to our newsletter
+                    </h3>
+                    <input
+                        type="email"
+                        placeholder="Email address"
+                        className="w-full px-3 py-2 mb-3 rounded-lg text-gray-900 focus:outline-none"
+                    />
+                    <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                        SUBSCRIBE
+                    </button>
+                </div>
+            )}
+        </>
+    );
+
+    // Mobile drawer mode
+    if (isMobile) {
+        return (
+            <>
+                {/* Backdrop Overlay */}
+                <div
+                    className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                        }`}
+                    onClick={onClose}
+                    aria-hidden="true"
                 />
-                <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-                    SUBSCRIBE
-                </button>
-            </div>
+
+                {/* Slide-in Drawer */}
+                <div
+                    className={`fixed top-0 left-0 h-full w-[85%] max-w-sm bg-white z-50 transform transition-transform duration-300 ease-out shadow-2xl ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                        }`}
+                >
+                    <div className="h-full overflow-y-auto p-6 pb-24">
+                        {filterContent}
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // Desktop mode
+    return (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
+            {filterContent}
         </div>
     );
 };
