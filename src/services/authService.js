@@ -260,6 +260,22 @@ const authService = {
     },
 
     /**
+     * Change password for authenticated user
+     * @param {string} currentPassword - Current password
+     * @param {string} newPassword - New password
+     * @param {boolean} [logoutOtherDevices=false] - Whether to logout from other devices
+     * @returns {Promise<Object>} Password change response
+     */
+    changePassword: async (currentPassword, newPassword, logoutOtherDevices = false) => {
+        const response = await api.post('/auth/password/change', {
+            current_password: currentPassword,
+            new_password: newPassword,
+            logout_other_devices: logoutOtherDevices,
+        });
+        return response;
+    },
+
+    /**
      * Check if user is authenticated
      * @returns {boolean} Whether user has valid access token
      */

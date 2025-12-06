@@ -158,12 +158,12 @@ const BrowseEvents = () => {
                     <div className="lg:col-span-3">
                         {/* Results Header */}
                         <div className="flex items-center justify-between mb-6">
-                            <p className="text-gray-600 text-sm sm:text-base">
+                            <p className="text-gray-600 sm:text-base">
                                 {isLoading ? (
                                     <span>Loading events...</span>
                                 ) : (
                                     <>
-                                        <span className="font-semibold text-(--brand-primary)">{pagination.total}</span> event(s) found
+                                        <span className="font-semibold text-(--brand-primary)">{pagination.total} event(s)</span> found
                                     </>
                                 )}
                             </p>

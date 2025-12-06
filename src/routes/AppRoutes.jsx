@@ -3,6 +3,7 @@ import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
 import BrowseEvents from "../pages/BrowseEvents";
 import EventDetails from "../pages/EventDetails";
+import Categories from "../pages/Categories";
 import SignIn from "../pages/SignIn";
 import SignUpAttendee from "../pages/SignUpAttendee";
 import SignUpOrganizer from "../pages/SignUpOrganizer";
@@ -42,6 +43,7 @@ const AppRoutes = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/events" element={<BrowseEvents />} />
                 <Route path="/event/:slug" element={<EventDetails />} />
+                <Route path="/categories" element={<Categories />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
 
                 {/* Authentication */}

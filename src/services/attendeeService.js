@@ -104,6 +104,47 @@ const attendeeService = {
         });
         return response;
     },
+
+    /**
+     * Get current user's attendee profile
+     * @returns {Promise<Object>} Attendee profile
+     */
+    getMyProfile: async () => {
+        const response = await api.get('/attendees/me');
+        return response;
+    },
+
+    /**
+     * Update current user's attendee profile
+     * @param {Object} profileData - Profile data to update
+     * @param {string} [profileData.first_name] - First name
+     * @param {string} [profileData.last_name] - Last name
+     * @param {string} [profileData.phone] - Phone number
+     * @param {string} [profileData.bio] - Bio text
+     * @returns {Promise<Object>} Updated profile
+     */
+    updateMyProfile: async (profileData) => {
+        const response = await api.put('/attendees/me', profileData);
+        return response;
+    },
+
+    /**
+     * Upload profile image for current attendee
+     * @param {File} file - Image file to upload
+     * @returns {Promise<Object>} Response with image URL
+     */
+    uploadProfileImage: async (file) => {
+        const formData = new FormData();
+        formData.append('profile_image', file);
+
+        const response = await api.post('/attendees/me/image', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response;
+    },
 };
 
 export default attendeeService;
+

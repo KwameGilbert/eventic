@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Home, ChevronRight, ArrowLeft, Calendar, CreditCard, MapPin, Clock, Ticket, Download, Share2, Loader2, AlertCircle, CheckCircle, XCircle, Package } from 'lucide-react';
+import { Home, ChevronRight, ArrowLeft, Calendar, CreditCard, MapPin, Clock, Ticket, Download, Share2, AlertCircle, CheckCircle, XCircle, Package } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 import { useAuth } from '../context/AuthContext';
+import PageLoader from '../components/ui/PageLoader';
 
 const OrderDetails = () => {
     const { id } = useParams();
@@ -93,15 +94,38 @@ const OrderDetails = () => {
         return styles[status] || 'bg-gray-100 text-gray-700 border-gray-200';
     };
 
+    // Get ticket status badge based on ticket.status (active, used, cancelled)
+    const getTicketStatusBadge = (status) => {
+        switch (status) {
+            case 'active':
+                return {
+                    icon: '✓',
+                    text: 'Valid',
+                    className: 'text-green-600'
+                };
+            case 'used':
+                return {
+                    icon: '✗',
+                    text: 'Used',
+                    className: 'text-blue-600'
+                };
+            case 'cancelled':
+                return {
+                    icon: '✗',
+                    text: 'Cancelled',
+                    className: 'text-red-600'
+                };
+            default:
+                return {
+                    icon: '?',
+                    text: status || 'Unknown',
+                    className: 'text-gray-600'
+                };
+        }
+    };
+
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading order details...</p>
-                </div>
-            </div>
-        );
+        return <PageLoader message="Loading order details..." />;
     }
 
     if (error || !order) {
@@ -243,9 +267,14 @@ const OrderDetails = () => {
                                                         <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                                                             #{ticket.id}
                                                         </span>
-                                                        <span className="text-green-600 text-sm font-medium">
-                                                            ✓ Valid
-                                                        </span>
+                                                        {(() => {
+                                                            const ticketStatus = getTicketStatusBadge(ticket.status);
+                                                            return (
+                                                                <span className={`text-sm font-medium ${ticketStatus.className}`}>
+                                                                    {ticketStatus.icon} {ticketStatus.text}
+                                                                </span>
+                                                            );
+                                                        })()}
                                                     </div>
                                                     <h4 className="font-semibold text-gray-900">
                                                         {ticket.ticket_type?.name || ticket.ticketType?.name}

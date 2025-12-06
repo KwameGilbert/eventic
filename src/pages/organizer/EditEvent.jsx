@@ -27,6 +27,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
+import PageLoader from '../../components/ui/PageLoader';
 
 const EditEvent = () => {
     const navigate = useNavigate();
@@ -246,11 +247,7 @@ const EditEvent = () => {
     const totalTickets = tickets.reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0);
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-96">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-(--brand-primary)"></div>
-            </div>
-        );
+        return <PageLoader message="Loading event data..." fullScreen={false} />;
     }
 
     return (

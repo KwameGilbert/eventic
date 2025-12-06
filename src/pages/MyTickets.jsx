@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, ChevronRight, Ticket, Calendar, MapPin, Clock, X, Download, Share2, Loader2, RefreshCw, AlertCircle, QrCode } from 'lucide-react';
+import { Home, ChevronRight, Ticket, Calendar, MapPin, Clock, X, Download, Share2, RefreshCw, AlertCircle, QrCode } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 import { useAuth } from '../context/AuthContext';
+import PageLoader from '../components/ui/PageLoader';
 
 const MyTickets = () => {
     const navigate = useNavigate();
@@ -110,14 +111,7 @@ const MyTickets = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading your tickets...</p>
-                </div>
-            </div>
-        );
+        return <PageLoader message="Loading your tickets..." />;
     }
 
     return (

@@ -4,7 +4,7 @@ import FeaturedCategories from '../components/home/FeaturedCategories';
 import UpcomingEvents from '../components/home/UpcomingEvents';
 import eventService from '../services/eventService';
 import { featuredCategories } from '../data/mockEvents';
-import { Loader2 } from 'lucide-react';
+import PageLoader from '../components/ui/PageLoader';
 
 const Home = () => {
     const [featuredEvents, setFeaturedEvents] = useState([]);
@@ -44,14 +44,7 @@ const Home = () => {
     }, []);
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-(--brand-primary) mx-auto mb-4" />
-                    <p className="text-gray-600">Loading events...</p>
-                </div>
-            </div>
-        );
+        return <PageLoader message="Loading events..." />;
     }
 
     return (

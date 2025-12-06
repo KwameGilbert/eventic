@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Home as HomeIcon, Heart, Globe, Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Calendar, Ticket, Users, Eye, CalendarPlus, FolderOpen, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Home as HomeIcon, Heart, Globe, Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Calendar, Ticket, Users, Eye, CalendarPlus, FolderOpen, AlertCircle, RefreshCw } from 'lucide-react';
 import TicketModal from '../components/modals/TicketModal';
 import eventService from '../services/eventService';
+import PageLoader from '../components/ui/PageLoader';
 
 const EventDetails = () => {
     const { slug } = useParams();
@@ -51,14 +52,7 @@ const EventDetails = () => {
 
     // Loading State
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-(--brand-primary) mx-auto mb-4" />
-                    <p className="text-gray-600">Loading event details...</p>
-                </div>
-            </div>
-        );
+        return <PageLoader message="Loading event details..." />;
     }
 
     // Error State

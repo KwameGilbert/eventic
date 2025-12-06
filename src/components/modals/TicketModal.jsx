@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { X, MapPin, Calendar, Ticket, Minus, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { showSuccess } from '../../utils/toast';
 
 const TicketModal = ({ isOpen, onClose, event }) => {
     const navigate = useNavigate();
@@ -84,8 +85,8 @@ const TicketModal = ({ isOpen, onClose, event }) => {
         // Add to cart
         addToCart(event, selectedTickets);
 
-        // Show success message (optional - could use a toast notification)
-        alert(`${getTotalTickets()} ticket(s) added to cart!`);
+        // Show success toast notification
+        showSuccess(`${getTotalTickets()} ticket(s) added to cart!`);
 
         // Close modal and navigate to cart
         onClose();

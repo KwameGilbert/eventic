@@ -1,17 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Camera, Save } from 'lucide-react';
+import { User, Mail, Camera, Save, Phone, AlertCircle, Loader2 } from 'lucide-react';
+import attendeeService from '../services/attendeeService';
+import { showSuccess, showError } from '../utils/toast';
+import PageLoader from '../components/ui/PageLoader';
 
 const Settings = () => {
     const { user } = useAuth();
-    const [formData, setFormData] = useState({
-        name: user?.name || '',
-        email: user?.email || '',
-        bio: 'Event enthusiast and avid traveler.',
-        phone: '+1 (555) 123-4567'
-    });
+    const fileInputRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
+    const [formData, setFormData] = useState({
+        first_name: '',
+        last_name: '',
+        email: '',
+        bio: '',
+        phone: ''
+    });
+    const [previewImage, setPreviewImage] = useState(null);
+
+    // Fetch current user profile on mount
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await attendeeService.getMyProfile();
+                const profileData = response.data?.attendee || response.data || {};
+
+                setFormData({
+                    first_name: profileData?.first_name || user?.name?.split(' ')[0] || '',
+                    last_name: profileData?.last_name || user?.name?.split(' ').slice(1).join(' ') || '',
+                    email: profileData?.email || user?.email || '',
+                    bio: profileData?.bio || '',
+                    phone: profileData?.phone || ''
+                });
+                setPreviewImage(profileData?.profile_image || null);
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                // Fall back to user data from auth context
+                const nameParts = (user?.name || '').split(' ');
+                setFormData({
+                    first_name: nameParts[0] || '',
+                    last_name: nameParts.slice(1).join(' ') || '',
+                    email: user?.email || '',
+                    bio: '',
+                    phone: ''
+                });
+            } finally {
+                setIsFetching(false);
+            }
+        };
+
+        fetchProfile();
+    }, [user]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -21,17 +62,82 @@ const Settings = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleImageChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showError('Please select an image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showError('Image size must be less than 5MB');
+            return;
+        }
+
+        // Show preview immediately
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreviewImage(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload the image
+        setIsUploading(true);
+        try {
+            const response = await attendeeService.uploadProfileImage(file);
+            const newImageUrl = response.data?.profile_image || response.data?.attendee?.profile_image;
+
+            if (newImageUrl) {
+                setPreviewImage(newImageUrl);
+            }
+            showSuccess('Profile image updated successfully!');
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            showError(error.message || 'Failed to upload image');
+            // Revert to no image on error
+            setPreviewImage(null);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            const updateData = {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                phone: formData.phone,
+                bio: formData.bio
+            };
+
+            await attendeeService.updateMyProfile(updateData);
+            showSuccess('Profile updated successfully!');
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            showError(error.message || 'Failed to update profile');
+        } finally {
             setIsLoading(false);
-            setSuccessMessage('Profile updated successfully!');
-            setTimeout(() => setSuccessMessage(''), 3000);
-        }, 1500);
+        }
     };
+
+    if (isFetching) {
+        return <PageLoader message="Loading your profile..." />;
+    }
+
+    const displayName = `${formData.first_name} ${formData.last_name}`.trim() || 'User';
+    const avatarUrl = previewImage ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f97316&color=fff&size=200`;
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -45,39 +151,76 @@ const Settings = () => {
                     <div className="p-8">
                         {/* Avatar Section */}
                         <div className="flex flex-col items-center mb-8">
-                            <div className="relative group cursor-pointer">
+                            <div
+                                className="relative group cursor-pointer"
+                                onClick={handleImageClick}
+                            >
                                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                                    <img
-                                        src={user?.avatar || 'https://ui-avatars.com/api/?name=User&background=f97316&color=fff'}
-                                        alt="Profile"
-                                        className="w-full h-full object-cover"
-                                    />
+                                    {isUploading ? (
+                                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                            <Loader2 className="w-8 h-8 text-(--brand-primary) animate-spin" />
+                                        </div>
+                                    ) : (
+                                        <img
+                                            src={avatarUrl}
+                                            alt="Profile"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
                                 </div>
                                 <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Camera className="text-white w-8 h-8" />
                                 </div>
-                                <button className="absolute bottom-0 right-0 bg-(--brand-primary) text-white p-2 rounded-full shadow-lg hover:bg-(--brand-primary)/90 transition-colors">
+                                <button
+                                    type="button"
+                                    className="absolute bottom-0 right-0 bg-(--brand-primary) text-white p-2 rounded-full shadow-lg hover:bg-(--brand-primary)/90 transition-colors"
+                                >
                                     <Camera size={16} />
                                 </button>
                             </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="hidden"
+                            />
                             <p className="mt-4 text-sm text-gray-500">Click to upload new photo</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Name Field */}
+                                {/* First Name Field */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                                         <User size={16} />
-                                        Full Name
+                                        First Name
                                     </label>
                                     <input
                                         type="text"
-                                        name="name"
-                                        value={formData.name}
+                                        name="first_name"
+                                        value={formData.first_name}
                                         onChange={handleChange}
                                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all outline-none"
-                                        placeholder="Enter your full name"
+                                        placeholder="Enter your first name"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Last Name Field */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                        <User size={16} />
+                                        Last Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="last_name"
+                                        value={formData.last_name}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all outline-none"
+                                        placeholder="Enter your last name"
+                                        required
                                     />
                                 </div>
 
@@ -96,12 +239,18 @@ const Settings = () => {
                                         placeholder="Enter your email"
                                         readOnly
                                     />
-                                    <p className="text-xs text-gray-400">Email cannot be changed</p>
+                                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                                        <AlertCircle size={12} />
+                                        Email cannot be changed
+                                    </p>
                                 </div>
 
                                 {/* Phone Field */}
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                        <Phone size={16} />
+                                        Phone Number
+                                    </label>
                                     <input
                                         type="tel"
                                         name="phone"
@@ -121,18 +270,14 @@ const Settings = () => {
                                     value={formData.bio}
                                     onChange={handleChange}
                                     rows="4"
+                                    maxLength={500}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all outline-none resize-none"
                                     placeholder="Tell us a little about yourself..."
                                 />
+                                <p className="text-xs text-gray-400">
+                                    {formData.bio?.length || 0}/500 characters
+                                </p>
                             </div>
-
-                            {/* Success Message */}
-                            {successMessage && (
-                                <div className="p-4 bg-green-50 text-green-700 rounded-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                                    {successMessage}
-                                </div>
-                            )}
 
                             {/* Submit Button */}
                             <div className="pt-4 flex justify-end">
@@ -142,7 +287,7 @@ const Settings = () => {
                                     className="flex items-center gap-2 px-8 py-3 bg-(--brand-primary) text-white rounded-xl font-semibold hover:bg-(--brand-primary)/90 transition-all shadow-lg shadow-(--brand-primary)/30 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isLoading ? (
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        <Loader2 className="w-5 h-5 animate-spin" />
                                     ) : (
                                         <Save size={20} />
                                     )}

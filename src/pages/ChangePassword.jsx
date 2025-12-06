@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Lock, Eye, EyeOff, ShieldCheck, Loader2, CheckCircle2 } from 'lucide-react';
+import authService from '../services/authService';
+import { showSuccess, showError } from '../utils/toast';
 
 const ChangePassword = () => {
     const [formData, setFormData] = useState({
@@ -13,7 +15,29 @@ const ChangePassword = () => {
         confirm: false
     });
     const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
+    const [logoutOtherDevices, setLogoutOtherDevices] = useState(false);
+
+    // Password strength indicators
+    const getPasswordStrength = (password) => {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+        if (/\d/.test(password)) strength++;
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+        return strength;
+    };
+
+    const getStrengthLabel = (strength) => {
+        if (strength <= 1) return { label: 'Weak', color: 'bg-red-500' };
+        if (strength <= 2) return { label: 'Fair', color: 'bg-orange-500' };
+        if (strength <= 3) return { label: 'Good', color: 'bg-yellow-500' };
+        if (strength <= 4) return { label: 'Strong', color: 'bg-green-500' };
+        return { label: 'Very Strong', color: 'bg-emerald-500' };
+    };
+
+    const passwordStrength = getPasswordStrength(formData.newPassword);
+    const strengthInfo = getStrengthLabel(passwordStrength);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -30,33 +54,54 @@ const ChangePassword = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setMessage({ type: '', text: '' });
 
+        // Validation
         if (formData.newPassword !== formData.confirmPassword) {
-            setMessage({ type: 'error', text: 'New passwords do not match' });
+            showError('New passwords do not match');
             return;
         }
 
         if (formData.newPassword.length < 8) {
-            setMessage({ type: 'error', text: 'Password must be at least 8 characters long' });
+            showError('Password must be at least 8 characters long');
+            return;
+        }
+
+        if (formData.currentPassword === formData.newPassword) {
+            showError('New password must be different from current password');
             return;
         }
 
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            setMessage({ type: 'success', text: 'Password updated successfully!' });
+        try {
+            await authService.changePassword(
+                formData.currentPassword,
+                formData.newPassword,
+                logoutOtherDevices
+            );
+
+            showSuccess('Password updated successfully!');
             setFormData({
                 currentPassword: '',
                 newPassword: '',
                 confirmPassword: ''
             });
-        }, 1500);
+        } catch (error) {
+            console.error('Password change failed:', error);
+            showError(error.message || 'Failed to change password');
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    const passwordRequirements = [
+        { met: formData.newPassword.length >= 8, text: 'At least 8 characters' },
+        { met: /[a-z]/.test(formData.newPassword) && /[A-Z]/.test(formData.newPassword), text: 'Upper and lowercase letters' },
+        { met: /\d/.test(formData.newPassword), text: 'At least one number' },
+        { met: /[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword), text: 'At least one special character' },
+    ];
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -122,6 +167,36 @@ const ChangePassword = () => {
                                         {showPassword.new ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
+
+                                {/* Password Strength Indicator */}
+                                {formData.newPassword && (
+                                    <div className="mt-3 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full transition-all duration-300 ${strengthInfo.color}`}
+                                                    style={{ width: `${(passwordStrength / 5) * 100}%` }}
+                                                />
+                                            </div>
+                                            <span className={`text-xs font-medium ${strengthInfo.color.replace('bg-', 'text-')}`}>
+                                                {strengthInfo.label}
+                                            </span>
+                                        </div>
+
+                                        {/* Password Requirements */}
+                                        <div className="grid grid-cols-2 gap-1 text-xs">
+                                            {passwordRequirements.map((req, index) => (
+                                                <div
+                                                    key={index}
+                                                    className={`flex items-center gap-1 ${req.met ? 'text-green-600' : 'text-gray-400'}`}
+                                                >
+                                                    <CheckCircle2 size={12} className={req.met ? 'text-green-500' : 'text-gray-300'} />
+                                                    {req.text}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Confirm Password */}
@@ -136,7 +211,12 @@ const ChangePassword = () => {
                                         name="confirmPassword"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
-                                        className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all outline-none"
+                                        className={`w-full pl-10 pr-10 py-3 rounded-xl border transition-all outline-none ${formData.confirmPassword && formData.newPassword !== formData.confirmPassword
+                                                ? 'border-red-300 focus:ring-red-500'
+                                                : formData.confirmPassword && formData.newPassword === formData.confirmPassword
+                                                    ? 'border-green-300 focus:ring-green-500'
+                                                    : 'border-gray-200 focus:ring-(--brand-primary)'
+                                            } focus:ring-2 focus:border-transparent`}
                                         placeholder="Confirm new password"
                                         required
                                     />
@@ -148,26 +228,33 @@ const ChangePassword = () => {
                                         {showPassword.confirm ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
+                                {formData.confirmPassword && formData.newPassword !== formData.confirmPassword && (
+                                    <p className="text-xs text-red-500">Passwords do not match</p>
+                                )}
                             </div>
 
-                            {/* Message Display */}
-                            {message.text && (
-                                <div className={`p-4 rounded-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                                    }`}>
-                                    <div className={`w-2 h-2 rounded-full ${message.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-                                        }`} />
-                                    {message.text}
-                                </div>
-                            )}
+                            {/* Logout other devices option */}
+                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+                                <input
+                                    type="checkbox"
+                                    id="logoutOtherDevices"
+                                    checked={logoutOtherDevices}
+                                    onChange={(e) => setLogoutOtherDevices(e.target.checked)}
+                                    className="w-4 h-4 text-(--brand-primary) border-gray-300 rounded focus:ring-(--brand-primary)"
+                                />
+                                <label htmlFor="logoutOtherDevices" className="text-sm text-gray-700">
+                                    Log out from all other devices
+                                </label>
+                            </div>
 
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                disabled={isLoading}
+                                disabled={isLoading || formData.newPassword !== formData.confirmPassword}
                                 className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-(--brand-primary) text-white rounded-xl font-bold hover:bg-(--brand-primary)/90 transition-all shadow-lg shadow-(--brand-primary)/30 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
                             >
                                 {isLoading ? (
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <Loader2 className="w-5 h-5 animate-spin" />
                                 ) : (
                                     'Update Password'
                                 )}

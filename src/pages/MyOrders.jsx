@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, ChevronRight, ShoppingBag, Calendar, CreditCard, Clock, Eye, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Home, ChevronRight, ShoppingBag, Calendar, CreditCard, Clock, Eye, RefreshCw, AlertCircle } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 import { useAuth } from '../context/AuthContext';
+import PageLoader from '../components/ui/PageLoader';
 
 const MyOrders = () => {
     const navigate = useNavigate();
@@ -59,14 +60,7 @@ const MyOrders = () => {
         : orders.filter(order => order.status === filter);
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading your orders...</p>
-                </div>
-            </div>
-        );
+        return <PageLoader message="Loading your orders..." />;
     }
 
     return (
@@ -113,8 +107,8 @@ const MyOrders = () => {
                             key={status}
                             onClick={() => setFilter(status)}
                             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${filter === status
-                                    ? 'bg-orange-500 text-white'
-                                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                                 }`}
                         >
                             {status === 'all' ? 'All Orders' : getStatusLabel(status)}

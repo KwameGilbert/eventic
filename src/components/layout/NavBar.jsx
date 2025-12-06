@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Heart, Star, Users, Settings, Lock, ShoppingBag } from 'lucide-react';
-import { categories } from '../../data/mockEvents';
+import { categories } from '../../pages/Categories';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 
@@ -18,7 +18,7 @@ const NavBar = () => {
     const navItems = [
         { path: '/', label: 'Home', icon: Home, isActive: true },
         { path: '/events', label: 'Browse Events', icon: Calendar },
-        { path: '/categories', label: 'Event Cagtegories', icon: Compass, hasDropdown: true },
+        { path: '/categories', label: 'Event Categories', icon: Compass, hasDropdown: true },
         // { path: '/venues', label: 'Venues', icon: MapPin },
         { path: '/how-it-works', label: 'How it works?', icon: HelpCircle },
         { path: '/blog', label: 'Blog', icon: FileText },
@@ -31,8 +31,8 @@ const NavBar = () => {
         { path: '/my-orders', label: 'My Orders', icon: ShoppingBag },
         { path: '/cart', label: `Cart (${cartCount})`, icon: ShoppingCart },
         // { path: '/favorites', label: 'My Favorites', icon: Heart },
-        { path: '/reviews', label: 'My Reviews', icon: Star },
-        { path: '/following', label: 'Following', icon: Users },
+        // { path: '/reviews', label: 'My Reviews', icon: Star },
+        // { path: '/following', label: 'Following', icon: Users },
         { path: '/settings', label: 'Settings', icon: Settings },
         { path: '/change-password', label: 'Change Password', icon: Lock },
     ];
@@ -394,16 +394,19 @@ const NavBar = () => {
                                                 <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
                                                     Browse by Category
                                                 </div>
-                                                {categories.map((category) => (
-                                                    <Link
-                                                        key={category.id}
-                                                        to={`/category/${category.slug}`}
-                                                        className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
-                                                    >
-                                                        <span className="text-xl">{category.icon}</span>
-                                                        <span className="text-sm font-medium">{category.name}</span>
-                                                    </Link>
-                                                ))}
+                                                {categories.map((category) => {
+                                                    const IconComponent = category.icon;
+                                                    return (
+                                                        <Link
+                                                            key={category.id}
+                                                            to={`/events?category=${category.slug}`}
+                                                            className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            <IconComponent size={18} className={category.textColor} />
+                                                            <span className="text-sm font-medium">{category.name}</span>
+                                                        </Link>
+                                                    );
+                                                })}
                                                 <div className="border-t border-gray-100 mt-2 pt-2">
                                                     <Link
                                                         to="/categories"
