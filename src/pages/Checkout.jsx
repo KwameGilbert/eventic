@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Home, ChevronRight, Clock, CreditCard, MapPin, Calendar, CheckCircle, Loader2, Shield, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -7,7 +7,7 @@ import orderService from '../services/orderService';
 import { showOrderCreated, showPaymentSuccess, showError as showErrorToast, showLoading, hideLoading } from '../utils/toast';
 
 // Paystack public key
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -18,6 +18,9 @@ const Checkout = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paystackLoaded, setPaystackLoaded] = useState(false);
     const [error, setError] = useState('');
+
+    // Ref to track if payment was completed successfully (prevents empty cart redirect)
+    const paymentCompleteRef = useRef(false);
 
     // Billing form state
     const [billingInfo, setBillingInfo] = useState({
@@ -60,9 +63,9 @@ const Checkout = () => {
         };
     }, []);
 
-    // Redirect if cart is empty
+    // Redirect if cart is empty (but not after successful payment)
     useEffect(() => {
-        if (cartItems.length === 0) {
+        if (cartItems.length === 0 && !paymentCompleteRef.current) {
             navigate('/cart');
         }
     }, [cartItems, navigate]);
@@ -211,6 +214,9 @@ const Checkout = () => {
                             hideLoading();
 
                             if (verifyResult.success || verifyResult.data?.status === 'paid') {
+                                // Mark payment as complete to prevent empty cart redirect
+                                paymentCompleteRef.current = true;
+
                                 // Show success notification
                                 showPaymentSuccess({
                                     reference: response.reference,
@@ -232,6 +238,9 @@ const Checkout = () => {
                         })
                         .catch(() => {
                             hideLoading();
+                            // Mark payment as complete to prevent empty cart redirect
+                            paymentCompleteRef.current = true;
+
                             // Even if verification fails, payment might be successful
                             showPaymentSuccess({
                                 reference: response.reference,
