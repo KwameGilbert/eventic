@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Briefcase, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { showSuccess, showError } from '../utils/toast';
 
 const SignUpOrganizer = () => {
     const navigate = useNavigate();
@@ -35,13 +36,17 @@ const SignUpOrganizer = () => {
 
         // Validate passwords match
         if (formData.password !== formData.repeatPassword) {
-            setFormError('Passwords do not match!');
+            const errorMsg = 'Passwords do not match!';
+            setFormError(errorMsg);
+            showError(errorMsg);
             return;
         }
 
         // Validate password length
         if (formData.password.length < 8) {
-            setFormError('Password must be at least 8 characters long');
+            const errorMsg = 'Password must be at least 8 characters long';
+            setFormError(errorMsg);
+            showError(errorMsg);
             return;
         }
 
@@ -58,23 +63,23 @@ const SignUpOrganizer = () => {
             });
 
             setSuccess(true);
+            showSuccess('Registration successful! Welcome to Eventic.');
             // Redirect to organizer dashboard after successful registration
             setTimeout(() => {
-                navigate('/organizer/dashboard', {
-                    state: { message: 'Registration successful! Welcome to Eventic.' }
-                });
+                navigate('/organizer/dashboard');
             }, 1500);
         } catch (err) {
             // Handle specific backend errors
+            let errorMessage = 'Registration failed. Please try again.';
             if (err.status === 409) {
-                setFormError('An account with this email already exists');
+                errorMessage = 'An account with this email already exists';
             } else if (err.errors) {
-                // Handle validation errors from backend
-                const errorMessages = Object.values(err.errors).join('. ');
-                setFormError(errorMessages);
-            } else {
-                setFormError(err.message || 'Registration failed. Please try again.');
+                errorMessage = Object.values(err.errors).join('. ');
+            } else if (err.message) {
+                errorMessage = err.message;
             }
+            setFormError(errorMessage);
+            showError(errorMessage);
         }
     };
 

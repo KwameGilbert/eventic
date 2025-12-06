@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { showError } from '../utils/toast';
 
 const SignIn = () => {
     const navigate = useNavigate();
@@ -66,15 +67,16 @@ const SignIn = () => {
             navigate(redirectTo, { replace: true });
         } catch (err) {
             // Handle specific backend errors
+            let errorMessage = 'Failed to sign in. Please try again.';
             if (err.status === 401) {
-                setError('Invalid email or password');
+                errorMessage = 'Invalid email or password';
             } else if (err.status === 403) {
-                setError('Your account has been suspended. Please contact support.');
+                errorMessage = 'Your account has been suspended. Please contact support.';
             } else if (err.message) {
-                setError(err.message);
-            } else {
-                setError('Failed to sign in. Please try again.');
+                errorMessage = err.message;
             }
+            setError(errorMessage);
+            showError(errorMessage);
         } finally {
             setIsLoading(false);
         }
