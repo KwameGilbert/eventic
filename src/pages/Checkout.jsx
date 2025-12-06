@@ -4,6 +4,7 @@ import { Home, ChevronRight, Clock, CreditCard, MapPin, Calendar, CheckCircle, L
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import orderService from '../services/orderService';
+import { showOrderCreated, showPaymentSuccess, showError as showErrorToast, showLoading, hideLoading } from '../utils/toast';
 
 // Paystack public key
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
@@ -112,12 +113,12 @@ const Checkout = () => {
     const handlePaystackPayment = async () => {
         // Validate billing info
         if (!billingInfo.email || !billingInfo.firstName) {
-            setError('Please fill in your name and email address');
+            showErrorToast('Please fill in your name and email address');
             return;
         }
 
         if (!paystackLoaded || !window.PaystackPop) {
-            setError('Payment system is loading. Please try again.');
+            showErrorToast('Payment system is loading. Please try again.');
             return;
         }
 
@@ -125,16 +126,58 @@ const Checkout = () => {
         setError('');
 
         try {
+            // Show loading
+            showLoading('Creating your order...');
+
             // Create order on backend first
             const result = await orderService.processCheckout(cartItems, billingInfo);
 
+            hideLoading();
+
             if (!result.success) {
-                setError(result.error || 'Failed to create order. Please try again.');
+                showErrorToast(result.error || 'Failed to create order. Please try again.');
                 setIsProcessing(false);
                 return;
             }
 
             const { order, paystack } = result;
+
+            // Validate required fields for Paystack
+            if (!paystack.email || !paystack.amount || !paystack.reference) {
+                console.error('Missing Paystack required fields:', paystack);
+                showErrorToast('Missing payment information. Please try again.');
+                setIsProcessing(false);
+                return;
+            }
+
+            // Format amount for display
+            const formattedAmount = `GH₵${(paystack.amount / 100).toFixed(2)}`;
+
+            // Calculate item count
+            const itemCount = cartItems.reduce((total, item) => {
+                return total + Object.values(item.tickets || {}).reduce((sum, qty) => sum + qty, 0);
+            }, 0);
+
+            // Show order created confirmation
+            const confirmResult = await showOrderCreated({
+                orderId: paystack.orderId,
+                amount: formattedAmount,
+            });
+
+            // If user cancels, cancel the order on backend
+            if (!confirmResult.isConfirmed) {
+                // Cancel order to restore ticket quantities
+                try {
+                    showLoading('Cancelling order...');
+                    await orderService.cancelOrder(paystack.orderId);
+                    hideLoading();
+                } catch (cancelError) {
+                    console.error('Failed to cancel order:', cancelError);
+                    hideLoading();
+                }
+                setIsProcessing(false);
+                return;
+            }
 
             // Initialize Paystack popup
             const handler = window.PaystackPop.setup({
@@ -150,7 +193,7 @@ const Checkout = () => {
                         {
                             display_name: "Order ID",
                             variable_name: "order_id",
-                            value: paystack.orderId.toString()
+                            value: String(paystack.orderId || '')
                         },
                         {
                             display_name: "Customer Phone",
@@ -159,40 +202,54 @@ const Checkout = () => {
                         }
                     ]
                 },
-                callback: async function (response) {
-                    try {
-                        // Verify payment with backend
-                        const verifyResult = await orderService.verifyPayment(
-                            paystack.orderId,
-                            response.reference
-                        );
+                callback: function (response) {
+                    showLoading('Verifying payment...');
 
-                        if (verifyResult.success || verifyResult.data?.status === 'paid') {
-                            // Payment successful
-                            clearCart();
-                            navigate('/my-tickets', {
-                                state: {
-                                    paymentSuccess: true,
+                    // Verify payment with backend
+                    orderService.verifyPayment(paystack.orderId, response.reference)
+                        .then(verifyResult => {
+                            hideLoading();
+
+                            if (verifyResult.success || verifyResult.data?.status === 'paid') {
+                                // Show success notification
+                                showPaymentSuccess({
+                                    reference: response.reference,
                                     orderId: paystack.orderId,
-                                    reference: response.reference
-                                }
-                            });
-                        } else {
-                            setError('Payment verification failed. Please contact support.');
-                        }
-                    } catch (err) {
-                        // Even if verification fails, payment might be successful
-                        // Redirect to tickets page where they can see their tickets
-                        clearCart();
-                        navigate('/my-tickets', {
-                            state: {
-                                paymentSuccess: true,
-                                reference: response.reference,
-                                message: 'Payment completed. Your tickets will appear shortly.'
+                                }).then(() => {
+                                    // Payment successful - redirect
+                                    clearCart();
+                                    navigate('/my-tickets', {
+                                        state: {
+                                            paymentSuccess: true,
+                                            orderId: paystack.orderId,
+                                            reference: response.reference
+                                        }
+                                    });
+                                });
+                            } else {
+                                showErrorToast('Payment verification failed. Please contact support.');
                             }
+                        })
+                        .catch(() => {
+                            hideLoading();
+                            // Even if verification fails, payment might be successful
+                            showPaymentSuccess({
+                                reference: response.reference,
+                                orderId: paystack.orderId,
+                            }).then(() => {
+                                clearCart();
+                                navigate('/my-tickets', {
+                                    state: {
+                                        paymentSuccess: true,
+                                        reference: response.reference,
+                                        message: 'Payment completed. Your tickets will appear shortly.'
+                                    }
+                                });
+                            });
+                        })
+                        .finally(() => {
+                            setIsProcessing(false);
                         });
-                    }
-                    setIsProcessing(false);
                 },
                 onClose: function () {
                     setIsProcessing(false);
@@ -203,8 +260,9 @@ const Checkout = () => {
             handler.openIframe();
 
         } catch (err) {
+            hideLoading();
             console.error('Checkout error:', err);
-            setError(err.message || 'Something went wrong. Please try again.');
+            showErrorToast(err.message || 'Something went wrong. Please try again.');
             setIsProcessing(false);
         }
     };

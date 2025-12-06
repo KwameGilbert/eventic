@@ -11,6 +11,8 @@ import Checkout from "../pages/Checkout";
 import NotFound from "../pages/NotFound";
 import Layout from "../components/layout/Layout";
 import MyTickets from "../pages/MyTickets";
+import MyOrders from "../pages/MyOrders";
+import OrderDetails from "../pages/OrderDetails";
 import HowItWorks from "../pages/HowItWorks";
 import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
@@ -46,13 +48,16 @@ const AppRoutes = () => {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup/attendee" element={<SignUpAttendee />} />
                 <Route path="/signup/organizer" element={<SignUpOrganizer />} />
-                
+
                 <Route path="/cart" element={<Cart />} />
             </Route>
 
+            {/* Protected Attendee Routes */}
             <Route element={<Layout><Outlet /></Layout>}>
                 <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
                 <Route path="/my-tickets" element={<ProtectedRoute><MyTickets /></ProtectedRoute>} />
+                <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                <Route path="/orders/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             </Route>

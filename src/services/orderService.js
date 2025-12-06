@@ -49,6 +49,36 @@ const orderService = {
     },
 
     /**
+     * Cancel a pending order
+     * Restores reserved ticket quantities
+     * @param {number} orderId - Order ID to cancel
+     * @returns {Promise<Object>} Cancellation result
+     */
+    cancelOrder: async (orderId) => {
+        const response = await api.post(`/orders/${orderId}/cancel`);
+        return response;
+    },
+
+    /**
+     * Get all orders for the authenticated user
+     * @returns {Promise<Array>} List of user's orders
+     */
+    getMyOrders: async () => {
+        const response = await api.get('/orders');
+        return response;
+    },
+
+    /**
+     * Get a single order by ID
+     * @param {number} orderId - Order ID
+     * @returns {Promise<Object>} Order details with items and tickets
+     */
+    getOrderById: async (orderId) => {
+        const response = await api.get(`/orders/${orderId}`);
+        return response;
+    },
+
+    /**
      * Transform cart items to backend format
      * Cart structure: { event: { ticketTypes: [{id, name, price}] }, tickets: { "TicketName": qty } }
      * Backend expects: [{ ticket_type_id: number, quantity: number }]
