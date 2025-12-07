@@ -105,6 +105,16 @@ const organizerService = {
     },
 
     /**
+     * Get all events for the organizer's Events page
+     * Fetches all events with stats, status counts, and event details.
+     * @returns {Promise<Object>} Events data with stats, tabs, and events list
+     */
+    getEventsData: async () => {
+        const response = await api.get('/organizers/data/events');
+        return response;
+    },
+
+    /**
      * Get organizer dashboard statistics (legacy - use getDashboard instead)
      * @param {number|string} organizerId - Organizer ID
      * @returns {Promise<Object>} Dashboard stats (events count, tickets sold, revenue, etc.)

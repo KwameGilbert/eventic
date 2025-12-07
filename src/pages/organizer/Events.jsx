@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Plus,
@@ -16,12 +16,14 @@ import {
     TrendingUp,
     LayoutGrid,
     List,
-    ChevronDown
+    Loader2,
+    AlertTriangle
 } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
+import organizerService from '../../services/organizerService';
 
 const Events = () => {
     const [activeTab, setActiveTab] = useState('all');
@@ -29,103 +31,45 @@ const Events = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
-    // Stats
-    const stats = [
-        { label: 'Total Events', value: '48', icon: Calendar, color: '#3b82f6' },
-        { label: 'Published', value: '32', icon: TrendingUp, color: '#22c55e' },
-        { label: 'Draft', value: '12', icon: Edit, color: '#f59e0b' },
-        { label: 'Completed', value: '4', icon: TicketCheck, color: '#8b5cf6' },
-    ];
+    // Data state
+    const [events, setEvents] = useState([]);
+    const [stats, setStats] = useState([]);
+    const [tabs, setTabs] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Tabs
-    const tabs = [
-        { id: 'all', label: 'All Events', count: 48 },
-        { id: 'published', label: 'Published', count: 32 },
-        { id: 'draft', label: 'Draft', count: 12 },
-        { id: 'completed', label: 'Completed', count: 4 },
-    ];
+    // Icon mapping for stats
+    const iconMap = {
+        'Calendar': Calendar,
+        'TrendingUp': TrendingUp,
+        'Edit': Edit,
+        'TicketCheck': TicketCheck,
+    };
 
-    // Mock events data
-    const events = [
-        {
-            id: 1,
-            name: 'Summer Music Festival 2024',
-            image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&h=200&fit=crop',
-            date: 'Jun 15, 2024',
-            time: '6:00 PM',
-            location: 'Central Park, New York',
-            category: 'Music',
-            status: 'Published',
-            ticketsSold: 423,
-            totalTickets: 500,
-            revenue: 25380
-        },
-        {
-            id: 2,
-            name: 'Tech Conference 2024',
-            image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=300&h=200&fit=crop',
-            date: 'May 20, 2024',
-            time: '9:00 AM',
-            location: 'Convention Center, San Francisco',
-            category: 'Technology',
-            status: 'Published',
-            ticketsSold: 267,
-            totalTickets: 300,
-            revenue: 40050
-        },
-        {
-            id: 3,
-            name: 'Art Exhibition Opening',
-            image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=300&h=200&fit=crop',
-            date: 'Jul 10, 2024',
-            time: '2:00 PM',
-            location: 'Modern Art Gallery, LA',
-            category: 'Art',
-            status: 'Draft',
-            ticketsSold: 0,
-            totalTickets: 150,
-            revenue: 0
-        },
-        {
-            id: 4,
-            name: 'Food & Wine Tasting',
-            image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&h=200&fit=crop',
-            date: 'Jun 22, 2024',
-            time: '7:00 PM',
-            location: 'Grand Hotel, Chicago',
-            category: 'Food & Drink',
-            status: 'Published',
-            ticketsSold: 156,
-            totalTickets: 200,
-            revenue: 10920
-        },
-        {
-            id: 5,
-            name: 'Startup Pitch Night',
-            image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=300&h=200&fit=crop',
-            date: 'Apr 15, 2024',
-            time: '5:00 PM',
-            location: 'Innovation Hub, Austin',
-            category: 'Business',
-            status: 'Completed',
-            ticketsSold: 180,
-            totalTickets: 180,
-            revenue: 5400
-        },
-        {
-            id: 6,
-            name: 'Yoga & Wellness Retreat',
-            image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=300&h=200&fit=crop',
-            date: 'Aug 5, 2024',
-            time: '8:00 AM',
-            location: 'Mountain Resort, Denver',
-            category: 'Health',
-            status: 'Draft',
-            ticketsSold: 0,
-            totalTickets: 50,
-            revenue: 0
-        },
-    ];
+    // Fetch events data on component mount
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+                const response = await organizerService.getEventsData();
+
+                if (response.success && response.data) {
+                    setEvents(response.data.events || []);
+                    setStats(response.data.stats || []);
+                    setTabs(response.data.tabs || []);
+                } else {
+                    setError(response.message || 'Failed to fetch events');
+                }
+            } catch (err) {
+                setError(err.message || 'An error occurred while fetching events');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchEvents();
+    }, []);
 
     const getStatusStyle = (status) => {
         switch (status.toLowerCase()) {
@@ -147,6 +91,36 @@ const Events = () => {
     const toggleDropdown = (id) => {
         setOpenDropdown(openDropdown === id ? null : id);
     };
+
+    // Loading State
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-(--brand-primary) mx-auto mb-4" />
+                    <p className="text-gray-600">Loading events...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error State
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Card className="max-w-md w-full">
+                    <CardContent className="p-8 text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle className="w-8 h-8 text-red-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Events</h3>
+                        <p className="text-gray-500 mb-4">{error}</p>
+                        <Button onClick={() => window.location.reload()}>Try Again</Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     // Grid View Component
     const GridView = () => (
@@ -217,7 +191,7 @@ const Events = () => {
                         <div className="mt-3 space-y-2">
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <Calendar size={14} />
-                                <span>{event.date} at {event.time}</span>
+                                <span>{event.date} {event.time && `at ${event.time}`}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <MapPin size={14} />
@@ -233,14 +207,14 @@ const Events = () => {
                                     <span>{event.ticketsSold}/{event.totalTickets} sold</span>
                                 </div>
                                 <span className="text-sm font-semibold text-(--brand-primary)">
-                                    ${event.revenue.toLocaleString()}
+                                    GH₵{event.revenue.toLocaleString()}
                                 </span>
                             </div>
                             {/* Progress Bar */}
                             <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-(--brand-primary) rounded-full transition-all"
-                                    style={{ width: `${(event.ticketsSold / event.totalTickets) * 100}%` }}
+                                    style={{ width: `${event.totalTickets > 0 ? (event.ticketsSold / event.totalTickets) * 100 : 0}%` }}
                                 />
                             </div>
                         </div>
@@ -310,7 +284,7 @@ const Events = () => {
                                         <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-(--brand-primary) rounded-full"
-                                                style={{ width: `${(event.ticketsSold / event.totalTickets) * 100}%` }}
+                                                style={{ width: `${event.totalTickets > 0 ? (event.ticketsSold / event.totalTickets) * 100 : 0}%` }}
                                             />
                                         </div>
                                         <span className="text-sm text-gray-900">
@@ -322,7 +296,7 @@ const Events = () => {
                                 {/* Revenue */}
                                 <td className="py-4 px-4">
                                     <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                        ${event.revenue.toLocaleString()}
+                                        GH₵{event.revenue.toLocaleString()}
                                     </span>
                                 </td>
 
@@ -393,7 +367,7 @@ const Events = () => {
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, index) => {
-                    const Icon = stat.icon;
+                    const Icon = iconMap[stat.icon] || Calendar;
                     return (
                         <Card key={index}>
                             <CardContent className="p-4">
