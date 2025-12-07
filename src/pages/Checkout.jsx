@@ -57,10 +57,6 @@ const Checkout = () => {
         script.async = true;
         script.onload = () => setPaystackLoaded(true);
         document.body.appendChild(script);
-
-        return () => {
-            // Don't remove script on unmount as it might be needed later
-        };
     }, []);
 
     // Redirect if cart is empty (but not after successful payment)

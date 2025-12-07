@@ -59,13 +59,14 @@ const authService = {
 
     /**
      * Register a new organizer
-     * Backend expects: name, email, password, role
+     * Backend expects: name, email, password, role, organizerName (optional)
      * 
      * @param {Object} userData - User registration data
      * @param {string} userData.name - User's full name or organization name (2-255 chars)
      * @param {string} userData.email - Email address
      * @param {string} userData.password - Password (min 8 chars)
      * @param {string} [userData.phone] - Phone number (optional)
+     * @param {string} [userData.organizerName] - Organization name (optional, defaults to name)
      * @returns {Promise<Object>} Registration response with tokens
      */
     registerOrganizer: async (userData) => {
@@ -79,6 +80,11 @@ const authService = {
         // Add phone if provided
         if (userData.phone) {
             payload.phone = userData.phone;
+        }
+
+        // Add organization name if provided (for creating Organizer profile)
+        if (userData.organizerName) {
+            payload.organizerName = userData.organizerName;
         }
 
         const response = await api.post('/auth/register', payload);

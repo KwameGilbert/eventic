@@ -87,7 +87,6 @@ const organizerService = {
      * @returns {Promise<Object>} Organizer's events
      */
     getEvents: async (organizerId, params = {}) => {
-        // This uses the events endpoint with organizer filter
         const response = await api.get('/events', {
             params: { organizer_id: organizerId, ...params }
         });
@@ -95,9 +94,21 @@ const organizerService = {
     },
 
     /**
-     * Get organizer dashboard statistics
+     * Get organizer dashboard data
+     * Fetches all necessary data for the organizer dashboard in a single call.
+     * This includes stats, ticket sales, revenue charts, activities, orders, and events.
+     * @returns {Promise<Object>} Complete dashboard data
+     */
+    getDashboard: async () => {
+        const response = await api.get('/organizers/data/dashboard');
+        return response;
+    },
+
+    /**
+     * Get organizer dashboard statistics (legacy - use getDashboard instead)
      * @param {number|string} organizerId - Organizer ID
      * @returns {Promise<Object>} Dashboard stats (events count, tickets sold, revenue, etc.)
+     * @deprecated Use getDashboard() instead
      */
     getDashboardStats: async (organizerId) => {
         // Note: This endpoint might need to be implemented on the backend

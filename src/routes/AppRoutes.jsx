@@ -19,7 +19,7 @@ import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
 
 // Auth Components
-import ProtectedRoute, { OrganizerRoute } from "../components/auth/ProtectedRoute";
+import ProtectedRoute, { OrganizerRoute, AttendeeRoute } from "../components/auth/ProtectedRoute";
 
 // Organizer Dashboard
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
@@ -54,14 +54,14 @@ const AppRoutes = () => {
                 <Route path="/cart" element={<Cart />} />
             </Route>
 
-            {/* Protected Attendee Routes */}
+            {/* Attendee-Only Routes */}
             <Route element={<Layout><Outlet /></Layout>}>
-                <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-                <Route path="/my-tickets" element={<ProtectedRoute><MyTickets /></ProtectedRoute>} />
-                <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
-                <Route path="/orders/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+                <Route path="/checkout" element={<AttendeeRoute pageName="Checkout"><Checkout /></AttendeeRoute>} />
+                <Route path="/my-tickets" element={<AttendeeRoute pageName="My Tickets"><MyTickets /></AttendeeRoute>} />
+                <Route path="/my-orders" element={<AttendeeRoute pageName="My Orders"><MyOrders /></AttendeeRoute>} />
+                <Route path="/orders/:id" element={<AttendeeRoute pageName="Order Details"><OrderDetails /></AttendeeRoute>} />
+                <Route path="/settings" element={<AttendeeRoute pageName="Settings"><Settings /></AttendeeRoute>} />
+                <Route path="/change-password" element={<AttendeeRoute pageName="Change Password"><ChangePassword /></AttendeeRoute>} />
             </Route>
 
             {/* ORGANIZER DASHBOARD ROUTES */}

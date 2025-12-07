@@ -1,181 +1,119 @@
-import React from 'react';
-import { Calendar, ShoppingBag, TicketCheck, DollarSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, ShoppingBag, TicketCheck, DollarSign, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import StatCard from '../../components/organizer/dashboard/StatCard';
 import TicketSalesDonut from '../../components/organizer/dashboard/TicketSalesDonut';
 import SalesRevenueChart from '../../components/organizer/dashboard/SalesRevenueChart';
 import RecentActivities from '../../components/organizer/dashboard/RecentActivities';
 import RecentOrders from '../../components/organizer/dashboard/RecentOrders';
 import EventCalendar from '../../components/organizer/dashboard/EventCalendar';
+import organizerService from '../../services/organizerService';
+
+// Icon mapping for stats
+const iconMap = {
+    'Total Events': Calendar,
+    'Total Orders': ShoppingBag,
+    'Tickets Sold': TicketCheck,
+    'Total Revenue': DollarSign,
+};
+
+// Color mapping for stats
+const colorMap = {
+    'Total Events': '#3b82f6',
+    'Total Orders': '#8b5cf6',
+    'Tickets Sold': '#22c55e',
+    'Total Revenue': '#f97316',
+};
 
 const Dashboard = () => {
-    // Stats data
-    const stats = [
-        {
-            label: 'Total Events',
-            value: '48',
-            change: '12%',
-            icon: Calendar,
-            color: '#3b82f6',
-            trend: 'up',
-            ringProgress: 72
-        },
-        {
-            label: 'Total Orders',
-            value: '2,847',
-            change: '18%',
-            icon: ShoppingBag,
-            color: '#8b5cf6',
-            trend: 'up',
-            ringProgress: 85
-        },
-        {
-            label: 'Tickets Sold',
-            value: '5,293',
-            change: '24%',
-            icon: TicketCheck,
-            color: '#22c55e',
-            trend: 'up',
-            ringProgress: 78
-        },
-        {
-            label: 'Total Revenue',
-            value: '$128,450',
-            change: '32%',
-            icon: DollarSign,
-            color: '#f97316',
-            trend: 'up',
-            ringProgress: 90
-        },
-    ];
+    const [dashboardData, setDashboardData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Ticket type sales data (This Week)
-    const ticketSalesData = [
-        { name: 'VIP', value: 302 },
-        { name: 'Regular', value: 845 },
-        { name: 'Early Bird', value: 423 },
-        { name: 'Student', value: 198 },
-    ];
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
 
-    // Sales revenue data - Weekly
-    const weeklyRevenueData = [
-        { day: 'Mon', revenue: 8 },
-        { day: 'Tue', revenue: 12 },
-        { day: 'Wed', revenue: 15 },
-        { day: 'Thu', revenue: 9 },
-        { day: 'Fri', revenue: 18 },
-        { day: 'Sat', revenue: 22 },
-        { day: 'Sun', revenue: 14 },
-    ];
+                const response = await organizerService.getDashboard();
 
-    // Sales revenue data - Monthly
-    const monthlyRevenueData = [
-        { month: 'Jan', revenue: 25 },
-        { month: 'Feb', revenue: 35 },
-        { month: 'Mar', revenue: 28 },
-        { month: 'Apr', revenue: 45 },
-        { month: 'May', revenue: 38 },
-        { month: 'Jun', revenue: 52 },
-        { month: 'Jul', revenue: 48 },
-        { month: 'Aug', revenue: 55 },
-    ];
+                // Handle the API response structure
+                const data = response?.data || response;
 
-    // Recent activities data
-    const activities = [
-        {
-            type: 'refund',
-            title: '5 attendees',
-            description: 'requested refunds',
-            time: 'Mon, Feb 24 · 3:12 PM'
-        },
-        {
-            type: 'feedback',
-            title: '12 guests',
-            description: 'left feedback in ABC concert',
-            time: 'Mon, Feb 24 · 3:45 PM'
-        },
-        {
-            type: 'signup',
-            title: '2 events',
-            description: 'are over capacity',
-            time: 'Mon, Feb 24 · 4:18 PM'
-        }
-    ];
+                // Add icons and colors to stats
+                if (data.stats) {
+                    data.stats = data.stats.map(stat => ({
+                        ...stat,
+                        icon: iconMap[stat.label] || Calendar,
+                        color: colorMap[stat.label] || '#3b82f6',
+                    }));
+                }
 
-    // Calendar events
-    const calendarEvents = [
-        {
-            day: '3',
-            dayName: 'Sat',
-            name: 'Panel Discussion',
-            category: 'Technology',
-            time: '10:00 AM - 12:00 PM'
-        },
-        {
-            day: '5',
-            dayName: 'Mon',
-            name: 'Live Concert',
-            category: 'Music',
-            time: '6:00 PM - 11:00 PM'
-        },
-        {
-            day: '23',
-            dayName: 'Wed',
-            name: 'Fashion Showcase',
-            category: 'Fashion',
-            time: '2:00 PM - 8:00 PM'
-        }
-    ];
+                setDashboardData(data);
+            } catch (err) {
+                console.error('Failed to fetch dashboard data:', err);
+                setError(err.message || 'Failed to load dashboard data');
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    // Recent orders data
-    const recentOrders = [
-        {
-            customer: 'Sarah Johnson',
-            event: 'Summer Music Festival',
-            tickets: 3,
-            amount: 180,
-            status: 'Completed',
-            time: '2 min ago'
-        },
-        {
-            customer: 'Michael Chen',
-            event: 'Tech Conference 2024',
-            tickets: 2,
-            amount: 250,
-            status: 'Completed',
-            time: '15 min ago'
-        },
-        {
-            customer: 'Emma Davis',
-            event: 'Art Exhibition Opening',
-            tickets: 1,
-            amount: 45,
-            status: 'Pending',
-            time: '32 min ago'
-        },
-        {
-            customer: 'James Wilson',
-            event: 'Food & Wine Tasting',
-            tickets: 4,
-            amount: 280,
-            status: 'Completed',
-            time: '1 hr ago'
-        },
-        {
-            customer: 'Olivia Martinez',
-            event: 'Summer Music Festival',
-            tickets: 2,
-            amount: 120,
-            status: 'Completed',
-            time: '2 hr ago'
-        }
-    ];
+        fetchDashboardData();
+    }, []);
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <Loader2 className="w-10 h-10 animate-spin text-(--brand-primary) mx-auto mb-4" />
+                    <p className="text-gray-500">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-red-500 text-2xl">!</span>
+                    </div>
+                    <p className="text-gray-900 font-medium mb-2">Failed to load dashboard</p>
+                    <p className="text-gray-500 text-sm mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-(--brand-primary) text-white rounded-lg text-sm hover:opacity-90"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Destructure dashboard data with defaults
+    const {
+        user = {},
+        stats = [],
+        ticketSalesData = [],
+        weeklyRevenueData = [],
+        monthlyRevenueData = [],
+        activities = [],
+        recentOrders = [],
+        upcomingEvent = null,
+        calendarEvents = [],
+    } = dashboardData || {};
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-500 mt-1">Hello Tife, welcome back!</p>
+                <p className="text-gray-500 mt-1">Hello {user.firstName || 'there'}, welcome back!</p>
             </div>
 
             {/* Main Grid Layout */}
@@ -204,41 +142,63 @@ const Dashboard = () => {
 
                 {/* Right Column */}
                 <div className="col-span-12 xl:col-span-4 space-y-6">
-                    {/* Quick Stats Summary */}
+                    {/* Upcoming Event */}
                     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-semibold text-gray-900">Upcoming Event</h3>
                             <button className="text-gray-400 hover:text-gray-600">•••</button>
                         </div>
-                        <div className="relative rounded-xl overflow-hidden mb-4">
-                            <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=200&fit=crop"
-                                alt="Upcoming Event"
-                                className="w-full h-40 object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                            <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium">
-                                Music
-                            </span>
-                            <div className="absolute bottom-3 left-3 right-3 text-white">
-                                <h4 className="font-bold text-lg">Rhythm & Beats Music Festival</h4>
-                                <p className="text-xs text-white/80 mt-1">Sunset Park, Los Angeles, CA</p>
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500 mb-4">
-                            Immerse yourself in electrifying performances by world-renowned artists.
-                        </p>
-                        <div className="flex items-center justify-between text-sm mb-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-(--brand-primary)/10 flex items-center justify-center">
-                                    <Calendar size={12} className="text-(--brand-primary)" />
+
+                        {upcomingEvent ? (
+                            <>
+                                <div className="relative rounded-xl overflow-hidden mb-4">
+                                    <img
+                                        src={upcomingEvent.image}
+                                        alt={upcomingEvent.title}
+                                        className="w-full h-40 object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium">
+                                        {upcomingEvent.category}
+                                    </span>
+                                    <div className="absolute bottom-3 left-3 right-3 text-white">
+                                        <h4 className="font-bold text-lg">{upcomingEvent.title}</h4>
+                                        <p className="text-xs text-white/80 mt-1">{upcomingEvent.location}</p>
+                                    </div>
                                 </div>
-                                <span className="text-gray-600">Apr 20, 2029</span>
+                                <p className="text-sm text-gray-500 mb-4">
+                                    {upcomingEvent.description}
+                                </p>
+                                <div className="flex items-center justify-between text-sm mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-(--brand-primary)/10 flex items-center justify-center">
+                                            <Calendar size={12} className="text-(--brand-primary)" />
+                                        </div>
+                                        <span className="text-gray-600">{upcomingEvent.date}</span>
+                                    </div>
+                                    <span className="text-gray-400">{upcomingEvent.time}</span>
+                                </div>
+                                <Link
+                                    to={`/organizer/events/${upcomingEvent.id}`}
+                                    className="block w-full py-2.5 bg-(--brand-primary) text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-colors text-center"
+                                >
+                                    View Details
+                                </Link>
+                            </>
+                        ) : (
+                            <div className="text-center py-8">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Calendar size={24} className="text-gray-400" />
+                                </div>
+                                <p className="text-gray-500 mb-4">No upcoming events</p>
+                                <Link
+                                    to="/organizer/events/create"
+                                    className="inline-block px-4 py-2 bg-(--brand-primary) text-white rounded-lg text-sm font-semibold hover:opacity-90"
+                                >
+                                    Create Event
+                                </Link>
                             </div>
-                            <span className="text-gray-400">12:00 PM - 11:00 PM</span>
-                        </div>
-                        <button className="w-full py-2.5 bg-(--brand-primary) text-white rounded-lg text-sm font-semibold hover:bg-(--brand-primary)/90 transition-colors">
-                            View Details
-                        </button>
+                        )}
                     </div>
 
                     {/* Calendar */}
