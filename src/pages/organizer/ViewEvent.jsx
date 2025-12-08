@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -32,12 +32,16 @@ import {
     Download,
     UserCheck,
     Filter,
-    ChevronDown
+    ChevronDown,
+    Loader2,
+    AlertTriangle,
+    Image
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
+import organizerService from '../../services/organizerService';
 
 const ViewEvent = () => {
     const navigate = useNavigate();
@@ -46,148 +50,54 @@ const ViewEvent = () => {
     const [attendeeSearch, setAttendeeSearch] = useState('');
     const [attendeeFilter, setAttendeeFilter] = useState('all');
 
-    // Mock event data - would be fetched from API
-    const event = {
-        id: 1,
-        name: 'Summer Music Festival 2024',
-        description: 'Join us for the biggest music festival of the summer! Featuring top artists from around the world, delicious food vendors, and an unforgettable atmosphere. This three-day event will include multiple stages, VIP experiences, and exclusive merchandise.',
-        category: 'Music',
-        audience: 'Everyone',
-        status: 'Published',
-        date: '2024-06-15',
-        startTime: '18:00',
-        endTime: '23:00',
-        venue: 'Central Park Amphitheater',
-        address: '123 Park Avenue',
-        city: 'New York',
-        country: 'United States',
-        mapsUrl: 'https://maps.google.com/?q=Central+Park',
-        mainImage: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&h=400&fit=crop',
-        photos: [
-            'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=200&fit=crop',
-            'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=300&h=200&fit=crop',
-            'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=200&fit=crop',
-        ],
-        videoUrl: 'https://youtube.com/watch?v=example',
-        tags: ['music', 'festival', 'summer', 'outdoor', 'live'],
-        website: 'https://summerfest2024.com',
-        facebook: 'https://facebook.com/summerfest',
-        twitter: 'https://twitter.com/summerfest',
-        instagram: 'https://instagram.com/summerfest',
-        phone: '+1 234 567 8900',
-        tickets: [
-            { id: 1, name: 'General Admission', price: 59, promoPrice: 49, saleStartDate: '2024-05-01', saleEndDate: '2024-05-15', quantity: 500, sold: 423, maxPerOrder: 10 },
-            { id: 2, name: 'VIP Pass', price: 150, promoPrice: null, saleStartDate: null, saleEndDate: null, quantity: 100, sold: 87, maxPerOrder: 4 },
-            { id: 3, name: 'Backstage Experience', price: 300, promoPrice: 250, saleStartDate: '2024-05-01', saleEndDate: '2024-05-31', quantity: 50, sold: 32, maxPerOrder: 2 },
-        ],
-        stats: {
-            totalRevenue: 45380,
-            ticketsSold: 542,
-            totalTickets: 650,
-            views: 12450,
-            orders: 234
-        },
-        createdAt: '2024-01-15',
-        updatedAt: '2024-05-20'
-    };
+    // Loading and error states
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock attendees data
-    const attendees = [
-        {
-            id: 1,
-            name: 'John Doe',
-            email: 'john.doe@email.com',
-            phone: '+1 234 567 8901',
-            avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=fff',
-            ticketType: 'VIP Pass',
-            ticketCount: 2,
-            orderId: 'ORD-001248',
-            orderDate: '2024-05-28',
-            checkedIn: true,
-            checkInTime: '2024-06-15T17:45:00'
-        },
-        {
-            id: 2,
-            name: 'Sarah Wilson',
-            email: 'sarah.w@email.com',
-            phone: '+1 234 567 8902',
-            avatar: 'https://ui-avatars.com/api/?name=Sarah+Wilson&background=22c55e&color=fff',
-            ticketType: 'General Admission',
-            ticketCount: 4,
-            orderId: 'ORD-001247',
-            orderDate: '2024-05-27',
-            checkedIn: true,
-            checkInTime: '2024-06-15T18:02:00'
-        },
-        {
-            id: 3,
-            name: 'Mike Johnson',
-            email: 'mike.j@email.com',
-            phone: '+1 234 567 8903',
-            avatar: 'https://ui-avatars.com/api/?name=Mike+Johnson&background=f59e0b&color=fff',
-            ticketType: 'General Admission',
-            ticketCount: 2,
-            orderId: 'ORD-001246',
-            orderDate: '2024-05-26',
-            checkedIn: false,
-            checkInTime: null
-        },
-        {
-            id: 4,
-            name: 'Emily Brown',
-            email: 'emily.b@email.com',
-            phone: '+1 234 567 8904',
-            avatar: 'https://ui-avatars.com/api/?name=Emily+Brown&background=8b5cf6&color=fff',
-            ticketType: 'Backstage Experience',
-            ticketCount: 2,
-            orderId: 'ORD-001245',
-            orderDate: '2024-05-25',
-            checkedIn: true,
-            checkInTime: '2024-06-15T17:30:00'
-        },
-        {
-            id: 5,
-            name: 'David Lee',
-            email: 'david.lee@email.com',
-            phone: '+1 234 567 8905',
-            avatar: 'https://ui-avatars.com/api/?name=David+Lee&background=ef4444&color=fff',
-            ticketType: 'VIP Pass',
-            ticketCount: 1,
-            orderId: 'ORD-001244',
-            orderDate: '2024-05-24',
-            checkedIn: false,
-            checkInTime: null
-        },
-        {
-            id: 6,
-            name: 'Lisa Chen',
-            email: 'lisa.c@email.com',
-            phone: '+1 234 567 8906',
-            avatar: 'https://ui-avatars.com/api/?name=Lisa+Chen&background=ec4899&color=fff',
-            ticketType: 'General Admission',
-            ticketCount: 3,
-            orderId: 'ORD-001243',
-            orderDate: '2024-05-23',
-            checkedIn: false,
-            checkInTime: null
-        },
-    ];
+    // Event data from API
+    const [event, setEvent] = useState(null);
+
+    // Fetch event data
+    useEffect(() => {
+        const fetchEventDetails = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+                const response = await organizerService.getEventDetails(id);
+
+                if (response.success && response.data) {
+                    setEvent(response.data);
+                } else {
+                    setError(response.message || 'Failed to load event details');
+                }
+            } catch (err) {
+                console.error('Error fetching event details:', err);
+                setError(err.message || 'An error occurred while loading event details');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchEventDetails();
+        }
+    }, [id]);
 
     // Filter attendees
-    const filteredAttendees = attendees.filter(attendee => {
-        const matchesSearch = attendee.name.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
-            attendee.email.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
-            attendee.orderId.toLowerCase().includes(attendeeSearch.toLowerCase());
+    const filteredAttendees = event?.attendees?.filter(attendee => {
+        const matchesSearch = attendee.name?.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
+            attendee.email?.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
+            attendee.orderId?.toLowerCase().includes(attendeeSearch.toLowerCase());
         const matchesFilter = attendeeFilter === 'all' ||
             (attendeeFilter === 'checked-in' && attendee.checkedIn) ||
             (attendeeFilter === 'not-checked-in' && !attendee.checkedIn);
         return matchesSearch && matchesFilter;
-    });
+    }) || [];
 
-    const checkedInCount = attendees.filter(a => a.checkedIn).length;
+    const checkedInCount = event?.attendees?.filter(a => a.checkedIn).length || 0;
 
     const getStatusStyle = (status) => {
-        switch (status.toLowerCase()) {
+        switch (status?.toLowerCase()) {
             case 'published': return 'success';
             case 'draft': return 'warning';
             case 'completed': return 'info';
@@ -197,6 +107,7 @@ const ViewEvent = () => {
     };
 
     const formatDate = (dateStr) => {
+        if (!dateStr) return '—';
         return new Date(dateStr).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -206,6 +117,7 @@ const ViewEvent = () => {
     };
 
     const formatTime = (timeStr) => {
+        if (!timeStr) return '—';
         const [hours, minutes] = timeStr.split(':');
         const hour = parseInt(hours);
         const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -214,6 +126,7 @@ const ViewEvent = () => {
     };
 
     const formatDateTime = (dateStr) => {
+        if (!dateStr) return '—';
         return new Date(dateStr).toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -221,6 +134,58 @@ const ViewEvent = () => {
             minute: '2-digit'
         });
     };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-(--brand-primary) mx-auto mb-4" />
+                    <p className="text-gray-500">Loading event details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Card className="max-w-md w-full">
+                    <CardContent className="p-8 text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle className="w-8 h-8 text-red-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Event</h3>
+                        <p className="text-gray-500 mb-4">{error}</p>
+                        <Button onClick={() => navigate('/organizer/events')}>
+                            Back to Events
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // No event found
+    if (!event) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Card className="max-w-md w-full">
+                    <CardContent className="p-8 text-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Calendar className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Event Not Found</h3>
+                        <p className="text-gray-500 mb-4">The event you're looking for doesn't exist.</p>
+                        <Button onClick={() => navigate('/organizer/events')}>
+                            Back to Events
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -266,10 +231,13 @@ const ViewEvent = () => {
                                     <Copy size={14} />
                                     Duplicate Event
                                 </button>
-                                <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                <Link
+                                    to={`/events/${event.slug || event.id}`}
+                                    className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                >
                                     <ExternalLink size={14} />
                                     View Public Page
-                                </button>
+                                </Link>
                                 <hr className="my-1" />
                                 <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
                                     <Trash2 size={14} />
@@ -290,7 +258,7 @@ const ViewEvent = () => {
                                 <DollarSign size={20} className="text-green-600" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-gray-900">${event.stats.totalRevenue.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-gray-900">GH₵{event.stats?.totalRevenue?.toLocaleString() || 0}</p>
                                 <p className="text-xs text-gray-500">Total Revenue</p>
                             </div>
                         </div>
@@ -303,7 +271,7 @@ const ViewEvent = () => {
                                 <TicketCheck size={20} className="text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-gray-900">{event.stats.ticketsSold}</p>
+                                <p className="text-2xl font-bold text-gray-900">{event.stats?.ticketsSold || 0}</p>
                                 <p className="text-xs text-gray-500">Tickets Sold</p>
                             </div>
                         </div>
@@ -316,7 +284,7 @@ const ViewEvent = () => {
                                 <ShoppingCart size={20} className="text-purple-600" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-gray-900">{event.stats.orders}</p>
+                                <p className="text-2xl font-bold text-gray-900">{event.stats?.orders || 0}</p>
                                 <p className="text-xs text-gray-500">Total Orders</p>
                             </div>
                         </div>
@@ -329,7 +297,7 @@ const ViewEvent = () => {
                                 <Eye size={20} className="text-orange-600" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-gray-900">{event.stats.views.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-gray-900">{event.stats?.views?.toLocaleString() || 0}</p>
                                 <p className="text-xs text-gray-500">Page Views</p>
                             </div>
                         </div>
@@ -342,7 +310,11 @@ const ViewEvent = () => {
                                 <TrendingUp size={20} className="text-teal-600" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-gray-900">{Math.round((event.stats.ticketsSold / event.stats.totalTickets) * 100)}%</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    {event.stats?.totalTickets > 0
+                                        ? Math.round((event.stats.ticketsSold / event.stats.totalTickets) * 100)
+                                        : 0}%
+                                </p>
                                 <p className="text-xs text-gray-500">Sold Out</p>
                             </div>
                         </div>
@@ -355,12 +327,18 @@ const ViewEvent = () => {
                 <div className="col-span-12 lg:col-span-8 space-y-6">
                     {/* Main Image */}
                     <Card className="overflow-hidden">
-                        <img
-                            src={event.mainImage}
-                            alt={event.name}
-                            className="w-full h-64 object-cover"
-                        />
-                        {event.photos.length > 0 && (
+                        {event.mainImage ? (
+                            <img
+                                src={event.mainImage}
+                                alt={event.name}
+                                className="w-full h-64 object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
+                                <Image size={48} className="text-gray-300" />
+                            </div>
+                        )}
+                        {event.photos && event.photos.length > 0 && (
                             <CardContent className="p-4">
                                 <p className="text-sm font-medium text-gray-700 mb-3">Event Photos</p>
                                 <div className="flex gap-3 overflow-x-auto pb-2">
@@ -383,10 +361,10 @@ const ViewEvent = () => {
                             <CardTitle className="text-lg">About This Event</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-gray-600 whitespace-pre-line">{event.description}</p>
+                            <p className="text-gray-600 whitespace-pre-line">{event.description || 'No description provided.'}</p>
 
                             {/* Tags */}
-                            {event.tags.length > 0 && (
+                            {event.tags && event.tags.length > 0 && (
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     {event.tags.map((tag, index) => (
                                         <Badge key={index} variant="secondary">
@@ -407,48 +385,55 @@ const ViewEvent = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {event.tickets.map((ticket) => (
-                                <div
-                                    key={ticket.id}
-                                    className="p-4 border border-gray-200 rounded-lg"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <h4 className="font-semibold text-gray-900">{ticket.name}</h4>
-                                            <div className="flex items-center gap-3 mt-1">
-                                                <span className="text-lg font-bold text-(--brand-primary)">
-                                                    ${ticket.price}
-                                                </span>
-                                                {ticket.promoPrice && (
-                                                    <span className="text-sm text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                                                        Sale: ${ticket.promoPrice}
+                            {event.tickets && event.tickets.length > 0 ? (
+                                event.tickets.map((ticket) => (
+                                    <div
+                                        key={ticket.id}
+                                        className="p-4 border border-gray-200 rounded-lg"
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h4 className="font-semibold text-gray-900">{ticket.name}</h4>
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <span className="text-lg font-bold text-(--brand-primary)">
+                                                        GH₵{ticket.price}
                                                     </span>
+                                                    {ticket.promoPrice && (
+                                                        <span className="text-sm text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                                                            Sale: GH₵{ticket.promoPrice}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {ticket.saleStartDate && ticket.saleEndDate && (
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        Sale: {ticket.saleStartDate} - {ticket.saleEndDate}
+                                                    </p>
                                                 )}
                                             </div>
-                                            {ticket.saleStartDate && ticket.saleEndDate && (
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    Sale: {ticket.saleStartDate} - {ticket.saleEndDate}
+                                            <div className="text-right">
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-semibold">{ticket.sold}</span> / {ticket.quantity} sold
                                                 </p>
-                                            )}
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    Max {ticket.maxPerOrder} per order
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm text-gray-600">
-                                                <span className="font-semibold">{ticket.sold}</span> / {ticket.quantity} sold
-                                            </p>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                Max {ticket.maxPerOrder} per order
-                                            </p>
+                                        {/* Progress bar */}
+                                        <div className="mt-3 w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-(--brand-primary) rounded-full transition-all"
+                                                style={{ width: `${ticket.quantity > 0 ? (ticket.sold / ticket.quantity) * 100 : 0}%` }}
+                                            />
                                         </div>
                                     </div>
-                                    {/* Progress bar */}
-                                    <div className="mt-3 w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-(--brand-primary) rounded-full transition-all"
-                                            style={{ width: `${(ticket.sold / ticket.quantity) * 100}%` }}
-                                        />
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8">
+                                    <Tag size={32} className="mx-auto text-gray-300 mb-2" />
+                                    <p className="text-gray-500 text-sm">No ticket types created yet</p>
                                 </div>
-                            ))}
+                            )}
                         </CardContent>
                     </Card>
 
@@ -458,7 +443,7 @@ const ViewEvent = () => {
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <Users size={20} className="text-(--brand-primary)" />
-                                    Attendees ({attendees.length})
+                                    Attendees ({event.attendees?.length || 0})
                                 </CardTitle>
                                 <div className="flex items-center gap-2">
                                     <Badge variant="success" className="gap-1">
@@ -533,12 +518,9 @@ const ViewEvent = () => {
                                             </div>
                                         </div>
                                         <div className="text-right text-xs text-gray-500">
-                                            <Link
-                                                to={`/organizer/orders/${attendee.orderId}`}
-                                                className="text-(--brand-primary) hover:underline font-medium"
-                                            >
+                                            <p className="text-(--brand-primary) font-medium">
                                                 {attendee.orderId}
-                                            </Link>
+                                            </p>
                                             {attendee.checkedIn && attendee.checkInTime && (
                                                 <p className="mt-1">
                                                     Checked in {formatDateTime(attendee.checkInTime)}
@@ -555,67 +537,60 @@ const ViewEvent = () => {
                                     </div>
                                 )}
                             </div>
-
-                            {/* View All Link */}
-                            {attendees.length > 6 && (
-                                <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-                                    <Button variant="outline" size="sm">
-                                        View All Attendees
-                                    </Button>
-                                </div>
-                            )}
                         </CardContent>
                     </Card>
 
                     {/* Contact & Social */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Globe size={20} className="text-(--brand-primary)" />
-                                Contact & Social Media
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {event.phone && (
-                                    <a href={`tel:${event.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
-                                        <Phone size={16} />
-                                        {event.phone}
-                                    </a>
-                                )}
-                                {event.website && (
-                                    <a href={event.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
-                                        <Globe size={16} />
-                                        Website
-                                    </a>
-                                )}
-                                {event.facebook && (
-                                    <a href={event.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
-                                        <Facebook size={16} />
-                                        Facebook
-                                    </a>
-                                )}
-                                {event.twitter && (
-                                    <a href={event.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-sky-500">
-                                        <Twitter size={16} />
-                                        Twitter / X
-                                    </a>
-                                )}
-                                {event.instagram && (
-                                    <a href={event.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600">
-                                        <Instagram size={16} />
-                                        Instagram
-                                    </a>
-                                )}
-                                {event.videoUrl && (
-                                    <a href={event.videoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-red-600">
-                                        <Video size={16} />
-                                        Video
-                                    </a>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {(event.phone || event.website || event.facebook || event.twitter || event.instagram || event.videoUrl) && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Globe size={20} className="text-(--brand-primary)" />
+                                    Contact & Social Media
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {event.phone && (
+                                        <a href={`tel:${event.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
+                                            <Phone size={16} />
+                                            {event.phone}
+                                        </a>
+                                    )}
+                                    {event.website && (
+                                        <a href={event.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
+                                            <Globe size={16} />
+                                            Website
+                                        </a>
+                                    )}
+                                    {event.facebook && (
+                                        <a href={event.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
+                                            <Facebook size={16} />
+                                            Facebook
+                                        </a>
+                                    )}
+                                    {event.twitter && (
+                                        <a href={event.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-sky-500">
+                                            <Twitter size={16} />
+                                            Twitter / X
+                                        </a>
+                                    )}
+                                    {event.instagram && (
+                                        <a href={event.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600">
+                                            <Instagram size={16} />
+                                            Instagram
+                                        </a>
+                                    )}
+                                    {event.videoUrl && (
+                                        <a href={event.videoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-red-600">
+                                            <Video size={16} />
+                                            Video
+                                        </a>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Right Column */}
@@ -638,9 +613,8 @@ const ViewEvent = () => {
                             <div className="flex items-start gap-3">
                                 <MapPin size={18} className="text-gray-400 mt-0.5" />
                                 <div>
-                                    <p className="font-medium text-gray-900">{event.venue}</p>
-                                    <p className="text-sm text-gray-500">{event.address}</p>
-                                    <p className="text-sm text-gray-500">{event.city}, {event.country}</p>
+                                    <p className="font-medium text-gray-900">{event.venue || '—'}</p>
+                                    <p className="text-sm text-gray-500">{event.address || '—'}</p>
                                     {event.mapsUrl && (
                                         <a
                                             href={event.mapsUrl}
@@ -687,10 +661,12 @@ const ViewEvent = () => {
                                 <Copy size={16} />
                                 Duplicate Event
                             </Button>
-                            <Button variant="outline" className="w-full justify-start gap-2">
-                                <ExternalLink size={16} />
-                                View Public Page
-                            </Button>
+                            <Link to={`/events/${event.slug || event.id}`} className="block">
+                                <Button variant="outline" className="w-full justify-start gap-2">
+                                    <ExternalLink size={16} />
+                                    View Public Page
+                                </Button>
+                            </Link>
                             <Button variant="outline" className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
                                 <Trash2 size={16} />
                                 Delete Event

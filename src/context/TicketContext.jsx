@@ -34,10 +34,25 @@ export const TicketProvider = ({ children }) => {
 
         try {
             const response = await orderService.getMyOrders();
-            const ordersData = response.data || response || [];
+            // Handle nested response structure: response.data could be an object with orders array
+            let ordersData = [];
+            if (response.data) {
+                // Check if data has an orders property (new API structure)
+                if (response.data.orders && Array.isArray(response.data.orders)) {
+                    ordersData = response.data.orders;
+                }
+                // Or if data itself is an array (old API structure)
+                else if (Array.isArray(response.data)) {
+                    ordersData = response.data;
+                }
+            }
+            // Fallback: check if response itself is an array
+            else if (Array.isArray(response)) {
+                ordersData = response;
+            }
 
             // Set orders
-            setOrders(Array.isArray(ordersData) ? ordersData : []);
+            setOrders(ordersData);
 
             // Extract all tickets from paid orders
             const allTickets = [];

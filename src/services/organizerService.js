@@ -115,6 +115,32 @@ const organizerService = {
     },
 
     /**
+     * Get detailed event data for the organizer's View Event page
+     * Includes stats, ticket types with sales data, attendees list, etc.
+     * @param {number|string} eventId - Event ID
+     * @returns {Promise<Object>} Comprehensive event data
+     */
+    getEventDetails: async (eventId) => {
+        const response = await api.get(`/organizers/data/events/${eventId}`);
+        return response;
+    },
+
+    /**
+     * Get all orders for organizer's events
+     * Fetches orders with stats, filters, and pagination
+     * @param {Object} params - Query parameters
+     * @param {string} [params.status] - Filter by status (all, paid, pending, cancelled, refunded)
+     * @param {string} [params.search] - Search by order ID, customer name, or email
+     * @param {number} [params.page] - Page number
+     * @param {number} [params.per_page] - Items per page
+     * @returns {Promise<Object>} Orders data with stats and pagination
+     */
+    getOrders: async (params = {}) => {
+        const response = await api.get('/organizers/data/orders', { params });
+        return response;
+    },
+
+    /**
      * Get organizer dashboard statistics (legacy - use getDashboard instead)
      * @param {number|string} organizerId - Organizer ID
      * @returns {Promise<Object>} Dashboard stats (events count, tickets sold, revenue, etc.)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Search,
@@ -17,35 +17,77 @@ import {
     AlertCircle,
     ChevronDown,
     RefreshCw,
-    TicketCheck
+    TicketCheck,
+    Loader2
 } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
+import organizerService from '../../services/organizerService';
 
 const Orders = () => {
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [openDropdown, setOpenDropdown] = useState(null);
     const [dateFilter, setDateFilter] = useState('all');
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [orders, setOrders] = useState([]);
+    const [stats, setStats] = useState(null);
+    const [pagination, setPagination] = useState({ page: 1, perPage: 20, total: 0 });
 
-    // Stats
-    const stats = [
-        { label: 'Total Orders', value: '1,248', icon: ShoppingCart, color: '#3b82f6', change: '+12%' },
-        { label: 'Total Revenue', value: '$86,420', icon: DollarSign, color: '#22c55e', change: '+8%' },
-        { label: 'Completed', value: '1,156', icon: CheckCircle, color: '#8b5cf6', change: '+15%' },
-        { label: 'Pending', value: '48', icon: Clock, color: '#f59e0b', change: '-5%' },
-    ];
+    // Fetch orders from API
+    useEffect(() => {
+        fetchOrders();
+    }, [activeTab, searchQuery]);
+
+    const fetchOrders = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const params = {
+                status: activeTab === 'all' ? undefined : activeTab,
+                search: searchQuery || undefined,
+                page: pagination.page,
+                per_page: pagination.perPage,
+            };
+
+            const response = await organizerService.getOrders(params);
+
+            if (response.success) {
+                setOrders(response.data.orders || []);
+                setStats(response.data.stats || {});
+                setPagination(response.data.pagination || { page: 1, perPage: 20, total: 0 });
+            } else {
+                setError(response.message || 'Failed to load orders');
+            }
+        } catch (err) {
+            console.error('Error fetching orders:', err);
+            setError('An error occurred while loading orders');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Format stats for display
+    const statsDisplay = stats ? [
+        { label: 'Total Orders', value: stats.totalOrders?.toString() || '0', icon: ShoppingCart, color: '#3b82f6', change: '+12%' },
+        { label: 'Total Revenue', value: `GH₵${(stats.totalRevenue || 0).toLocaleString()}`, icon: DollarSign, color: '#22c55e', change: '+8%' },
+        { label: 'Completed', value: stats.completed?.toString() || '0', icon: CheckCircle, color: '#8b5cf6', change: '+15%' },
+        { label: 'Pending', value: stats.pending?.toString() || '0', icon: Clock, color: '#f59e0b', change: '-5%' },
+    ] : [];
 
     // Tabs
-    const tabs = [
-        { id: 'all', label: 'All Orders', count: 1248 },
-        { id: 'completed', label: 'Completed', count: 1156 },
-        { id: 'pending', label: 'Pending', count: 48 },
-        { id: 'cancelled', label: 'Cancelled', count: 32 },
-        { id: 'refunded', label: 'Refunded', count: 12 },
-    ];
+    const tabs = stats ? [
+        { id: 'all', label: 'All Orders', count: stats.totalOrders || 0 },
+        { id: 'paid', label: 'Completed', count: stats.completed || 0 },
+        { id: 'pending', label: 'Pending', count: stats.pending || 0 },
+        { id: 'cancelled', label: 'Cancelled', count: stats.cancelled || 0 },
+        { id: 'refunded', label: 'Refunded', count: stats.refunded || 0 },
+    ] : [];
+
 
     // Date filters
     const dateFilters = [
@@ -56,144 +98,10 @@ const Orders = () => {
         { id: 'year', label: 'This Year' },
     ];
 
-    // Mock orders data
-    const orders = [
-        {
-            id: 'ORD-001248',
-            customer: {
-                name: 'John Doe',
-                email: 'john.doe@email.com',
-                avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=fff'
-            },
-            event: {
-                id: 1,
-                name: 'Summer Music Festival 2024',
-                date: 'Jun 15, 2024'
-            },
-            tickets: [
-                { name: 'VIP Pass', quantity: 2, price: 150 },
-                { name: 'General Admission', quantity: 1, price: 59 }
-            ],
-            totalAmount: 359,
-            status: 'Completed',
-            paymentMethod: 'Credit Card',
-            orderDate: '2024-05-28 14:32',
-        },
-        {
-            id: 'ORD-001247',
-            customer: {
-                name: 'Sarah Wilson',
-                email: 'sarah.w@email.com',
-                avatar: 'https://ui-avatars.com/api/?name=Sarah+Wilson&background=22c55e&color=fff'
-            },
-            event: {
-                id: 2,
-                name: 'Tech Conference 2024',
-                date: 'May 20, 2024'
-            },
-            tickets: [
-                { name: 'Full Access', quantity: 1, price: 299 }
-            ],
-            totalAmount: 299,
-            status: 'Completed',
-            paymentMethod: 'PayPal',
-            orderDate: '2024-05-28 12:15',
-        },
-        {
-            id: 'ORD-001246',
-            customer: {
-                name: 'Mike Johnson',
-                email: 'mike.j@email.com',
-                avatar: 'https://ui-avatars.com/api/?name=Mike+Johnson&background=f59e0b&color=fff'
-            },
-            event: {
-                id: 3,
-                name: 'Art Exhibition Opening',
-                date: 'Jul 10, 2024'
-            },
-            tickets: [
-                { name: 'Standard Entry', quantity: 4, price: 25 }
-            ],
-            totalAmount: 100,
-            status: 'Pending',
-            paymentMethod: 'Bank Transfer',
-            orderDate: '2024-05-28 10:45',
-        },
-        {
-            id: 'ORD-001245',
-            customer: {
-                name: 'Emily Brown',
-                email: 'emily.b@email.com',
-                avatar: 'https://ui-avatars.com/api/?name=Emily+Brown&background=8b5cf6&color=fff'
-            },
-            event: {
-                id: 1,
-                name: 'Summer Music Festival 2024',
-                date: 'Jun 15, 2024'
-            },
-            tickets: [
-                { name: 'Backstage Experience', quantity: 2, price: 300 }
-            ],
-            totalAmount: 600,
-            status: 'Completed',
-            paymentMethod: 'Credit Card',
-            orderDate: '2024-05-27 18:22',
-        },
-        {
-            id: 'ORD-001244',
-            customer: {
-                name: 'David Lee',
-                email: 'david.lee@email.com',
-                avatar: 'https://ui-avatars.com/api/?name=David+Lee&background=ef4444&color=fff'
-            },
-            event: {
-                id: 4,
-                name: 'Food & Wine Festival',
-                date: 'Aug 5, 2024'
-            },
-            tickets: [
-                { name: 'Tasting Pass', quantity: 2, price: 75 }
-            ],
-            totalAmount: 150,
-            status: 'Cancelled',
-            paymentMethod: 'Credit Card',
-            orderDate: '2024-05-27 15:08',
-        },
-        {
-            id: 'ORD-001243',
-            customer: {
-                name: 'Lisa Chen',
-                email: 'lisa.c@email.com',
-                avatar: 'https://ui-avatars.com/api/?name=Lisa+Chen&background=ec4899&color=fff'
-            },
-            event: {
-                id: 2,
-                name: 'Tech Conference 2024',
-                date: 'May 20, 2024'
-            },
-            tickets: [
-                { name: 'Workshop Only', quantity: 1, price: 149 }
-            ],
-            totalAmount: 149,
-            status: 'Refunded',
-            paymentMethod: 'PayPal',
-            orderDate: '2024-05-26 11:30',
-        },
-    ];
-
-    // Filter orders based on active tab and search
-    const filteredOrders = orders.filter(order => {
-        const matchesTab = activeTab === 'all' || order.status.toLowerCase() === activeTab;
-        const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.event.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesTab && matchesSearch;
-    });
-
     const getStatusStyle = (status) => {
         switch (status.toLowerCase()) {
-            case 'completed': return 'success';
+            case 'completed':
+            case 'paid': return 'success';
             case 'pending': return 'warning';
             case 'cancelled': return 'destructive';
             case 'refunded': return 'info';
@@ -203,7 +111,8 @@ const Orders = () => {
 
     const getStatusIcon = (status) => {
         switch (status.toLowerCase()) {
-            case 'completed': return <CheckCircle size={14} />;
+            case 'completed':
+            case 'paid': return <CheckCircle size={14} />;
             case 'pending': return <Clock size={14} />;
             case 'cancelled': return <XCircle size={14} />;
             case 'refunded': return <RefreshCw size={14} />;
@@ -226,6 +135,32 @@ const Orders = () => {
         });
     };
 
+    // Loading state
+    if (isLoading && !orders.length) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-(--brand-primary) mx-auto mb-4" />
+                    <p className="text-gray-500">Loading orders...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Orders</h3>
+                    <p className="text-gray-500 mb-4">{error}</p>
+                    <Button onClick={fetchOrders}>Try Again</Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -244,7 +179,7 @@ const Orders = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat, index) => {
+                {statsDisplay.map((stat, index) => {
                     const Icon = stat.icon;
                     return (
                         <Card key={index}>
@@ -347,7 +282,7 @@ const Orders = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredOrders.map((order) => (
+                            {orders.map((order) => (
                                 <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                                     {/* Order ID */}
                                     <td className="py-4 px-4">
@@ -464,7 +399,7 @@ const Orders = () => {
                 </div>
 
                 {/* Empty State */}
-                {filteredOrders.length === 0 && (
+                {orders.length === 0 && (
                     <div className="text-center py-12">
                         <ShoppingCart size={48} className="mx-auto text-gray-300 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-1">No orders found</h3>
@@ -473,10 +408,10 @@ const Orders = () => {
                 )}
 
                 {/* Pagination */}
-                {filteredOrders.length > 0 && (
+                {orders.length > 0 && (
                     <div className="flex items-center justify-between p-4 border-t border-gray-100">
                         <p className="text-sm text-gray-500">
-                            Showing {filteredOrders.length} of {orders.length} orders
+                            Showing {orders.length} of {pagination.total} orders
                         </p>
                         <div className="flex gap-2">
                             <Button variant="outline" size="sm" disabled>
@@ -489,7 +424,7 @@ const Orders = () => {
                     </div>
                 )}
             </Card>
-        </div>
+        </div >
     );
 };
 

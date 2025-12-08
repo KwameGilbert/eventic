@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -23,22 +23,36 @@ import {
     Instagram,
     Twitter,
     Map,
-    Images
+    Images,
+    Loader2,
+    AlertTriangle,
+    CheckCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
+import eventService from '../../services/eventService';
 
 const CreateEvent = () => {
     const navigate = useNavigate();
+
+    // Loading and error states
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+    // Categories from API
+    const [categories, setCategories] = useState([]);
 
     // Event form state
     const [eventData, setEventData] = useState({
         name: '',
         description: '',
         category: '',
-        date: '',
+        startDate: '',
+        endDate: '',
         startTime: '',
         endTime: '',
         venue: '',
@@ -69,13 +83,7 @@ const CreateEvent = () => {
         { id: 1, name: '', price: '', promoPrice: '', saleStartDate: '', saleEndDate: '', quantity: '', maxPerOrder: '', description: '' }
     ]);
 
-    // Categories
-    const categories = [
-        'Music', 'Technology', 'Business', 'Sports', 'Art',
-        'Food & Drink', 'Health & Wellness', 'Fashion', 'Education', 'Other'
-    ];
-
-    // Countries
+    // Countries (static for now)
     const countries = [
         'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany',
         'France', 'Spain', 'Italy', 'Netherlands', 'Ghana', 'Nigeria', 'Kenya',
@@ -92,6 +100,38 @@ const CreateEvent = () => {
         'Adults Only (18+)',
         'Adults Only (21+)',
     ];
+
+    // Fetch categories on mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setIsLoadingCategories(true);
+                const response = await eventService.getEventTypes();
+                if (response.success && response.data?.event_types) {
+                    setCategories(response.data.event_types);
+                }
+            } catch (err) {
+                console.error('Failed to fetch categories:', err);
+                // Fallback to static categories
+                setCategories([
+                    { id: 1, name: 'Music', slug: 'music' },
+                    { id: 2, name: 'Technology', slug: 'technology' },
+                    { id: 3, name: 'Business', slug: 'business' },
+                    { id: 4, name: 'Sports', slug: 'sports' },
+                    { id: 5, name: 'Art', slug: 'art' },
+                    { id: 6, name: 'Food & Drink', slug: 'food-drink' },
+                    { id: 7, name: 'Health & Wellness', slug: 'health-wellness' },
+                    { id: 8, name: 'Fashion', slug: 'fashion' },
+                    { id: 9, name: 'Education', slug: 'education' },
+                    { id: 10, name: 'Other', slug: 'other' },
+                ]);
+            } finally {
+                setIsLoadingCategories(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     // Handle event data change
     const handleEventChange = (e) => {
@@ -177,18 +217,103 @@ const CreateEvent = () => {
         }
     };
 
-    // Handle form submit
-    const handleSubmit = (e) => {
+    // Handle form submit with specified status
+    const handleSubmit = async (status = 'draft') => {
+        setIsSubmitting(true);
+        setSubmitError(null);
+
+        try {
+            // Find the selected category
+            const selectedCategory = categories.find(c => c.name === eventData.category || c.id.toString() === eventData.category);
+
+            // Combine date and time for backend
+            const startDateTime = eventData.startDate && eventData.startTime
+                ? `${eventData.startDate}T${eventData.startTime}:00`
+                : null;
+            const endDateTime = eventData.endDate && eventData.endTime
+                ? `${eventData.endDate}T${eventData.endTime}:00`
+                : null;
+
+            // Prepare event data for API
+            const apiEventData = {
+                title: eventData.name,
+                description: eventData.description,
+                event_type_id: selectedCategory?.id || null,
+                venue_name: eventData.venue,
+                address: `${eventData.address}, ${eventData.city}, ${eventData.country}`,
+                map_url: eventData.mapsUrl || null,
+                start_time: startDateTime,
+                end_time: endDateTime,
+                audience: eventData.audience,
+                tags: tags,
+                status: status, // Use the status parameter (draft or pending)
+                website: eventData.website || null,
+                facebook: eventData.facebook || null,
+                twitter: eventData.twitter || null,
+                instagram: eventData.instagram || null,
+                phone: eventData.phone || null,
+                video_url: eventData.videoUrl || null,
+            };
+
+            // Filter out valid tickets (with name and quantity)
+            const validTickets = tickets.filter(t => t.name && t.quantity);
+
+            // Create event with tickets, passing banner image and event photos if available
+            const response = await eventService.createWithTickets(
+                apiEventData,
+                validTickets,
+                eventData.mainImage, // Pass the banner image file
+                eventPhotos // Pass the event photos array
+            );
+
+            if (response.success) {
+                setSubmitSuccess(true);
+                // Redirect to events page after a short delay
+                setTimeout(() => {
+                    navigate('/organizer/events');
+                }, 1500);
+            } else {
+                setSubmitError(response.message || 'Failed to create event');
+            }
+        } catch (err) {
+            setSubmitError(err.message || 'An error occurred while creating the event');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Save as draft handler
+    const handleSaveAsDraft = (e) => {
         e.preventDefault();
-        console.log('Event Data:', eventData);
-        console.log('Tags:', tags);
-        console.log('Photos:', eventPhotos);
-        console.log('Tickets:', tickets);
-        navigate('/organizer/events');
+        handleSubmit('draft');
+    };
+
+    // Submit for review handler (pending status)
+    const handleSubmitForReview = (e) => {
+        e.preventDefault();
+        handleSubmit('pending');
     };
 
     // Calculate total tickets
     const totalTickets = tickets.reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0);
+
+    // Success state
+    if (submitSuccess) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Card className="max-w-md w-full">
+                    <CardContent className="p-8 text-center">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle className="w-8 h-8 text-green-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Event Created Successfully!</h3>
+                        <p className="text-gray-500 mb-4">Your event has been created as a draft. Redirecting to events page...</p>
+                        <Loader2 className="w-6 h-6 animate-spin text-(--brand-primary) mx-auto" />
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -205,6 +330,17 @@ const CreateEvent = () => {
                     <p className="text-gray-500 mt-1">Fill in the details to create your event</p>
                 </div>
             </div>
+
+            {/* Error Alert */}
+            {submitError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                    <div>
+                        <h4 className="font-medium text-red-800">Error Creating Event</h4>
+                        <p className="text-sm text-red-700">{submitError}</p>
+                    </div>
+                </div>
+            )}
 
             <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-12 gap-6">
@@ -264,10 +400,11 @@ const CreateEvent = () => {
                                                 onChange={handleEventChange}
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary) appearance-none bg-white"
                                                 required
+                                                disabled={isLoadingCategories}
                                             >
-                                                <option value="">Select category</option>
+                                                <option value="">{isLoadingCategories ? 'Loading...' : 'Select category'}</option>
                                                 {categories.map((cat) => (
-                                                    <option key={cat} value={cat}>{cat}</option>
+                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
                                                 ))}
                                             </select>
                                             <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -323,7 +460,7 @@ const CreateEvent = () => {
                                             className="flex-1 min-w-[120px] border-none outline-none text-sm bg-transparent"
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1">Press Enter or comma to add a tag</p>
+
                                 </div>
                             </CardContent>
                         </Card>
@@ -337,20 +474,35 @@ const CreateEvent = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            Event Date *
+                                            Start Date *
                                         </label>
                                         <input
                                             type="date"
-                                            name="date"
-                                            value={eventData.date}
+                                            name="startDate"
+                                            value={eventData.startDate}
                                             onChange={handleEventChange}
                                             className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
                                             required
                                         />
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                            End Date *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="endDate"
+                                            value={eventData.endDate}
+                                            onChange={handleEventChange}
+                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                             Start Time *
@@ -486,7 +638,7 @@ const CreateEvent = () => {
                                 {/* Main Event Image */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                        Main Event Image *
+                                        Main Event Image
                                     </label>
                                     {eventData.mainImagePreview ? (
                                         <div className="relative inline-block">
@@ -516,42 +668,7 @@ const CreateEvent = () => {
                                             />
                                         </label>
                                     )}
-                                </div>
-
-                                {/* Additional Photos */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                        Additional Event Photos
-                                    </label>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {eventPhotos.map((photo) => (
-                                            <div key={photo.id} className="relative group">
-                                                <img
-                                                    src={photo.preview}
-                                                    alt="Event"
-                                                    className="w-full h-24 object-cover rounded-lg"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeEventPhoto(photo.id)}
-                                                    className="absolute top-1 right-1 p-1 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X size={12} className="text-gray-600" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-(--brand-primary) hover:bg-gray-50 transition-colors">
-                                            <Plus size={24} className="text-gray-400" />
-                                            <span className="text-xs text-gray-400 mt-1">Add Photo</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                multiple
-                                                onChange={handlePhotosUpload}
-                                                className="hidden"
-                                            />
-                                        </label>
-                                    </div>
+                                    <p className="text-xs text-gray-400 mt-1">Note: Image upload is optional for now</p>
                                 </div>
 
                                 {/* Video URL */}
@@ -575,97 +692,95 @@ const CreateEvent = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Contact & Social Media */}
+                        {/* Additional Information */}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Globe size={20} className="text-(--brand-primary)" />
-                                    Contact & Social Media
+                                    Additional Information (Optional)
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            <span className="flex items-center gap-2">
-                                                <Phone size={14} />
-                                                Contact Number
-                                            </span>
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            value={eventData.phone}
-                                            onChange={handleEventChange}
-                                            placeholder="+1 234 567 8900"
-                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            <span className="flex items-center gap-2">
-                                                <Globe size={14} />
-                                                Website
-                                            </span>
-                                        </label>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                        Website
+                                    </label>
+                                    <div className="relative">
+                                        <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                         <input
                                             type="url"
                                             name="website"
                                             value={eventData.website}
                                             onChange={handleEventChange}
-                                            placeholder="https://www.example.com"
-                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                            placeholder="https://example.com"
+                                            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
                                         />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            <span className="flex items-center gap-2">
-                                                <Facebook size={14} />
-                                                Facebook
-                                            </span>
+                                            Facebook
                                         </label>
-                                        <input
-                                            type="url"
-                                            name="facebook"
-                                            value={eventData.facebook}
-                                            onChange={handleEventChange}
-                                            placeholder="facebook.com/event"
-                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                        />
+                                        <div className="relative">
+                                            <Facebook size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="url"
+                                                name="facebook"
+                                                value={eventData.facebook}
+                                                onChange={handleEventChange}
+                                                placeholder="Facebook profile URL"
+                                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                            />
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            <span className="flex items-center gap-2">
-                                                <Twitter size={14} />
-                                                Twitter / X
-                                            </span>
+                                            Twitter
                                         </label>
-                                        <input
-                                            type="url"
-                                            name="twitter"
-                                            value={eventData.twitter}
-                                            onChange={handleEventChange}
-                                            placeholder="x.com/event"
-                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                        />
+                                        <div className="relative">
+                                            <Twitter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="url"
+                                                name="twitter"
+                                                value={eventData.twitter}
+                                                onChange={handleEventChange}
+                                                placeholder="Twitter profile URL"
+                                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                            />
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            <span className="flex items-center gap-2">
-                                                <Instagram size={14} />
-                                                Instagram
-                                            </span>
+                                            Instagram
                                         </label>
-                                        <input
-                                            type="url"
-                                            name="instagram"
-                                            value={eventData.instagram}
-                                            onChange={handleEventChange}
-                                            placeholder="instagram.com/event"
-                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                        />
+                                        <div className="relative">
+                                            <Instagram size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="url"
+                                                name="instagram"
+                                                value={eventData.instagram}
+                                                onChange={handleEventChange}
+                                                placeholder="Instagram profile URL"
+                                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                            Phone
+                                        </label>
+                                        <div className="relative">
+                                            <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="tel"
+                                                name="phone"
+                                                value={eventData.phone}
+                                                onChange={handleEventChange}
+                                                placeholder="+233 20 123 4567"
+                                                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
@@ -721,15 +836,15 @@ const CreateEvent = () => {
                                                     onChange={(e) => handleTicketChange(ticket.id, 'name', e.target.value)}
                                                     placeholder="e.g. VIP, Regular"
                                                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                                    required
+                                                    required={index === 0}
                                                 />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                    Price ($) *
+                                                    Price (GH₵) *
                                                 </label>
                                                 <div className="relative">
-                                                    <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">GH₵</span>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -737,8 +852,8 @@ const CreateEvent = () => {
                                                         value={ticket.price}
                                                         onChange={(e) => handleTicketChange(ticket.id, 'price', e.target.value)}
                                                         placeholder="0.00"
-                                                        className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                                        required
+                                                        className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                                        required={index === 0}
                                                     />
                                                 </div>
                                             </div>
@@ -758,7 +873,7 @@ const CreateEvent = () => {
                                                         onChange={(e) => handleTicketChange(ticket.id, 'quantity', e.target.value)}
                                                         placeholder="100"
                                                         className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                                        required
+                                                        required={index === 0}
                                                     />
                                                 </div>
                                             </div>
@@ -781,54 +896,29 @@ const CreateEvent = () => {
                                             </div>
                                         </div>
 
-                                        {/* Promotional Pricing */}
-                                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
-                                            <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
-                                                <Tag size={14} />
-                                                Promotional Pricing (Optional)
-                                            </p>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                                                        Promo Price ($)
-                                                    </label>
-                                                    <div className="relative">
-                                                        <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            step="0.01"
-                                                            value={ticket.promoPrice}
-                                                            onChange={(e) => handleTicketChange(ticket.id, 'promoPrice', e.target.value)}
-                                                            placeholder="0.00"
-                                                            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                                                        Sale Starts
-                                                    </label>
-                                                    <input
-                                                        type="date"
-                                                        value={ticket.saleStartDate}
-                                                        onChange={(e) => handleTicketChange(ticket.id, 'saleStartDate', e.target.value)}
-                                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                                                        Sale Ends
-                                                    </label>
-                                                    <input
-                                                        type="date"
-                                                        value={ticket.saleEndDate}
-                                                        onChange={(e) => handleTicketChange(ticket.id, 'saleEndDate', e.target.value)}
-                                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                                    />
-                                                </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                    Sale Start Date
+                                                </label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={ticket.saleStartDate}
+                                                    onChange={(e) => handleTicketChange(ticket.id, 'saleStartDate', e.target.value)}
+                                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                                />
                                             </div>
-                                            <p className="text-xs text-amber-700">During the sale period, the promotional price will be used instead of the regular price.</p>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                    Sale End Date
+                                                </label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={ticket.saleEndDate}
+                                                    onChange={(e) => handleTicketChange(ticket.id, 'saleEndDate', e.target.value)}
+                                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
@@ -886,7 +976,7 @@ const CreateEvent = () => {
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Category</span>
                                         <span className="text-gray-900 font-medium">
-                                            {eventData.category || '—'}
+                                            {categories.find(c => c.id.toString() === eventData.category)?.name || '—'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
@@ -928,7 +1018,7 @@ const CreateEvent = () => {
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Ticket Types</span>
-                                        <span className="text-gray-900 font-medium">{tickets.length}</span>
+                                        <span className="text-gray-900 font-medium">{tickets.filter(t => t.name).length}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Total Tickets</span>
@@ -940,14 +1030,49 @@ const CreateEvent = () => {
 
                         {/* Actions */}
                         <div className="space-y-3 sticky top-[420px]">
-                            <Button type="submit" className="w-full gap-2">
-                                Create Event
+                            <Button
+                                type="button"
+                                className="w-full gap-2"
+                                disabled={isSubmitting}
+                                onClick={handleSubmitForReview}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle size={18} />
+                                        Submit for Review
+                                    </>
+                                )}
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="w-full"
+                                className="w-full gap-2"
+                                disabled={isSubmitting}
+                                onClick={handleSaveAsDraft}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FileText size={18} />
+                                        Save as Draft
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full text-gray-500 hover:text-gray-700"
                                 onClick={() => navigate('/organizer/events')}
+                                disabled={isSubmitting}
                             >
                                 Cancel
                             </Button>
