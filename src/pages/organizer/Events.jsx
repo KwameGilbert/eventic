@@ -92,6 +92,19 @@ const Events = () => {
         setOpenDropdown(openDropdown === id ? null : id);
     };
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (openDropdown && !event.target.closest('.dropdown-container')) {
+                setOpenDropdown(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [openDropdown]);
+
+
     // Loading State
     if (isLoading) {
         return (
@@ -126,7 +139,7 @@ const Events = () => {
     const GridView = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
-                <Card key={event.id} className="overflow-hidden group">
+                <Card key={event.id} className={cn("group relative", openDropdown === event.id ? "overflow-visible z-50" : "overflow-hidden")}>
                     {/* Event Image */}
                     <div className="relative h-48 overflow-hidden">
                         <img
@@ -142,43 +155,41 @@ const Events = () => {
                                 {event.category}
                             </Badge>
                         </div>
-                        {/* Actions Dropdown */}
-                        <div className="absolute top-3 right-3">
-                            <div className="relative">
-                                <button
-                                    onClick={() => toggleDropdown(event.id)}
-                                    className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
-                                >
-                                    <MoreVertical size={16} className="text-gray-700" />
-                                </button>
-                                {openDropdown === event.id && (
-                                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                        <Link
-                                            to={`/organizer/events/${event.id}`}
-                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                        >
-                                            <Eye size={14} />
-                                            View Details
-                                        </Link>
-                                        <Link
-                                            to={`/organizer/events/${event.id}/edit`}
-                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                        >
-                                            <Edit size={14} />
-                                            Edit Event
-                                        </Link>
-                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                            <Copy size={14} />
-                                            Duplicate
-                                        </button>
-                                        <hr className="my-1" />
-                                        <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                            <Trash2 size={14} />
-                                            Delete
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                    </div>
+
+                    {/* Actions Dropdown */}
+                    <div className="absolute top-3 right-3 z-50">
+                        <div className="relative dropdown-container">
+                            <button
+                                onClick={() => toggleDropdown(event.id)}
+                                className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                            >
+                                <MoreVertical size={16} className="text-gray-700" />
+                            </button>
+                            {openDropdown === event.id && (
+                                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                                    <Link
+                                        to={`/organizer/events/${event.id}`}
+                                        className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    >
+                                        <Eye size={14} />
+                                        View Details
+                                    </Link>
+                                    <Link
+                                        to={`/organizer/events/${event.id}/edit`}
+                                        className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    >
+                                        <Edit size={14} />
+                                        Edit Event
+                                    </Link>
+                                  
+                                    <hr className="my-1 text-gray-200" />
+                                    <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                        <Trash2 size={14} />
+                                        Delete Event
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -237,12 +248,12 @@ const Events = () => {
                             <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[100px]">Status</th>
                             <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[100px]">Tickets</th>
                             <th className="text-left py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[100px]">Revenue</th>
-                            <th className="text-right py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[60px]">Actions</th>
+                            <th className="text-right py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[120px]">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredEvents.map((event) => (
-                            <tr key={event.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors group">
+                            <tr key={event.id} className={cn("border-b border-gray-50 hover:bg-gray-50 transition-colors group")}>
                                 {/* Event */}
                                 <td className="py-4 px-4">
                                     <div className="flex items-center gap-3">
@@ -302,48 +313,36 @@ const Events = () => {
 
                                 {/* Actions */}
                                 <td className="py-4 px-4">
-                                    <div className="flex items-center justify-end">
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => toggleDropdown(`list-${event.id}`)}
-                                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                            >
-                                                <MoreVertical size={16} />
-                                            </button>
-                                            {openDropdown === `list-${event.id}` && (
-                                                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                                    <Link
-                                                        to={`/organizer/events/${event.id}`}
-                                                        className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                                    >
-                                                        <Eye size={14} />
-                                                        View Details
-                                                    </Link>
-                                                    <Link
-                                                        to={`/organizer/events/${event.id}/edit`}
-                                                        className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                                    >
-                                                        <Edit size={14} />
-                                                        Edit Event
-                                                    </Link>
-                                                    <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                                        <Copy size={14} />
-                                                        Duplicate
-                                                    </button>
-                                                    <hr className="my-1" />
-                                                    <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                                        <Trash2 size={14} />
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
+                                    <div className="flex items-center justify-end gap-1">
+                                        <Link
+                                            to={`/organizer/events/${event.id}`}
+                                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                            title="View Details"
+                                        >
+                                            <Eye size={16} />
+                                        </Link>
+                                        <Link
+                                            to={`/organizer/events/${event.id}/edit`}
+                                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                            title="Edit Event"
+                                        >
+                                            <Edit size={16} />
+                                        </Link>
+                                        <button
+                                            onClick={() => {/* Handle delete */ }}
+                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Delete Event"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
+
                 </table>
+
             </div>
         </Card>
     );
