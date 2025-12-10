@@ -182,10 +182,14 @@ const EventDetails = () => {
                                 <div>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
                                         <MapPin size={16} />
-                                        <h3>Venue</h3>
+                                        <h3>Location</h3>
                                     </div>
                                     <p className="text-gray-900 font-medium">{event.venue || 'TBA'}</p>
-                                    <p className="text-gray-600 text-sm">{event.location}{event.country ? `, ${event.country}` : ''}</p>
+                                    <p className="text-gray-600 text-sm">
+                                        {[event.location, event.city, event.region, event.country]
+                                            .filter(Boolean)
+                                            .join(', ')}
+                                    </p>
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
@@ -193,13 +197,6 @@ const EventDetails = () => {
                                         <h3>Starting Price</h3>
                                     </div>
                                     <p className="text-gray-900 font-bold text-xl">{event.price || 'Free'}</p>
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
-                                        <Globe size={16} />
-                                        <h3>Event Type</h3>
-                                    </div>
-                                    <p className="text-gray-900 font-medium">{event.isOnline ? 'Online Event' : 'In-Person Event'}</p>
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
@@ -215,6 +212,15 @@ const EventDetails = () => {
                                             <h3>Audience</h3>
                                         </div>
                                         <p className="text-gray-900 font-medium">{event.audience}</p>
+                                    </div>
+                                )}
+                                {event.language && (
+                                    <div>
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
+                                            <Globe size={16} />
+                                            <h3>Language</h3>
+                                        </div>
+                                        <p className="text-gray-900 font-medium">{event.language}</p>
                                     </div>
                                 )}
                             </div>
@@ -249,6 +255,28 @@ const EventDetails = () => {
                                                 }}
                                             />
                                         ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Event Video */}
+                            {event.videoUrl && (
+                                <div className="mb-8">
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Event Video</h2>
+                                    <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                                        <iframe
+                                            src={event.videoUrl.includes('youtu.be')
+                                                ? event.videoUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0]
+                                                : event.videoUrl.includes('youtube.com/watch')
+                                                    ? event.videoUrl.replace('watch?v=', 'embed/').split('&')[0]
+                                                    : event.videoUrl
+                                            }
+                                            className="w-full h-full"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title="Event Video"
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -323,14 +351,39 @@ const EventDetails = () => {
                                 {event.ticketTypes && event.ticketTypes.length > 0 ? (
                                     <div className="space-y-3 mb-6">
                                         {event.ticketTypes.map((ticket, index) => (
-                                            <div key={ticket.id || index} className={`p-4 rounded-lg border-2 ${ticket.available ? 'border-(--brand-primary) bg-(--brand-primary)/5' : 'border-gray-300 bg-gray-50'}`}>
+                                            <div key={ticket.id || index} className={`p-4 rounded-lg border-2 ${ticket.availableQuantity > 0 ? 'border-(--brand-primary) bg-(--brand-primary)/5' : 'border-gray-300 bg-gray-50'}`}>
+                                                {/* Ticket Image */}
+                                                {ticket.ticketImage && (
+                                                    <img
+                                                        src={ticket.ticketImage}
+                                                        alt={ticket.name}
+                                                        className="w-full h-32 object-cover rounded-lg mb-3"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                )}
+
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className="font-bold text-gray-900">{ticket.name}</span>
-                                                    <span className="text-lg font-bold text-(--brand-primary)">GH₵{ticket.price}</span>
+                                                    <div className="text-right">
+                                                        {ticket.salePrice ? (
+                                                            <>
+                                                                <div className="text-lg font-bold text-(--brand-primary)">GH₵{ticket.salePrice}</div>
+                                                                <div className="text-sm text-gray-500 line-through">GH₵{ticket.price}</div>
+                                                            </>
+                                                        ) : (
+                                                            <span className="text-lg font-bold text-(--brand-primary)">GH₵{ticket.price}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
+
+                                                {/* Ticket Description */}
+                                                {ticket.description && (
+                                                    <p className="text-xs text-gray-600 mb-2">{ticket.description}</p>
+                                                )}
+
                                                 <div className="text-xs text-gray-500">
-                                                    {ticket.available ? (
-                                                        <span className="text-green-600 font-semibold">✓ {ticket.availableQuantity || 'Available'} left</span>
+                                                    {ticket.availableQuantity > 0 ? (
+                                                        <span className="text-green-600 font-semibold">✓ {ticket.availableQuantity} left</span>
                                                     ) : (
                                                         <span className="text-red-500 font-semibold">✗ Sold Out</span>
                                                     )}

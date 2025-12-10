@@ -200,8 +200,8 @@ const ViewEvent = () => {
                     </button>
                     <div>
                         <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold text-gray-900">{event.name}</h1>
-                            <Badge variant={getStatusStyle(event.status)}>{event.status}</Badge>
+                            <h1 className="text-2xl font-bold text-gray-900">{event.title}</h1>
+                            <Badge variant={getStatusStyle(event.status)}>{event.status.toUpperCase()}</Badge>
                         </div>
                         <p className="text-gray-500 mt-1">Event ID: #{event.id}</p>
                     </div>
@@ -228,16 +228,9 @@ const ViewEvent = () => {
                         {openDropdown && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                                 <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                    <Copy size={14} />
-                                    Duplicate Event
-                                </button>
-                                <Link
-                                    to={`/events/${event.slug || event.id}`}
-                                    className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                >
                                     <ExternalLink size={14} />
                                     View Public Page
-                                </Link>
+                                </button>
                                 <hr className="my-1" />
                                 <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
                                     <Trash2 size={14} />
@@ -327,10 +320,10 @@ const ViewEvent = () => {
                 <div className="col-span-12 lg:col-span-8 space-y-6">
                     {/* Main Image */}
                     <Card className="overflow-hidden">
-                        {event.mainImage ? (
+                        {event.image ? (
                             <img
-                                src={event.mainImage}
-                                alt={event.name}
+                                src={event.image}
+                                alt={event.title}
                                 className="w-full h-64 object-cover"
                             />
                         ) : (
@@ -338,11 +331,11 @@ const ViewEvent = () => {
                                 <Image size={48} className="text-gray-300" />
                             </div>
                         )}
-                        {event.photos && event.photos.length > 0 && (
+                        {event.images && event.images.length > 0 && (
                             <CardContent className="p-4">
                                 <p className="text-sm font-medium text-gray-700 mb-3">Event Photos</p>
                                 <div className="flex gap-3 overflow-x-auto pb-2">
-                                    {event.photos.map((photo, index) => (
+                                    {event.images.map((photo, index) => (
                                         <img
                                             key={index}
                                             src={photo}
@@ -376,6 +369,35 @@ const ViewEvent = () => {
                         </CardContent>
                     </Card>
 
+                    {/* Event Video */}
+                    {event.videoUrl && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Video size={20} className="text-(--brand-primary)" />
+                                    Event Video
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                                    <iframe
+                                        src={event.videoUrl.includes('youtu.be')
+                                            ? event.videoUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0]
+                                            : event.videoUrl.includes('youtube.com/watch')
+                                                ? event.videoUrl.replace('watch?v=', 'embed/')
+                                                : event.videoUrl
+                                        }
+                                        className="w-full h-full"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        title="Event Video"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Tickets */}
                     <Card>
                         <CardHeader>
@@ -385,28 +407,47 @@ const ViewEvent = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {event.tickets && event.tickets.length > 0 ? (
-                                event.tickets.map((ticket) => (
+                            {event.ticketTypes && event.ticketTypes.length > 0 ? (
+                                event.ticketTypes.map((ticket) => (
                                     <div
                                         key={ticket.id}
                                         className="p-4 border border-gray-200 rounded-lg"
                                     >
+                                        {/* Ticket Image */}
+                                        {ticket.ticketImage && (
+                                            <img
+                                                src={ticket.ticketImage}
+                                                alt={ticket.name}
+                                                className="w-full h-32 object-cover rounded-lg mb-3"
+                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                            />
+                                        )}
+
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <h4 className="font-semibold text-gray-900">{ticket.name}</h4>
+                                                {ticket.description && (
+                                                    <p className="text-xs text-gray-600 mt-1">{ticket.description}</p>
+                                                )}
                                                 <div className="flex items-center gap-3 mt-1">
-                                                    <span className="text-lg font-bold text-(--brand-primary)">
-                                                        GH₵{ticket.price}
-                                                    </span>
-                                                    {ticket.promoPrice && (
-                                                        <span className="text-sm text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                                                            Sale: GH₵{ticket.promoPrice}
+                                                    {ticket.salePrice ? (
+                                                        <>
+                                                            <span className="text-lg font-bold text-(--brand-primary)">
+                                                                GH₵{ticket.salePrice}
+                                                            </span>
+                                                            <span className="text-sm text-gray-500 line-through">
+                                                                GH₵{ticket.price}
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-lg font-bold text-(--brand-primary)">
+                                                            GH₵{ticket.price}
                                                         </span>
                                                     )}
                                                 </div>
                                                 {ticket.saleStartDate && ticket.saleEndDate && (
                                                     <p className="text-xs text-gray-500 mt-1">
-                                                        Sale: {ticket.saleStartDate} - {ticket.saleEndDate}
+                                                        Sale: {new Date(ticket.saleStartDate).toLocaleDateString()} - {new Date(ticket.saleEndDate).toLocaleDateString()}
                                                     </p>
                                                 )}
                                             </div>
@@ -415,7 +456,7 @@ const ViewEvent = () => {
                                                     <span className="font-semibold">{ticket.sold}</span> / {ticket.quantity} sold
                                                 </p>
                                                 <p className="text-xs text-gray-400 mt-1">
-                                                    Max {ticket.maxPerOrder} per order
+                                                    Max {ticket.maxPerAttendee || 10} per order
                                                 </p>
                                             </div>
                                         </div>
@@ -437,111 +478,8 @@ const ViewEvent = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Attendees */}
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Users size={20} className="text-(--brand-primary)" />
-                                    Attendees ({event.attendees?.length || 0})
-                                </CardTitle>
-                                <div className="flex items-center gap-2">
-                                    <Badge variant="success" className="gap-1">
-                                        <UserCheck size={12} />
-                                        {checkedInCount} checked in
-                                    </Badge>
-                                    <Button variant="outline" size="sm" className="gap-1">
-                                        <Download size={14} />
-                                        Export
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {/* Search and Filter */}
-                            <div className="flex gap-3 mb-4">
-                                <div className="flex-1 relative">
-                                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        value={attendeeSearch}
-                                        onChange={(e) => setAttendeeSearch(e.target.value)}
-                                        placeholder="Search attendees..."
-                                        className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                    />
-                                </div>
-                                <div className="relative">
-                                    <select
-                                        value={attendeeFilter}
-                                        onChange={(e) => setAttendeeFilter(e.target.value)}
-                                        className="appearance-none bg-white pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                    >
-                                        <option value="all">All</option>
-                                        <option value="checked-in">Checked In</option>
-                                        <option value="not-checked-in">Not Checked In</option>
-                                    </select>
-                                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                </div>
-                            </div>
-
-                            {/* Attendees List */}
-                            <div className="space-y-3">
-                                {filteredAttendees.map((attendee) => (
-                                    <div
-                                        key={attendee.id}
-                                        className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        <img
-                                            src={attendee.avatar}
-                                            alt={attendee.name}
-                                            className="w-10 h-10 rounded-full"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-medium text-gray-900">{attendee.name}</p>
-                                                {attendee.checkedIn ? (
-                                                    <Badge variant="success" className="gap-1 text-xs py-0">
-                                                        <CheckCircle size={10} />
-                                                        Checked in
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="secondary" className="gap-1 text-xs py-0">
-                                                        <XCircle size={10} />
-                                                        Not checked in
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                                                <span>{attendee.email}</span>
-                                                <span>•</span>
-                                                <span>{attendee.ticketType} × {attendee.ticketCount}</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-right text-xs text-gray-500">
-                                            <p className="text-(--brand-primary) font-medium">
-                                                {attendee.orderId}
-                                            </p>
-                                            {attendee.checkedIn && attendee.checkInTime && (
-                                                <p className="mt-1">
-                                                    Checked in {formatDateTime(attendee.checkInTime)}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {filteredAttendees.length === 0 && (
-                                    <div className="text-center py-8">
-                                        <Users size={32} className="mx-auto text-gray-300 mb-2" />
-                                        <p className="text-gray-500 text-sm">No attendees found</p>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
                     {/* Contact & Social */}
-                    {(event.phone || event.website || event.facebook || event.twitter || event.instagram || event.videoUrl) && (
+                    {(event.contact || event.socialMedia || event.phone || event.website || event.facebook || event.twitter || event.instagram || event.videoUrl) && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg flex items-center gap-2">
@@ -551,46 +489,48 @@ const ViewEvent = () => {
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {event.phone && (
-                                        <a href={`tel:${event.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
-                                            <Phone size={16} />
-                                            {event.phone}
+                                    {(event.contact?.email || event.organizer?.contact?.email) && (
+                                        <a href={`mailto:${event.contact?.email || event.organizer?.contact?.email}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
+                                            <Mail size={16} />
+                                            Email
                                         </a>
                                     )}
-                                    {event.website && (
-                                        <a href={event.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
+                                    {(event.contact?.phone || event.phone) && (
+                                        <a href={`tel:${event.contact?.phone || event.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
+                                            <Phone size={16} />
+                                            {event.contact?.phone || event.phone}
+                                        </a>
+                                    )}
+                                    {(event.contact?.website || event.website) && (
+                                        <a href={`http://${event.contact?.website || event.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-(--brand-primary)">
                                             <Globe size={16} />
                                             Website
                                         </a>
                                     )}
-                                    {event.facebook && (
-                                        <a href={event.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
+                                    {(event.socialMedia?.facebook || event.facebook) && (
+                                        <a href={event.socialMedia?.facebook || event.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
                                             <Facebook size={16} />
                                             Facebook
                                         </a>
                                     )}
-                                    {event.twitter && (
-                                        <a href={event.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-sky-500">
+                                    {(event.socialMedia?.twitter || event.twitter) && (
+                                        <a href={event.socialMedia?.twitter || event.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-sky-500">
                                             <Twitter size={16} />
                                             Twitter / X
                                         </a>
                                     )}
-                                    {event.instagram && (
-                                        <a href={event.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600">
+                                    {(event.socialMedia?.instagram || event.instagram) && (
+                                        <a href={event.socialMedia?.instagram || event.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600">
                                             <Instagram size={16} />
                                             Instagram
-                                        </a>
-                                    )}
-                                    {event.videoUrl && (
-                                        <a href={event.videoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-red-600">
-                                            <Video size={16} />
-                                            Video
                                         </a>
                                     )}
                                 </div>
                             </CardContent>
                         </Card>
                     )}
+
+                    
                 </div>
 
                 {/* Right Column */}
@@ -606,7 +546,7 @@ const ViewEvent = () => {
                                 <div>
                                     <p className="font-medium text-gray-900">{formatDate(event.date)}</p>
                                     <p className="text-sm text-gray-500">
-                                        {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                                        {formatDateTime(event.start_time)} - {formatDateTime(event.end_time)}
                                     </p>
                                 </div>
                             </div>
@@ -614,10 +554,10 @@ const ViewEvent = () => {
                                 <MapPin size={18} className="text-gray-400 mt-0.5" />
                                 <div>
                                     <p className="font-medium text-gray-900">{event.venue || '—'}</p>
-                                    <p className="text-sm text-gray-500">{event.address || '—'}</p>
-                                    {event.mapsUrl && (
+                                    <p className="text-sm text-gray-500">{event.location || '—'}</p>
+                                    {event.mapUrl && (
                                         <a
-                                            href={event.mapsUrl}
+                                            href={event.mapUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-sm text-(--brand-primary) hover:underline flex items-center gap-1 mt-1"
@@ -642,6 +582,15 @@ const ViewEvent = () => {
                                     <p className="text-sm text-gray-500">Audience</p>
                                 </div>
                             </div>
+                            {event.language && (
+                                <div className="flex items-start gap-3">
+                                    <Globe size={18} className="text-gray-400 mt-0.5" />
+                                    <div>
+                                        <p className="font-medium text-gray-900">{event.language}</p>
+                                        <p className="text-sm text-gray-500">Language</p>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -651,20 +600,10 @@ const ViewEvent = () => {
                             <CardTitle className="text-lg">Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            <Link to={`/organizer/events/${event.id}/edit`} className="block">
+                            <Link to={`/organizer/events/edit/${event.id}`} className="block">
                                 <Button variant="outline" className="w-full justify-start gap-2">
                                     <Edit size={16} />
                                     Edit Event
-                                </Button>
-                            </Link>
-                            <Button variant="outline" className="w-full justify-start gap-2">
-                                <Copy size={16} />
-                                Duplicate Event
-                            </Button>
-                            <Link to={`/events/${event.slug || event.id}`} className="block">
-                                <Button variant="outline" className="w-full justify-start gap-2">
-                                    <ExternalLink size={16} />
-                                    View Public Page
                                 </Button>
                             </Link>
                             <Button variant="outline" className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">

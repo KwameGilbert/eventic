@@ -66,7 +66,7 @@ const TicketSalesDonut = ({ data, period = "This Week" }) => {
                                         <p className="text-xs text-gray-500 truncate">{item.name}</p>
                                         <p className="text-sm font-semibold text-gray-900">
                                             {item.value.toLocaleString()}
-                                            <span className="text-xs text-gray-400 ml-1">{percentage}%</span>
+                                            <span className="text-xs text-gray-400 ml-1">{percentage.toLocaleString}%</span>
                                         </p>
                                     </div>
                                 </div>

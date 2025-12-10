@@ -224,102 +224,68 @@ const eventService = {
      * @returns {Promise<Object>} Created event with tickets
      */
     createWithTickets: async (eventData, tickets = [], bannerImage = null, eventPhotos = []) => {
-        let eventResponse;
-
         // Check if we have any files to upload
-        const hasFiles = bannerImage || (eventPhotos && eventPhotos.length > 0);
+        const hasFiles = bannerImage || (eventPhotos && eventPhotos.length > 0) || tickets.some(t => t.ticketImage);
 
-        // If any files are provided, use FormData
-        if (hasFiles) {
-            const formData = new FormData();
+        // Use FormData to send event with tickets and images in a single request
+        const formData = new FormData();
 
-            // Append all event data fields
-            Object.keys(eventData).forEach(key => {
-                const value = eventData[key];
-                if (value !== null && value !== undefined) {
-                    if (key === 'tags' && Array.isArray(value)) {
-                        formData.append(key, JSON.stringify(value));
-                    } else {
-                        formData.append(key, value);
-                    }
+        // Append all event data fields
+        Object.keys(eventData).forEach(key => {
+            const value = eventData[key];
+            if (value !== null && value !== undefined) {
+                if (key === 'tags' && Array.isArray(value)) {
+                    formData.append(key, JSON.stringify(value));
+                } else {
+                    formData.append(key, value);
+                }
+            }
+        });
+
+        // Append banner image if provided
+        if (bannerImage) {
+            formData.append('banner_image', bannerImage);
+        }
+
+        // Append event photos if provided
+        if (eventPhotos && eventPhotos.length > 0) {
+            eventPhotos.forEach((photo, index) => {
+                if (photo.file) {
+                    formData.append(`event_photos[${index}]`, photo.file);
                 }
             });
+        }
 
-            // Append banner image if provided
-            if (bannerImage) {
-                formData.append('banner_image', bannerImage);
-            }
+        // Append tickets data
+        if (tickets && tickets.length > 0) {
+            formData.append('tickets', JSON.stringify(tickets.map((ticket, index) => ({
+                name: ticket.name,
+                price: parseFloat(ticket.price) || 0,
+                promoPrice: parseFloat(ticket.promoPrice) || 0,
+                quantity: parseInt(ticket.quantity) || 0,
+                maxPerOrder: parseInt(ticket.maxPerOrder) || 10,
+                description: ticket.description || '',
+                saleStartDate: ticket.saleStartDate || null,
+                saleEndDate: ticket.saleEndDate || null,
+            }))));
 
-            // Append event photos if provided
-            if (eventPhotos && eventPhotos.length > 0) {
-                eventPhotos.forEach((photo, index) => {
-                    if (photo.file) {
-                        formData.append(`event_photos[${index}]`, photo.file);
-                    }
-                });
-            }
-
-            // Post with FormData - DON'T set Content-Type header manually
-            // Axios will set it automatically with the correct boundary
-            eventResponse = await api.post('/events', formData, {
-                headers: {
-                    'Content-Type': undefined, // Let axios set this automatically
-                },
-                transformRequest: [(data) => data], // Prevent axios from transforming the FormData
+            // Append ticket images
+            tickets.forEach((ticket, index) => {
+                if (ticket.ticketImage) {
+                    formData.append(`ticket_image_${index}`, ticket.ticketImage);
+                }
             });
-        } else {
-            // Post as JSON
-            eventResponse = await api.post('/events', eventData);
         }
 
-        if (!eventResponse.success || !eventResponse.data) {
-            return eventResponse; // Return error if event creation failed
-        }
+        // Post with FormData
+        const response = await api.post('/events', formData, {
+            headers: {
+                'Content-Type': undefined, // Let axios set this automatically
+            },
+            transformRequest: [(data) => data], // Prevent axios from transforming the FormData
+        });
 
-        const createdEvent = eventResponse.data;
-        const createdTickets = [];
-
-        // If no tickets, return just the event
-        if (!tickets || tickets.length === 0) {
-            return eventResponse;
-        }
-
-        // Create each ticket type for the event
-        for (const ticket of tickets) {
-            try {
-                const ticketData = {
-                    event_id: createdEvent.id,
-                    organizer_id: createdEvent.organizer_id,
-                    name: ticket.name,
-                    price: parseFloat(ticket.price) || 0,
-                    quantity: parseInt(ticket.quantity) || 0,
-                    max_per_order: parseInt(ticket.maxPerOrder) || 10,
-                    description: ticket.description || '',
-                    sale_start_date: ticket.saleStartDate || null,
-                    sale_end_date: ticket.saleEndDate || null,
-                };
-
-                // Add promo price if provided
-                if (ticket.promoPrice) {
-                    ticketData.promo_price = parseFloat(ticket.promoPrice);
-                }
-
-                const ticketResponse = await api.post('/ticket-types', ticketData);
-                if (ticketResponse.success && ticketResponse.data) {
-                    createdTickets.push(ticketResponse.data);
-                }
-            } catch (err) {
-                console.error('Failed to create ticket type:', err);
-            }
-        }
-
-        return {
-            ...eventResponse,
-            data: {
-                ...createdEvent,
-                ticket_types: createdTickets
-            }
-        };
+        return response;
     },
 
     /**
@@ -333,113 +299,74 @@ const eventService = {
      * @returns {Promise<Object>} Updated event with ticket types
      */
     updateWithTickets: async (eventId, eventData, tickets = [], deletedTicketIds = [], bannerImage = null, eventPhotos = []) => {
-        const updatedTickets = [];
-        let eventResponse;
-
         // Check if we have any files to upload
-        const hasFiles = bannerImage || (eventPhotos && eventPhotos.length > 0);
+        const hasFiles = bannerImage || (eventPhotos && eventPhotos.length > 0) || tickets.some(t => t.ticketImage);
 
-        // 1. Update the event itself
-        if (hasFiles) {
-            // Use FormData for file upload
-            const formData = new FormData();
+        // Use FormData to send everything in one request
+        const formData = new FormData();
 
-            // Append all event data fields
-            Object.keys(eventData).forEach(key => {
-                const value = eventData[key];
-                if (value !== null && value !== undefined) {
-                    if (key === 'tags' && Array.isArray(value)) {
-                        formData.append(key, JSON.stringify(value));
-                    } else {
-                        formData.append(key, value);
-                    }
-                }
-            });
-
-            // Append banner image if provided
-            if (bannerImage) {
-                formData.append('banner_image', bannerImage);
-            }
-
-            // Append event photos if provided
-            if (eventPhotos && eventPhotos.length > 0) {
-                eventPhotos.forEach((photo, index) => {
-                    if (photo.file) {
-                        formData.append(`event_photos[${index}]`, photo.file);
-                    }
-                });
-            }
-
-            // Use POST for file upload update (PUT doesn't handle multipart/form-data well)
-            eventResponse = await api.post(`/events/${eventId}`, formData, {
-                headers: {
-                    'Content-Type': undefined, // Let axios set this automatically
-                },
-                transformRequest: [(data) => data], // Prevent axios from transforming the FormData
-            });
-        } else {
-            // Regular JSON update
-            eventResponse = await api.put(`/events/${eventId}`, eventData);
-        }
-
-        if (!eventResponse.success) {
-            throw new Error(eventResponse.message || 'Failed to update event');
-        }
-
-        const updatedEvent = eventResponse.data;
-
-        // 2. Delete removed tickets
-        for (const ticketId of deletedTicketIds) {
-            try {
-                await api.delete(`/ticket-types/${ticketId}`);
-            } catch (err) {
-                console.error('Failed to delete ticket type:', ticketId, err);
-            }
-        }
-
-        // 3. Update or create tickets
-        for (const ticket of tickets) {
-            try {
-                const ticketData = {
-                    event_id: eventId,
-                    name: ticket.name,
-                    price: parseFloat(ticket.price) || 0,
-                    quantity: parseInt(ticket.quantity) || 0,
-                    max_per_order: parseInt(ticket.maxPerOrder) || 10,
-                    description: ticket.description || '',
-                    sale_start_date: ticket.saleStartDate || null,
-                    sale_end_date: ticket.saleEndDate || null,
-                };
-
-                // Add promo price if provided
-                if (ticket.promoPrice) {
-                    ticketData.promo_price = parseFloat(ticket.promoPrice);
-                }
-
-                let ticketResponse;
-                if (ticket.id && typeof ticket.id === 'number') {
-                    // Update existing ticket
-                    ticketResponse = await api.put(`/ticket-types/${ticket.id}`, ticketData);
+        // Append all event data fields
+        Object.keys(eventData).forEach(key => {
+            const value = eventData[key];
+            if (value !== null && value !== undefined) {
+                if (key === 'tags' && Array.isArray(value)) {
+                    formData.append(key, JSON.stringify(value));
                 } else {
-                    // Create new ticket
-                    ticketResponse = await api.post('/ticket-types', ticketData);
+                    formData.append(key, value);
                 }
-
-                if (ticketResponse.success && ticketResponse.data) {
-                    updatedTickets.push(ticketResponse.data);
-                }
-            } catch (err) {
-                console.error('Failed to update/create ticket type:', err);
             }
+        });
+
+        // Append banner image if provided
+        if (bannerImage) {
+            formData.append('banner_image', bannerImage);
         }
 
-        return {
-            ...eventResponse,
-            data: {
-                ...updatedEvent,
-                ticket_types: updatedTickets
-            }
-        };
+        // Append event photos if provided
+        if (eventPhotos && eventPhotos.length > 0) {
+            eventPhotos.forEach((photo, index) => {
+                if (photo.file) {
+                    formData.append(`event_photos[${index}]`, photo.file);
+                }
+            });
+        }
+
+        // Append deleted ticket IDs
+        if (deletedTicketIds && deletedTicketIds.length > 0) {
+            formData.append('deleted_tickets', JSON.stringify(deletedTicketIds));
+        }
+
+        // Append tickets data
+        if (tickets && tickets.length > 0) {
+            formData.append('tickets', JSON.stringify(tickets.map((ticket, index) => ({
+                id: typeof ticket.id === 'number' ? ticket.id : undefined,
+                name: ticket.name,
+                price: parseFloat(ticket.price) || 0,
+                promoPrice: parseFloat(ticket.promoPrice) || 0,
+                quantity: parseInt(ticket.quantity) || 0,
+                maxPerOrder: parseInt(ticket.maxPerOrder) || 10,
+                description: ticket.description || '',
+                saleStartDate: ticket.saleStartDate || null,
+                saleEndDate: ticket.saleEndDate || null,
+            }))));
+
+            // Append ticket images
+            tickets.forEach((ticket, index) => {
+                if (ticket.ticketImage) {
+                    formData.append(`ticket_image_${index}`, ticket.ticketImage);
+                }
+            });
+        }
+
+        // Use POST for update to handle multipart/form-data
+        const response = await api.post(`/events/${eventId}`, formData, {
+            headers: {
+                'Content-Type': undefined, // Let axios set this automatically
+            },
+            transformRequest: [(data) => data], // Prevent axios from transforming the FormData
+        });
+
+        return response;
     },
 };
 
