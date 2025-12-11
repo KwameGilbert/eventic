@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Home as HomeIcon, Heart, Globe, Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Calendar, Ticket, Users, Eye, CalendarPlus, FolderOpen, AlertCircle, RefreshCw } from 'lucide-react';
+import { MapPin, Home as HomeIcon, Heart, Globe, Phone, Mail, Facebook, Twitter, Instagram, Calendar, Ticket, Users, CalendarPlus, FolderOpen, AlertCircle, RefreshCw } from 'lucide-react';
 import TicketModal from '../components/modals/TicketModal';
 import eventService from '../services/eventService';
 import PageLoader from '../components/ui/PageLoader';
@@ -22,6 +22,11 @@ const EventDetails = () => {
                 const response = await eventService.getBySlug(slug);
                 const eventData = response?.data || response;
                 setEvent(eventData);
+
+                // Track view count
+                if (eventData && eventData.id) {
+                    eventService.incrementViews(eventData.id);
+                }
             } catch (err) {
                 console.error('Failed to fetch event:', err);
                 setError('Failed to load event details. Please try again.');
@@ -40,6 +45,10 @@ const EventDetails = () => {
             .then(response => {
                 const eventData = response?.data || response;
                 setEvent(eventData);
+
+                if (eventData && eventData.id) {
+                    eventService.incrementViews(eventData.id);
+                }
             })
             .catch(err => {
                 console.error('Failed to fetch event:', err);
@@ -90,7 +99,7 @@ const EventDetails = () => {
                 <div className="text-center bg-white p-8 rounded-xl shadow-sm">
                     <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Not Found</h2>
-                    <p className="text-gray-600 mb-6">The event you're looking for doesn't exist or has been removed.</p>
+                    <p className="text-gray-600 mb-6">The event you are looking for does not exist or has been removed.</p>
                     <Link to="/events" className="text-(--brand-primary) hover:underline font-semibold">
                         Browse all events →
                     </Link>
@@ -156,7 +165,7 @@ const EventDetails = () => {
                                 <h1 className="text-3xl font-bold text-gray-900 mb-3">{event.title}</h1>
                                 {event.category && (
                                     <span className="inline-block px-4 py-2 bg-(--brand-primary)/10 text-(--brand-primary) rounded-full text-sm font-semibold">
-                                        {event.category}
+                                        {event.categoryName}
                                     </span>
                                 )}
                             </div>
@@ -203,7 +212,7 @@ const EventDetails = () => {
                                         <FolderOpen size={16} />
                                         <h3>Category</h3>
                                     </div>
-                                    <p className="text-gray-900 font-medium">{event.category || 'General'}</p>
+                                    <p className="text-gray-900 font-medium">{event.categoryName || 'General'}</p>
                                 </div>
                                 {event.audience && (
                                     <div>
@@ -277,6 +286,81 @@ const EventDetails = () => {
                                             allowFullScreen
                                             title="Event Video"
                                         />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Contact Information */}
+                            {(event.contact || event.phone || event.email || event.website) && (
+                                <div className="mb-8">
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
+                                    <div className="space-y-3">
+                                        {(event.contact?.email || event.email) && (
+                                            <div className="flex items-center gap-3 text-gray-700">
+                                                <Mail size={18} className="text-(--brand-primary)" />
+                                                <a href={`mailto:${event.contact?.email || event.email}`} className="hover:text-(--brand-primary) hover:underline">
+                                                    {event.contact?.email || event.email}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {(event.contact?.phone || event.phone) && (
+                                            <div className="flex items-center gap-3 text-gray-700">
+                                                <Phone size={18} className="text-(--brand-primary)" />
+                                                <a href={`tel:${event.contact?.phone || event.phone}`} className="hover:text-(--brand-primary) hover:underline">
+                                                    {event.contact?.phone || event.phone}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {(event.contact?.website || event.website) && (
+                                            <div className="flex items-center gap-3 text-gray-700">
+                                                <Globe size={18} className="text-(--brand-primary)" />
+                                                <a href={event.contact?.website || event.website} target="_blank" rel="noopener noreferrer" className="hover:text-(--brand-primary) hover:underline">
+                                                    {event.contact?.website || event.website}
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Social Media Links */}
+                            {(event.socialMedia || event.facebook || event.twitter || event.instagram) && (
+                                <div className="mb-8">
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Follow Us</h2>
+                                    <div className="flex items-center gap-4">
+                                        {(event.socialMedia?.facebook || event.facebook) && (
+                                            <a
+                                                href={event.socialMedia?.facebook || event.facebook}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
+                                                aria-label="Facebook"
+                                            >
+                                                <Facebook size={20} />
+                                            </a>
+                                        )}
+                                        {(event.socialMedia?.twitter || event.twitter) && (
+                                            <a
+                                                href={event.socialMedia?.twitter || event.twitter}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-10 h-10 bg-gray-900 hover:bg-gray-800 text-white rounded-full flex items-center justify-center transition-colors"
+                                                aria-label="Twitter/X"
+                                            >
+                                                <Twitter size={20} />
+                                            </a>
+                                        )}
+                                        {(event.socialMedia?.instagram || event.instagram) && (
+                                            <a
+                                                href={event.socialMedia?.instagram || event.instagram}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white rounded-full flex items-center justify-center transition-all"
+                                                aria-label="Instagram"
+                                            >
+                                                <Instagram size={20} />
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -365,7 +449,7 @@ const EventDetails = () => {
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className="font-bold text-gray-900">{ticket.name}</span>
                                                     <div className="text-right">
-                                                        {ticket.salePrice ? (
+                                                        {ticket.onSale && ticket.salePrice ? (
                                                             <>
                                                                 <div className="text-lg font-bold text-(--brand-primary)">GH₵{ticket.salePrice}</div>
                                                                 <div className="text-sm text-gray-500 line-through">GH₵{ticket.price}</div>
@@ -379,6 +463,13 @@ const EventDetails = () => {
                                                 {/* Ticket Description */}
                                                 {ticket.description && (
                                                     <p className="text-xs text-gray-600 mb-2">{ticket.description}</p>
+                                                )}
+
+                                                {/* Sale Period */}
+                                                {ticket.onSale && ticket.saleStartDate && ticket.saleEndDate && (
+                                                    <div className="text-xs text-(--brand-primary) font-semibold mb-2">
+                                                        🔥 Sale ends {new Date(ticket.saleEndDate).toLocaleDateString()}
+                                                    </div>
                                                 )}
 
                                                 <div className="text-xs text-gray-500">

@@ -287,10 +287,10 @@ const BrowseEvents = () => {
                                                     />
 
                                                     {/* Category Badge - Top Left */}
-                                                    {event.category && (
+                                                    {event.categoryName && (
                                                         <div className="absolute top-3 left-3">
                                                             <span className="bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-semibold px-3 py-1 rounded-full">
-                                                                {event.category}
+                                                                {event.categoryName}
                                                             </span>
                                                         </div>
                                                     )}

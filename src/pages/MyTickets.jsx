@@ -100,7 +100,7 @@ const MyTickets = () => {
             try {
                 await navigator.share(shareData);
             } catch (err) {
-                console.log('Share cancelled or failed:', err);
+                console.error('Failed to share ticket:', err);
             }
         } else {
             // Fallback: copy to clipboard

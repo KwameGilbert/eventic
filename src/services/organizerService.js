@@ -141,6 +141,17 @@ const organizerService = {
     },
 
     /**
+     * Get single order details for organizer
+     * Fetches complete order details including customer info, tickets, payment info, and timeline
+     * @param {number|string} orderId - Order ID
+     * @returns {Promise<Object>} Complete order details
+     */
+    getOrderDetails: async (orderId) => {
+        const response = await api.get(`/organizers/data/orders/${orderId}`);
+        return response;
+    },
+
+    /**
      * Get organizer dashboard statistics (legacy - use getDashboard instead)
      * @param {number|string} organizerId - Organizer ID
      * @returns {Promise<Object>} Dashboard stats (events count, tickets sold, revenue, etc.)

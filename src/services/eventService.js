@@ -215,6 +215,21 @@ const eventService = {
     },
 
     /**
+     * Increment event views
+     * @param {number|string} id - Event ID or slug
+     * @returns {Promise<Object>} View count response
+     */
+    incrementViews: async (id) => {
+        try {
+            const response = await api.post(`/events/${id}/view`);
+            return response;
+        } catch (error) {
+            console.warn('Failed to track event view:', error);
+            return null;
+        }
+    },
+
+    /**
      * Create a new event with ticket types in a single call
      * This creates the event first, then creates all ticket types for it
      * @param {Object} eventData - Event data
@@ -224,9 +239,6 @@ const eventService = {
      * @returns {Promise<Object>} Created event with tickets
      */
     createWithTickets: async (eventData, tickets = [], bannerImage = null, eventPhotos = []) => {
-        // Check if we have any files to upload
-        const hasFiles = bannerImage || (eventPhotos && eventPhotos.length > 0) || tickets.some(t => t.ticketImage);
-
         // Use FormData to send event with tickets and images in a single request
         const formData = new FormData();
 
@@ -258,7 +270,7 @@ const eventService = {
 
         // Append tickets data
         if (tickets && tickets.length > 0) {
-            formData.append('tickets', JSON.stringify(tickets.map((ticket, index) => ({
+            formData.append('tickets', JSON.stringify(tickets.map((ticket) => ({
                 name: ticket.name,
                 price: parseFloat(ticket.price) || 0,
                 promoPrice: parseFloat(ticket.promoPrice) || 0,
@@ -280,9 +292,9 @@ const eventService = {
         // Post with FormData
         const response = await api.post('/events', formData, {
             headers: {
-                'Content-Type': undefined, // Let axios set this automatically
+                'Content-Type': undefined,
             },
-            transformRequest: [(data) => data], // Prevent axios from transforming the FormData
+            transformRequest: [(data) => data],
         });
 
         return response;
@@ -299,9 +311,6 @@ const eventService = {
      * @returns {Promise<Object>} Updated event with ticket types
      */
     updateWithTickets: async (eventId, eventData, tickets = [], deletedTicketIds = [], bannerImage = null, eventPhotos = []) => {
-        // Check if we have any files to upload
-        const hasFiles = bannerImage || (eventPhotos && eventPhotos.length > 0) || tickets.some(t => t.ticketImage);
-
         // Use FormData to send everything in one request
         const formData = new FormData();
 
@@ -338,7 +347,7 @@ const eventService = {
 
         // Append tickets data
         if (tickets && tickets.length > 0) {
-            formData.append('tickets', JSON.stringify(tickets.map((ticket, index) => ({
+            formData.append('tickets', JSON.stringify(tickets.map((ticket) => ({
                 id: typeof ticket.id === 'number' ? ticket.id : undefined,
                 name: ticket.name,
                 price: parseFloat(ticket.price) || 0,

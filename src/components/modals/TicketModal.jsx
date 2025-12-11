@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X, MapPin, Calendar, Ticket, Minus, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -139,13 +140,13 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                     <div className="px-5 py-4 max-h-[50vh] overflow-y-auto">
                         {event.ticketTypes && event.ticketTypes.length > 0 ? (
                             <div className="space-y-3">
-                                {event.ticketTypes.map((ticket, index) => {
+                                {event.ticketTypes.map((ticket) => {
                                     const quantity = selectedTickets[ticket.name] || 0;
-                                    const isAvailable = ticket.available && (ticket.availableQuantity > 0 || !ticket.availableQuantity);
+                                    const isAvailable = ticket.availableQuantity > 0;
 
                                     return (
                                         <div
-                                            key={index}
+                                            key={ticket.id}
                                             className={`border-2 rounded-lg p-3.5 transition-all ${isAvailable
                                                 ? quantity > 0
                                                     ? 'border-[var(--brand-primary)] bg-blue-50'
@@ -275,6 +276,30 @@ const TicketModal = ({ isOpen, onClose, event }) => {
             </div>
         </div>
     );
+};
+
+TicketModal.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    event: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        title: PropTypes.string.isRequired,
+        date: PropTypes.string.isRequired,
+        time: PropTypes.string,
+        venue: PropTypes.string,
+        location: PropTypes.string,
+        ticketTypes: PropTypes.arrayOf(
+            PropTypes.shape({
+                id: PropTypes.number.isRequired,
+                name: PropTypes.string.isRequired,
+                price: PropTypes.number.isRequired,
+                description: PropTypes.string,
+                availableQuantity: PropTypes.number,
+                maxPerAttendee: PropTypes.number,
+                originalPrice: PropTypes.number,
+            })
+        ),
+    }),
 };
 
 export default TicketModal;

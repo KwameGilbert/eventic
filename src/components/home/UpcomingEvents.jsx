@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin } from 'lucide-react';
 
@@ -39,7 +40,7 @@ const UpcomingEvents = ({ events }) => {
                                 {/* Category Badge - Top Left */}
                                 <div className="absolute top-3 left-3">
                                     <span className="bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-semibold px-3 py-1 rounded-full">
-                                        {event.category}
+                                        {event.categoryName}
                                     </span>
                                 </div>
 
@@ -96,6 +97,22 @@ const UpcomingEvents = ({ events }) => {
             </div>
         </div>
     );
+};
+
+UpcomingEvents.propTypes = {
+    events: PropTypes.arrayOf(
+        PropTypes.shape({
+            id: PropTypes.number.isRequired,
+            eventSlug: PropTypes.string.isRequired,
+            title: PropTypes.string.isRequired,
+            image: PropTypes.string.isRequired,
+            categoryName: PropTypes.string,
+            venue: PropTypes.string,
+            date: PropTypes.string.isRequired,
+            time: PropTypes.string,
+            price: PropTypes.string,
+        })
+    ).isRequired,
 };
 
 export default UpcomingEvents;

@@ -187,12 +187,6 @@ const Finance = () => {
     };
 
     const handlePayoutSubmit = () => {
-        console.log('Payout Request:', {
-            events: selectedEvents,
-            amount: getSelectedTotal(),
-            paymentMethod,
-            paymentDetails
-        });
         setShowPayoutModal(false);
         setSelectedEvents([]);
     };

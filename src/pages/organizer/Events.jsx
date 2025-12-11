@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     Plus,
     Search,
@@ -8,7 +8,6 @@ import {
     Eye,
     Edit,
     Trash2,
-    Copy,
     Calendar,
     MapPin,
     Users,
@@ -26,6 +25,7 @@ import { cn } from '../../lib/utils';
 import organizerService from '../../services/organizerService';
 
 const Events = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -139,7 +139,11 @@ const Events = () => {
     const GridView = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
-                <Card key={event.id} className={cn("group relative", openDropdown === event.id ? "overflow-visible z-50" : "overflow-hidden")}>
+                <Card
+                    key={event.id}
+                    className={cn("group relative cursor-pointer", openDropdown === event.id ? "overflow-visible z-50" : "overflow-hidden")}
+                    onClick={() => navigate(`/organizer/events/${event.id}`)}
+                >
                     {/* Event Image */}
                     <div className="relative h-48 overflow-hidden">
                         <img
@@ -158,7 +162,7 @@ const Events = () => {
                     </div>
 
                     {/* Actions Dropdown */}
-                    <div className="absolute top-3 right-3 z-50">
+                    <div className="absolute top-3 right-3 z-50" onClick={(e) => e.stopPropagation()}>
                         <div className="relative dropdown-container">
                             <button
                                 onClick={() => toggleDropdown(event.id)}
@@ -182,7 +186,7 @@ const Events = () => {
                                         <Edit size={14} />
                                         Edit Event
                                     </Link>
-                                  
+
                                     <hr className="my-1 text-gray-200" />
                                     <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
                                         <Trash2 size={14} />
@@ -253,7 +257,11 @@ const Events = () => {
                     </thead>
                     <tbody>
                         {filteredEvents.map((event) => (
-                            <tr key={event.id} className={cn("border-b border-gray-50 hover:bg-gray-50 transition-colors group")}>
+                            <tr
+                                key={event.id}
+                                className={cn("border-b border-gray-50 hover:bg-gray-50 transition-colors group cursor-pointer")}
+                                onClick={() => navigate(`/organizer/events/${event.id}`)}
+                            >
                                 {/* Event */}
                                 <td className="py-4 px-4">
                                     <div className="flex items-center gap-3">
@@ -312,7 +320,7 @@ const Events = () => {
                                 </td>
 
                                 {/* Actions */}
-                                <td className="py-4 px-4">
+                                <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex items-center justify-end gap-1">
                                         <Link
                                             to={`/organizer/events/${event.id}`}

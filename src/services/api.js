@@ -66,22 +66,9 @@ api.interceptors.request.use(
     (config) => {
         const token = TokenManager.getAccessToken();
 
-        // Debug logging for auth issues
-        console.log('=== API Request Debug ===');
-        console.log('URL:', config.url);
-        console.log('Token exists:', !!token);
-        console.log('Token (first 20 chars):', token ? token.substring(0, 20) + '...' : 'N/A');
-
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
-            console.log('Authorization header set');
-        } else {
-            console.warn('No token found in localStorage!');
-            console.log('localStorage keys:', Object.keys(localStorage));
         }
-
-        console.log('Request headers:', config.headers);
-        console.log('=========================');
 
         return config;
     },
@@ -105,7 +92,6 @@ api.interceptors.response.use(
             }
         }
 
-        // Return the parsed data
         return data;
     },
     async (error) => {

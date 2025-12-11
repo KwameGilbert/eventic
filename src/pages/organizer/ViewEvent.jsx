@@ -3,7 +3,6 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
     ArrowLeft,
     Calendar,
-    Clock,
     MapPin,
     Users,
     DollarSign,
@@ -11,7 +10,6 @@ import {
     Edit,
     Trash2,
     Share2,
-    Copy,
     ExternalLink,
     MoreVertical,
     Globe,
@@ -25,14 +23,7 @@ import {
     TrendingUp,
     Eye,
     ShoppingCart,
-    Search,
     Mail,
-    CheckCircle,
-    XCircle,
-    Download,
-    UserCheck,
-    Filter,
-    ChevronDown,
     Loader2,
     AlertTriangle,
     Image
@@ -40,15 +31,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { cn } from '../../lib/utils';
 import organizerService from '../../services/organizerService';
 
 const ViewEvent = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [openDropdown, setOpenDropdown] = useState(false);
-    const [attendeeSearch, setAttendeeSearch] = useState('');
-    const [attendeeFilter, setAttendeeFilter] = useState('all');
 
     // Loading and error states
     const [isLoading, setIsLoading] = useState(true);
@@ -83,19 +71,6 @@ const ViewEvent = () => {
         }
     }, [id]);
 
-    // Filter attendees
-    const filteredAttendees = event?.attendees?.filter(attendee => {
-        const matchesSearch = attendee.name?.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
-            attendee.email?.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
-            attendee.orderId?.toLowerCase().includes(attendeeSearch.toLowerCase());
-        const matchesFilter = attendeeFilter === 'all' ||
-            (attendeeFilter === 'checked-in' && attendee.checkedIn) ||
-            (attendeeFilter === 'not-checked-in' && !attendee.checkedIn);
-        return matchesSearch && matchesFilter;
-    }) || [];
-
-    const checkedInCount = event?.attendees?.filter(a => a.checkedIn).length || 0;
-
     const getStatusStyle = (status) => {
         switch (status?.toLowerCase()) {
             case 'published': return 'success';
@@ -114,15 +89,6 @@ const ViewEvent = () => {
             month: 'long',
             day: 'numeric'
         });
-    };
-
-    const formatTime = (timeStr) => {
-        if (!timeStr) return '—';
-        const [hours, minutes] = timeStr.split(':');
-        const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const hour12 = hour % 12 || 12;
-        return `${hour12}:${minutes} ${ampm}`;
     };
 
     const formatDateTime = (dateStr) => {
@@ -177,7 +143,7 @@ const ViewEvent = () => {
                             <Calendar className="w-8 h-8 text-gray-400" />
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Event Not Found</h3>
-                        <p className="text-gray-500 mb-4">The event you're looking for doesn't exist.</p>
+                        <p className="text-gray-500 mb-4">The event you are looking for does not exist.</p>
                         <Button onClick={() => navigate('/organizer/events')}>
                             Back to Events
                         </Button>
@@ -530,7 +496,7 @@ const ViewEvent = () => {
                         </Card>
                     )}
 
-                    
+
                 </div>
 
                 {/* Right Column */}
@@ -571,7 +537,7 @@ const ViewEvent = () => {
                             <div className="flex items-start gap-3">
                                 <Tag size={18} className="text-gray-400 mt-0.5" />
                                 <div>
-                                    <p className="font-medium text-gray-900">{event.category}</p>
+                                    <p className="font-medium text-gray-900">{event.categoryName}</p>
                                     <p className="text-sm text-gray-500">Category</p>
                                 </div>
                             </div>
@@ -600,7 +566,7 @@ const ViewEvent = () => {
                             <CardTitle className="text-lg">Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            <Link to={`/organizer/events/edit/${event.id}`} className="block">
+                            <Link to={`/organizer/events/${event.id}/edit`} className="block">
                                 <Button variant="outline" className="w-full justify-start gap-2">
                                     <Edit size={16} />
                                     Edit Event

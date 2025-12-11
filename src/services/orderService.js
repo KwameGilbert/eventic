@@ -60,25 +60,6 @@ const orderService = {
     },
 
     /**
-     * Get all orders for the authenticated user
-     * @returns {Promise<Array>} List of user's orders
-     */
-    getMyOrders: async () => {
-        const response = await api.get('/orders');
-        return response;
-    },
-
-    /**
-     * Get a single order by ID
-     * @param {number} orderId - Order ID
-     * @returns {Promise<Object>} Order details with items and tickets
-     */
-    getOrderById: async (orderId) => {
-        const response = await api.get(`/orders/${orderId}`);
-        return response;
-    },
-
-    /**
      * Transform cart items to backend format
      * Cart structure: { event: { ticketTypes: [{id, name, price}] }, tickets: { "TicketName": qty } }
      * Backend expects: [{ ticket_type_id: number, quantity: number }]
@@ -90,36 +71,27 @@ const orderService = {
         const items = [];
         const errors = [];
 
-        console.log('=== Cart Transformation Debug ===');
-        console.log('Cart items:', JSON.stringify(cartItems, null, 2));
-
-        cartItems.forEach((item, index) => {
+        cartItems.forEach((item) => {
             const ticketTypes = item.event?.ticketTypes || [];
-
-            console.log(`\nEvent ${index + 1}: "${item.event?.title}"`);
-            console.log('  Available ticket types:', ticketTypes.map(t => ({ id: t.id, name: t.name })));
-            console.log('  Selected tickets:', item.tickets);
 
             Object.entries(item.tickets || {}).forEach(([ticketName, qty]) => {
                 if (qty > 0) {
-                    // Find matching ticket type by name
                     const ticketType = ticketTypes.find(t => t.name === ticketName);
 
                     if (!ticketType) {
                         const error = `Ticket type "${ticketName}" not found for event "${item.event?.title}"`;
-                        console.error('  ERROR:', error);
+                        console.error('ERROR:', error);
                         errors.push(error);
                         return;
                     }
 
                     if (!ticketType.id) {
                         const error = `Ticket type "${ticketName}" is missing an ID. Events must be loaded from the API with proper ticket type IDs.`;
-                        console.error('  ERROR:', error);
+                        console.error('ERROR:', error);
                         errors.push(error);
                         return;
                     }
 
-                    console.log(`  ✓ Added: ${ticketName} (ID: ${ticketType.id}) x ${qty}`);
                     items.push({
                         ticket_type_id: ticketType.id,
                         quantity: parseInt(qty, 10)
@@ -127,12 +99,6 @@ const orderService = {
                 }
             });
         });
-
-        console.log('\n=== Transformation Result ===');
-        console.log('Items to send:', items);
-        if (errors.length > 0) {
-            console.error('Errors:', errors);
-        }
 
         return items;
     },
