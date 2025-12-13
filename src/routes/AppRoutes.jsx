@@ -19,7 +19,7 @@ import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
 
 // Auth Components
-import ProtectedRoute, { OrganizerRoute, AttendeeRoute } from "../components/auth/ProtectedRoute";
+import { OrganizerRoute, AttendeeRoute } from "../components/auth/ProtectedRoute";
 
 // Organizer Dashboard
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";

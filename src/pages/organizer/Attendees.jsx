@@ -3,21 +3,18 @@ import { Link } from 'react-router-dom';
 import {
     Users,
     Search,
-    Filter,
     Download,
     Mail,
     ChevronDown,
     CheckCircle,
     XCircle,
     Calendar,
-    TicketCheck,
     MoreVertical,
     UserCheck
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { cn } from '../../lib/utils';
 
 const Attendees = () => {
     const [searchQuery, setSearchQuery] = useState('');
