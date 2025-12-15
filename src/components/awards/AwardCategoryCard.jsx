@@ -3,8 +3,18 @@ import { Users } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 const AwardCategoryCard = ({ category, votingStatus, onVoteClick }) => {
+    const handleCardClick = () => {
+        if (votingStatus === 'voting_open') {
+            onVoteClick(category);
+        }
+    };
+
     return (
-        <div className="border border-gray-200 rounded-xl overflow-hidden hover:border-(--brand-primary) hover:shadow-md transition-all cursor-pointer">
+        <div
+            onClick={handleCardClick}
+            className={`border border-gray-200 rounded-xl overflow-hidden hover:border-(--brand-primary) hover:shadow-md transition-all ${votingStatus === 'voting_open' ? 'cursor-pointer' : 'cursor-default'
+                }`}
+        >
             {/* Category Image */}
             <div className="relative h-40 bg-gray-200">
                 {category.image ? (
@@ -40,12 +50,9 @@ const AwardCategoryCard = ({ category, votingStatus, onVoteClick }) => {
                 </div>
 
                 {votingStatus === 'voting_open' && (
-                    <button
-                        onClick={() => onVoteClick(category)}
-                        className="w-full px-4 py-2 bg-(--brand-primary) text-white rounded-lg hover:opacity-90 transition-opacity font-semibold text-sm"
-                    >
-                        Vote Now
-                    </button>
+                    <div className="mt-3 text-center text-sm font-semibold text-(--brand-primary)">
+                        Click to vote →
+                    </div>
                 )}
             </div>
         </div>

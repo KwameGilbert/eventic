@@ -157,7 +157,9 @@ const AwardLeaderboard = () => {
                                 <Trophy className="text-(--brand-primary)" size={32} />
                                 <h1 className="text-3xl font-bold text-gray-900">{award.title}</h1>
                             </div>
-                            <p className="text-gray-600 mb-4">{award.description}</p>
+                            {award.description && (
+                                <p className="text-gray-600 mb-4">{award.description}</p>
+                            )}
 
                             {/* Stats */}
                             <div className="flex items-center gap-6 flex-wrap">
@@ -170,7 +172,7 @@ const AwardLeaderboard = () => {
                                 <div className="flex items-center gap-2">
                                     <Users className="text-(--brand-primary)" size={20} />
                                     <span className="text-sm font-medium text-gray-600">
-                                        {award.categories_count || 0} Categories
+                                        {leaderboard.length} Categories
                                     </span>
                                 </div>
                             </div>
@@ -237,7 +239,9 @@ const AwardLeaderboard = () => {
                                     {/* Category Header */}
                                     <div className="bg-gradient-to-r from-(--brand-primary) to-orange-600 text-white p-6">
                                         <h2 className="text-2xl font-bold mb-2">{category.category_name}</h2>
-                                        <p className="text-white/90 text-sm">{category.total_votes?.toLocaleString() || 0} votes</p>
+                                        <p className="text-white/90 text-sm">
+                                            {category.nominees?.reduce((sum, n) => sum + (n.total_votes || 0), 0)?.toLocaleString() || 0} total votes
+                                        </p>
                                     </div>
 
                                     {/* Nominees List */}
@@ -245,7 +249,7 @@ const AwardLeaderboard = () => {
                                         <div className="space-y-4">
                                             {category.nominees?.map((nominee, index) => (
                                                 <div
-                                                    key={nominee.id}
+                                                    key={nominee.nominee_id}
                                                     className={`flex items-center gap-4 p-4 rounded-lg transition-all ${index === 0
                                                         ? 'bg-yellow-50 border-2 border-yellow-400'
                                                         : index === 1
@@ -262,25 +266,26 @@ const AwardLeaderboard = () => {
                                                         )}
                                                     </div>
 
+                                                    {/* Nominee Image */}
+                                                    {nominee.nominee_image && (
+                                                        <img
+                                                            src={nominee.nominee_image}
+                                                            alt={nominee.nominee_name}
+                                                            className="w-16 h-16 rounded-lg object-cover shrink-0"
+                                                        />
+                                                    )}
+
                                                     {/* Nominee Info */}
                                                     <div className="flex-1">
-                                                        <h3 className="font-bold text-gray-900 text-lg">{nominee.name}</h3>
-                                                        {nominee.description && (
-                                                            <p className="text-sm text-gray-600 line-clamp-1">{nominee.description}</p>
-                                                        )}
+                                                        <h3 className="font-bold text-gray-900 text-lg">{nominee.nominee_name}</h3>
                                                     </div>
 
                                                     {/* Vote Count */}
                                                     <div className="text-right">
                                                         <div className="text-2xl font-bold text-(--brand-primary)">
-                                                            {nominee.votes?.toLocaleString() || 0}
+                                                            {nominee.total_votes?.toLocaleString() || 0}
                                                         </div>
                                                         <div className="text-sm text-gray-600">votes</div>
-                                                        {nominee.percentage && (
-                                                            <div className="text-xs text-gray-500 mt-1">
-                                                                {nominee.percentage}%
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </div>
                                             ))}

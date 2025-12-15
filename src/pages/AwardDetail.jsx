@@ -270,9 +270,6 @@ const AwardDetail = () => {
                                 )}
                             </div>
 
-                            {/* Organizer Info */}
-                            <AwardOrganizerInfo organizer={award.organizer} />
-
                             {/* Map Section */}
                             <AwardLocationMap mapUrl={award.mapUrl} />
 
@@ -376,6 +373,9 @@ const AwardDetail = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Organizer Info - Sidebar */}
+                            <AwardOrganizerInfo organizer={award.organizer} />
 
                             {/* Quick Links */}
                             <div className="bg-(--brand-primary) rounded-lg p-6 text-white">
