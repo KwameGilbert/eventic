@@ -2,6 +2,10 @@ import React from "react";
 import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
 import BrowseEvents from "../pages/BrowseEvents";
+import BrowseAwards from "../pages/BrowseAwards";
+import AwardDetail from "../pages/AwardDetail";
+import AwardLeaderboard from "../pages/AwardLeaderboard";
+import VotePayment from "../pages/VotePayment";
 import EventDetails from "../pages/EventDetails";
 import Categories from "../pages/Categories";
 import SignIn from "../pages/SignIn";
@@ -41,6 +45,15 @@ const AppRoutes = () => {
             <Route element={<Layout><Outlet /></Layout>}>
                 {/* Home & Browse */}
                 <Route path="/" element={<Home />} />
+
+                {/* Awards Routes */}
+                <Route path="/awards" element={<BrowseAwards />} />
+                <Route path="/award/:slug" element={<AwardDetail />} />
+                <Route path="/award/:slug/results" element={<AwardLeaderboard />} />
+                <Route path="/award/:slug/leaderboard" element={<AwardLeaderboard />} />
+                <Route path="/award/:slug/vote/payment" element={<VotePayment />} />
+
+                {/* Events Routes */}
                 <Route path="/events" element={<BrowseEvents />} />
                 <Route path="/event/:slug" element={<EventDetails />} />
                 <Route path="/categories" element={<Categories />} />

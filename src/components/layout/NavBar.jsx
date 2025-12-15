@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import React,{ useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Heart, Star, Users, Settings, Lock, ShoppingBag } from 'lucide-react';
+import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Settings, Lock, ShoppingBag, Trophy } from 'lucide-react';
 import { categories } from '../../pages/Categories';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -17,6 +17,7 @@ const NavBar = () => {
     // Navigation items configuration
     const navItems = [
         { path: '/', label: 'Home', icon: Home, isActive: true },
+        { path: '/awards', label: 'Awards', icon: Trophy },
         { path: '/events', label: 'Browse Events', icon: Calendar },
         { path: '/categories', label: 'Event Categories', icon: Compass, hasDropdown: true },
         // { path: '/venues', label: 'Venues', icon: MapPin },
