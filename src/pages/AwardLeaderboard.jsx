@@ -192,8 +192,8 @@ const AwardLeaderboard = () => {
                         <button
                             onClick={() => setSelectedCategory('all')}
                             className={`px-4 py-2 rounded-lg font-semibold transition-colors ${selectedCategory === 'all'
-                                    ? 'bg-(--brand-primary) text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                ? 'bg-(--brand-primary) text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                                 }`}
                         >
                             All Categories
@@ -203,8 +203,8 @@ const AwardLeaderboard = () => {
                                 key={category.category_id}
                                 onClick={() => setSelectedCategory(category.category_id)}
                                 className={`px-4 py-2 rounded-lg font-semibold transition-colors ${selectedCategory === category.category_id
-                                        ? 'bg-(--brand-primary) text-white'
-                                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                    ? 'bg-(--brand-primary) text-white'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                                     }`}
                             >
                                 {category.category_name}
@@ -213,8 +213,22 @@ const AwardLeaderboard = () => {
                     </div>
                 </div>
 
-                {/* Leaderboard */}
-                {leaderboard.length > 0 ? (
+                {/* Check if results are allowed to be shown */}
+                {award.show_results === false ? (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                        <Trophy className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-2xl font-semibold text-gray-900 mb-3">Results Currently Hidden</h3>
+                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                            The organizer has temporarily hidden the voting results. Results will be displayed when made available.
+                        </p>
+                        <Link
+                            to={`/award/${slug}`}
+                            className="inline-block px-6 py-3 bg-(--brand-primary) text-white rounded-lg hover:opacity-90 transition-opacity font-semibold"
+                        >
+                            Back to Award Details
+                        </Link>
+                    </div>
+                ) : leaderboard.length > 0 ? (
                     <div className="space-y-6">
                         {leaderboard
                             .filter(cat => selectedCategory === 'all' || cat.category_id === selectedCategory)
@@ -233,12 +247,12 @@ const AwardLeaderboard = () => {
                                                 <div
                                                     key={nominee.id}
                                                     className={`flex items-center gap-4 p-4 rounded-lg transition-all ${index === 0
-                                                            ? 'bg-yellow-50 border-2 border-yellow-400'
-                                                            : index === 1
-                                                                ? 'bg-gray-50 border-2 border-gray-300'
-                                                                : index === 2
-                                                                    ? 'bg-orange-50 border-2 border-orange-300'
-                                                                    : 'bg-gray-50 border border-gray-200'
+                                                        ? 'bg-yellow-50 border-2 border-yellow-400'
+                                                        : index === 1
+                                                            ? 'bg-gray-50 border-2 border-gray-300'
+                                                            : index === 2
+                                                                ? 'bg-orange-50 border-2 border-orange-300'
+                                                                : 'bg-gray-50 border border-gray-200'
                                                         }`}
                                                 >
                                                     {/* Rank */}

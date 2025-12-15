@@ -3,6 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { Trophy, Home as HomeIcon, Calendar, MapPin, Users, TrendingUp, Share2, Heart, AlertCircle, RefreshCw } from 'lucide-react';
 import awardService from '../services/awardService';
 import AwardStatusBadge from '../components/awards/AwardStatusBadge';
+import AwardCategoryCard from '../components/awards/AwardCategoryCard';
+import AwardOrganizerInfo from '../components/awards/AwardOrganizerInfo';
+import AwardLocationMap from '../components/awards/AwardLocationMap';
+import AwardContactInfo from '../components/awards/AwardContactInfo';
 import VotingModal from '../components/awards/VotingModal';
 import PageLoader from '../components/ui/PageLoader';
 
@@ -175,11 +179,11 @@ const AwardDetail = () => {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column - Award Details */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                             {/* Title & Description */}
                             <div className="mb-8">
                                 <h1 className="text-3xl font-bold text-gray-900 mb-4">{award.title}</h1>
@@ -199,13 +203,19 @@ const AwardDetail = () => {
                                         <p className="text-gray-900 font-medium">{formatDate(award.ceremony_date)}</p>
                                     </div>
                                 )}
-                                {award.venue_name && (
+                                {award.venue && (
                                     <div>
                                         <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-2">
                                             <MapPin size={16} />
                                             <h3>Venue</h3>
                                         </div>
                                         <p className="text-gray-900 font-medium">{award.venue_name}</p>
+                                        {award.location && (
+                                            <p className="text-gray-600 text-sm mt-1">{award.location}</p>
+                                        )}
+                                        {award.city && (
+                                            <p className="text-gray-600 text-sm">{award.city}, {award.region}, {award.country}</p>
+                                        )}
                                     </div>
                                 )}
                                 {(award.voting_start || award.voting_end) && (
@@ -242,34 +252,14 @@ const AwardDetail = () => {
                                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Award Categories</h2>
 
                                 {categories.length > 0 ? (
-                                    <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {categories.map((category) => (
-                                            <div key={category.id} className="border border-gray-200 rounded-lg p-6 hover:border-(--brand-primary) transition-colors">
-                                                <div className="flex items-start justify-between mb-4">
-                                                    <div className="flex-1">
-                                                        <h3 className="text-lg font-bold text-gray-900 mb-2">{category.name}</h3>
-                                                        {category.description && (
-                                                            <p className="text-gray-600 text-sm">{category.description}</p>
-                                                        )}
-                                                    </div>
-                                                    {votingStatus === 'voting_open' && (
-                                                        <button
-                                                            onClick={() => handleVoteClick(category)}
-                                                            className="ml-4 px-4 py-2 bg-(--brand-primary) text-white rounded-lg hover:opacity-90 transition-opacity font-semibold text-sm"
-                                                        >
-                                                            Vote Now
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                {/* Nominees Preview */}
-                                                {category.nominees && category.nominees.length > 0 && (
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <Users size={16} />
-                                                        <span>{category.nominees.length} Nominees</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <AwardCategoryCard
+                                                key={category.id}
+                                                category={category}
+                                                votingStatus={votingStatus}
+                                                onVoteClick={handleVoteClick}
+                                            />
                                         ))}
                                     </div>
                                 ) : (
@@ -279,6 +269,18 @@ const AwardDetail = () => {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Organizer Info */}
+                            <AwardOrganizerInfo organizer={award.organizer} />
+
+                            {/* Map Section */}
+                            <AwardLocationMap mapUrl={award.mapUrl} />
+
+                            {/* Contact & Social Media */}
+                            <AwardContactInfo
+                                contact={award.contact}
+                                socialMedia={award.socialMedia}
+                            />
 
                             {/* Share Buttons */}
                             <div>
@@ -339,30 +341,41 @@ const AwardDetail = () => {
                                 )}
                             </div>
 
-                            {/* Stats Card */}
-                            {/* {(award.total_votes || award.categories_count) && (
+                            {/* Stats Card - Conditional based on show_results */}
+                            {award.show_results && award.total_votes !== undefined && (
                                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                    <h3 className="text-sm font-semibold text-gray-500 mb-4">Statistics</h3>
+                                    <h3 className="text-sm font-semibold text-gray-500 mb-4">Voting Statistics</h3>
                                     <div className="space-y-4">
-                                        {award.total_votes !== undefined && (
-                                            <div>
-                                                <div className="text-3xl font-bold text-(--brand-primary) mb-1">
-                                                    {award.total_votes.toLocaleString()}
-                                                </div>
-                                                <div className="text-sm text-gray-600">Total Votes</div>
+                                        <div>
+                                            <div className="text-3xl font-bold text-(--brand-primary) mb-1">
+                                                {award.total_votes.toLocaleString()}
                                             </div>
-                                        )}
-                                        {award.categories_count && (
+                                            <div className="text-sm text-gray-600">Total Votes</div>
+                                        </div>
+                                        {award.total_revenue !== undefined && (
                                             <div>
-                                                <div className="text-3xl font-bold text-gray-900 mb-1">
-                                                    {award.categories_count}
+                                                <div className="text-2xl font-bold text-gray-900 mb-1">
+                                                    GH₵{award.total_revenue.toLocaleString()}
                                                 </div>
-                                                <div className="text-sm text-gray-600">Categories</div>
+                                                <div className="text-sm text-gray-600">Total Revenue</div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
-                            )} */}
+                            )}
+
+                            {/* Results Hidden Message */}
+                            {award.show_results === false && (
+                                <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                                    <div className="text-center">
+                                        <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                        <h3 className="font-semibold text-gray-900 mb-2">Results Hidden</h3>
+                                        <p className="text-sm text-gray-600">
+                                            Voting results are currently hidden by the organizer
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Quick Links */}
                             <div className="bg-(--brand-primary) rounded-lg p-6 text-white">
