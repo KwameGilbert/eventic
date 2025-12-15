@@ -201,6 +201,43 @@ const awardService = {
             return null;
         }
     },
+
+    // ============================================
+    // ORGANIZER-SPECIFIC METHODS
+    // ============================================
+
+    /**
+     * Get awards data for organizer's Awards page
+     * Fetches all awards with stats, status counts, and award details.
+     * Similar to organizerService.getEventsData()
+     * @returns {Promise<Object>} Awards data with stats, tabs, and awards list
+     */
+    getAwardsData: async () => {
+        const response = await api.get('/organizers/data/awards');
+        return response;
+    },
+
+    /**
+     * Get detailed award data for organizer's View Award page
+     * Includes stats, categories, nominees, voting analytics, etc.
+     * Similar to organizerService.getEventDetails()
+     * @param {number|string} awardId - Award ID
+     * @returns {Promise<Object>} Comprehensive award data
+     */
+    getAwardDetails: async (awardId) => {
+        const response = await api.get(`/organizers/data/awards/${awardId}`);
+        return response;
+    },
+
+    /**
+     * Get award statistics for organizer dashboard
+     * Returns aggregated stats for all organizer's awards
+     * @returns {Promise<Object>} Award statistics (total, active voting, etc.)
+     */
+    getOrganizerAwardStats: async () => {
+        const response = await api.get('/organizers/data/awards/stats');
+        return response;
+    },
 };
 
 export default awardService;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ShoppingBag, TicketCheck, DollarSign, Loader2 } from 'lucide-react';
+import { Calendar, ShoppingBag, TicketCheck, DollarSign, Loader2, Trophy, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StatCard from '../../components/organizer/dashboard/StatCard';
 import TicketSalesDonut from '../../components/organizer/dashboard/TicketSalesDonut';
@@ -15,6 +15,10 @@ const iconMap = {
     'Total Orders': ShoppingBag,
     'Tickets Sold': TicketCheck,
     'Total Revenue': DollarSign,
+    'Total Awards': Trophy,
+    'Active Voting': Award,
+    'Upcoming Ceremonies': Calendar,
+    'Total Votes': TicketCheck,
 };
 
 // Color mapping for stats
@@ -23,6 +27,10 @@ const colorMap = {
     'Total Orders': '#8b5cf6',
     'Tickets Sold': '#22c55e',
     'Total Revenue': '#f97316',
+    'Total Awards': '#8b5cf6',
+    'Active Voting': '#10b981',
+    'Upcoming Ceremonies': '#06b6d4',
+    'Total Votes': '#f59e0b',
 };
 
 const Dashboard = () => {
@@ -105,6 +113,7 @@ const Dashboard = () => {
         activities = [],
         recentOrders = [],
         upcomingEvent = null,
+        upcomingAward = null,
         calendarEvents = [],
     } = dashboardData || {};
 
@@ -196,6 +205,88 @@ const Dashboard = () => {
                                     className="inline-block px-4 py-2 bg-(--brand-primary) text-white rounded-lg text-sm font-semibold hover:opacity-90"
                                 >
                                     Create Event
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Upcoming Award */}
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-gray-900">Upcoming Award</h3>
+                            <button className="text-gray-400 hover:text-gray-600">•••</button>
+                        </div>
+
+                        {upcomingAward ? (
+                            <>
+                                <div className="relative rounded-xl overflow-hidden mb-4">
+                                    <img
+                                        src={upcomingAward.banner_image || upcomingAward.image}
+                                        alt={upcomingAward.title}
+                                        className="w-full h-40 object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-purple-500/90 backdrop-blur-sm rounded-full text-xs font-medium text-white">
+                                        <Trophy size={12} className="inline mr-1" />
+                                        Award
+                                    </span>
+                                    <div className="absolute bottom-3 left-3 right-3 text-white">
+                                        <h4 className="font-bold text-lg">{upcomingAward.title}</h4>
+                                        <p className="text-xs text-white/80 mt-1">{upcomingAward.venue_name}</p>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                                    {upcomingAward.description}
+                                </p>
+                                <div className="space-y-2 mb-4">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-full bg-purple-500/10 flex items-center justify-center">
+                                                <Calendar size={12} className="text-purple-500" />
+                                            </div>
+                                            <span className="text-gray-600">Ceremony</span>
+                                        </div>
+                                        <span className="text-gray-900 font-medium">{upcomingAward.ceremony_date}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center">
+                                                <Award size={12} className="text-green-500" />
+                                            </div>
+                                            <span className="text-gray-600">Total Votes</span>
+                                        </div>
+                                        <span className="text-gray-900 font-medium">{upcomingAward.total_votes || 0}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-full bg-orange-500/10 flex items-center justify-center">
+                                                <DollarSign size={12} className="text-orange-500" />
+                                            </div>
+                                            <span className="text-gray-600">Revenue</span>
+                                        </div>
+                                        <span className="text-orange-500 font-semibold">
+                                            GH₵{(upcomingAward.revenue || 0).toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
+                                <Link
+                                    to={`/organizer/awards/${upcomingAward.id}`}
+                                    className="block w-full py-2.5 bg-purple-500 text-white rounded-lg text-sm font-semibold hover:bg-purple-600 transition-colors text-center"
+                                >
+                                    View Details
+                                </Link>
+                            </>
+                        ) : (
+                            <div className="text-center py-8">
+                                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Trophy size={24} className="text-purple-400" />
+                                </div>
+                                <p className="text-gray-500 mb-4">No upcoming awards</p>
+                                <Link
+                                    to="/organizer/awards/create"
+                                    className="inline-block px-4 py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold hover:bg-purple-600"
+                                >
+                                    Create Award
                                 </Link>
                             </div>
                         )}

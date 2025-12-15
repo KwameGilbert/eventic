@@ -7,7 +7,8 @@ import {
     Users,
     DollarSign,
     Settings,
-    LogOut
+    LogOut,
+    Trophy
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -19,6 +20,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const navigation = [
         { name: 'Dashboard', href: '/organizer/dashboard', icon: LayoutDashboard },
         { name: 'Events', href: '/organizer/events', icon: Calendar },
+        { name: 'Awards', href: '/organizer/awards', icon: Trophy },
         { name: 'Orders', href: '/organizer/orders', icon: ShoppingBag },
         { name: 'Attendees', href: '/organizer/attendees', icon: Users },
         { name: 'Finance', href: '/organizer/finance', icon: DollarSign },
@@ -32,7 +34,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
     return (
         <>
-            
+
             {isSidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -71,7 +73,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                         </div>
                     </div>
 
-                    
+
                     <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                         {navigation.map((item) => {
                             const Icon = item.icon;
@@ -96,7 +98,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                         })}
                     </nav>
 
-                    
+
                     <div className="p-4 border-t border-gray-200 shrink-0">
                         <button
                             onClick={handleLogout}

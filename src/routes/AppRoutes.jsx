@@ -32,6 +32,10 @@ import Events from "../pages/organizer/Events";
 import CreateEvent from "../pages/organizer/CreateEvent";
 import ViewEvent from "../pages/organizer/ViewEvent";
 import EditEvent from "../pages/organizer/EditEvent";
+import Awards from "../pages/organizer/Awards";
+import ViewAward from "../pages/organizer/ViewAward";
+import CreateAward from "../pages/organizer/CreateAward";
+import EditAward from "../pages/organizer/EditAward";
 import Orders from "../pages/organizer/Orders";
 import ViewOrder from "../pages/organizer/ViewOrder";
 import Attendees from "../pages/organizer/Attendees";
@@ -85,6 +89,10 @@ const AppRoutes = () => {
                 <Route path="events/create" element={<CreateEvent />} />
                 <Route path="events/:id" element={<ViewEvent />} />
                 <Route path="events/:id/edit" element={<EditEvent />} />
+                <Route path="awards" element={<Awards />} />
+                <Route path="awards/create" element={<CreateAward />} />
+                <Route path="awards/:id" element={<ViewAward />} />
+                <Route path="awards/:id/edit" element={<EditAward />} />
                 <Route path="orders" element={<Orders />} />
                 <Route path="orders/:id" element={<ViewOrder />} />
                 <Route path="attendees" element={<Attendees />} />
