@@ -2,6 +2,7 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
+import PropTypes from 'prop-types';
 
 const TicketSalesDonut = ({ data, period = "This Week" }) => {
     const COLORS = ['#f97316', '#3b82f6', '#22c55e', '#a855f7', '#ec4899'];
@@ -66,7 +67,7 @@ const TicketSalesDonut = ({ data, period = "This Week" }) => {
                                         <p className="text-xs text-gray-500 truncate">{item.name}</p>
                                         <p className="text-sm font-semibold text-gray-900">
                                             {item.value.toLocaleString()}
-                                            <span className="text-xs text-gray-400 ml-1">{percentage.toLocaleString}%</span>
+                                            <span className="text-xs text-gray-400 ml-1">{percentage.toLocaleString()}%</span>
                                         </p>
                                     </div>
                                 </div>
@@ -77,6 +78,16 @@ const TicketSalesDonut = ({ data, period = "This Week" }) => {
             </CardContent>
         </Card>
     );
+};
+
+TicketSalesDonut.propTypes = {
+    data: PropTypes.arrayOf(
+        PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            value: PropTypes.number.isRequired,
+        })
+    ).isRequired,
+    period: PropTypes.string,
 };
 
 export default TicketSalesDonut;

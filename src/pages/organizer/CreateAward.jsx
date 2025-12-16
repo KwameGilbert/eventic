@@ -44,8 +44,7 @@ const CreateAward = () => {
         twitter: '',
         instagram: '',
         phone: '',
-        showResults: true,
-        featured: false
+        showResults: true
     });
 
     // Countries (static for now)
@@ -116,7 +115,6 @@ const CreateAward = () => {
             formData.append('instagram', awardData.instagram || '');
             formData.append('phone', awardData.phone || '');
             formData.append('show_results', awardData.showResults ? '1' : '0');
-            formData.append('is_featured', awardData.featured ? '1' : '0');
             formData.append('status', status);
 
             // Add banner image if available
@@ -152,10 +150,10 @@ const CreateAward = () => {
         handleSubmit('draft');
     };
 
-    // Publish handler
-    const handlePublish = (e) => {
+    // Submit for review handler (pending status)
+    const handleSubmitForReview = (e) => {
         e.preventDefault();
-        handleSubmit('published');
+        handleSubmit('pending');
     };
 
     return (
@@ -552,19 +550,6 @@ const CreateAward = () => {
                                     </label>
                                 </div>
 
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        name="featured"
-                                        checked={awardData.featured}
-                                        onChange={handleChange}
-                                        className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                                        id="featured"
-                                    />
-                                    <label htmlFor="featured" className="text-sm text-gray-700">
-                                        Feature this award on homepage
-                                    </label>
-                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -631,24 +616,24 @@ const CreateAward = () => {
                                 )}
                             </Button>
                             <Button
-                                onClick={handlePublish}
+                                onClick={handleSubmitForReview}
                                 className="w-full gap-2"
                                 disabled={isSubmitting || !awardData.title || !awardData.ceremonyDate}
                             >
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 size={16} className="animate-spin" />
-                                        Publishing...
+                                        Submitting...
                                     </>
                                 ) : (
                                     <>
                                         <CheckCircle size={16} />
-                                        Publish Award
+                                        Submit for Review
                                     </>
                                 )}
                             </Button>
                             <p className="text-xs text-gray-500 text-center">
-                                * Title and ceremony date are required to publish
+                                * Title and ceremony date are required
                             </p>
                         </div>
                     </div>

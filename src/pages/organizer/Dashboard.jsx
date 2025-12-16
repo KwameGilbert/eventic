@@ -7,6 +7,8 @@ import SalesRevenueChart from '../../components/organizer/dashboard/SalesRevenue
 import RecentActivities from '../../components/organizer/dashboard/RecentActivities';
 import RecentOrders from '../../components/organizer/dashboard/RecentOrders';
 import EventCalendar from '../../components/organizer/dashboard/EventCalendar';
+import AwardVotesChart from '../../components/organizer/dashboard/AwardVotesChart';
+import AwardCategoryDonut from '../../components/organizer/dashboard/AwardCategoryDonut';
 import organizerService from '../../services/organizerService';
 
 // Icon mapping for stats
@@ -115,6 +117,13 @@ const Dashboard = () => {
         upcomingEvent = null,
         upcomingAward = null,
         calendarEvents = [],
+        // Award analytics data
+        awardStats = null,
+        weeklyVotesData = [],
+        monthlyAwardRevenueData = [],
+        topAwards = [],
+        recentAwardVotes = [],
+        awardCategoryBreakdown = [],
     } = dashboardData || {};
 
     return (
@@ -141,6 +150,116 @@ const Dashboard = () => {
                         <TicketSalesDonut data={ticketSalesData} />
                         <SalesRevenueChart weeklyData={weeklyRevenueData} monthlyData={monthlyRevenueData} />
                     </div>
+
+                    {/* Award Performance Hub */}
+                    {awardStats && awardStats.totalAwards > 0 && (
+                        <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl border border-purple-100 shadow-sm p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Award Performance Hub</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Your awards at a glance</p>
+                                </div>
+                                <Trophy className="w-8 h-8 text-purple-500" />
+                            </div>
+
+                            {/* Award Mini Stats */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-white rounded-lg p-4 border border-purple-100">
+                                    <p className="text-xs text-gray-500">Total Awards</p>
+                                    <p className="text-2xl font-bold text-purple-600">{awardStats.totalAwards}</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-4 border border-purple-100">
+                                    <p className="text-xs text-gray-500">Active Voting</p>
+                                    <p className="text-2xl font-bold text-green-600">{awardStats.activeVoting}</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-4 border border-purple-100">
+                                    <p className="text-xs text-gray-500">Total Votes</p>
+                                    <p className="text-2xl font-bold text-orange-600">{awardStats.totalVotes.toLocaleString()}</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-4 border border-purple-100">
+                                    <p className="text-xs text-gray-500">Revenue</p>
+                                    <p className="text-2xl font-bold text-blue-600">
+                                        GH₵{(awardStats.totalRevenue || 0).toLocaleString()}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Award Analytics Charts */}
+                    {awardStats && awardStats.totalAwards > 0 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <AwardVotesChart weeklyData={weeklyVotesData} />
+                            <AwardCategoryDonut data={awardCategoryBreakdown} />
+                        </div>
+                    )}
+
+                    {/* Top Awards & Recent Votes */}
+                    {awardStats && awardStats.totalAwards > 0 && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Top Performing Awards */}
+                            {topAwards && topAwards.length > 0 && (
+                                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                                    <h3 className="font-semibold text-gray-900 mb-4">Top Performing Awards</h3>
+                                    <div className="space-y-3">
+                                        {topAwards.map((award, index) => (
+                                            <Link
+                                                key={award.id}
+                                                to={`/organizer/awards/${award.id}`}
+                                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? 'bg-yellow-100 text-yellow-600' :
+                                                            index === 1 ? 'bg-gray-200 text-gray-600' :
+                                                                index === 2 ? 'bg-orange-100 text-orange-600' :
+                                                                    'bg-purple-50 text-purple-500'
+                                                        }`}>
+                                                        #{index + 1}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900 text-sm">{award.title}</p>
+                                                        <p className="text-xs text-gray-500">{award.votes} votes</p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm font-semibold text-purple-600">
+                                                    GH₵{award.revenue.toLocaleString()}
+                                                </p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Recent Award Votes */}
+                            {recentAwardVotes && recentAwardVotes.length > 0 && (
+                                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                                    <h3 className="font-semibold text-gray-900 mb-4">Recent Votes</h3>
+                                    <div className="space-y-3">
+                                        {recentAwardVotes.slice(0, 5).map((vote) => (
+                                            <div key={vote.id} className="flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0">
+                                                <div className="w-9 h-9 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
+                                                    <Award className="w-4 h-4 text-purple-500" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm text-gray-900">
+                                                        <span className="font-medium">{vote.voter_name}</span> voted {vote.votes}x for{' '}
+                                                        <span className="font-medium">{vote.nominee}</span>
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 mt-0.5">
+                                                        {vote.award} • {vote.category}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 mt-1">{vote.time}</p>
+                                                </div>
+                                                <p className="text-sm font-semibold text-orange-600 flex-shrink-0">
+                                                    GH₵{vote.amount.toLocaleString()}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Recent Activities & Orders */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

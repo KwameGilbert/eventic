@@ -1,5 +1,6 @@
 import React from 'react';
-import { MapPin, Clock, ArrowRight } from 'lucide-react';
+import PropTypes from 'prop-types';
+import { MapPin, ArrowRight } from 'lucide-react';
 
 const AllEvents = ({ events }) => {
     return (
@@ -48,4 +49,16 @@ const AllEvents = ({ events }) => {
     );
 };
 
+AllEvents.propTypes = {
+    events: PropTypes.arrayOf(
+        PropTypes.shape({
+            image: PropTypes.string.isRequired,
+            name: PropTypes.string.isRequired,
+            category: PropTypes.string.isRequired,
+            location: PropTypes.string.isRequired,
+        })
+    ).isRequired,
+};
+
 export default AllEvents;
+

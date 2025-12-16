@@ -1,9 +1,9 @@
 import React from 'react';
 import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts';
 import { Card, CardContent } from '../../ui/card';
-import { cn } from '../../../lib/utils';
+import PropTypes from 'prop-types';
 
-const StatCard = ({ label, value, change, icon: Icon, color = '#f97316', trend = 'up', ringProgress = 75 }) => {
+const StatCard = ({ label, value, icon: Icon, color = '#f97316', ringProgress = 75 }) => {
     const chartData = [
         { name: 'progress', value: ringProgress, fill: color },
     ];
@@ -46,23 +46,19 @@ const StatCard = ({ label, value, change, icon: Icon, color = '#f97316', trend =
                     <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-500 font-medium">{label}</p>
                         <p className="text-xl font-bold text-gray-900 mt-0.5">{value}</p>
-                        {/* {change && (
-                            <p className={cn(
-                                "text-xs font-medium mt-1 flex items-center gap-1",
-                                trend === 'up' ? 'text-green-600' : 'text-red-500'
-                            )}>
-                                <span className={cn(
-                                    "inline-block",
-                                    trend === 'up' ? 'rotate-0' : 'rotate-180'
-                                )}>↑</span>
-                                {change} vs last month
-                            </p>
-                        )} */}
                     </div>
                 </div>
             </CardContent>
         </Card>
     );
+};
+
+StatCard.propTypes = {
+    icon: PropTypes.elementType.isRequired,
+    label: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    color: PropTypes.string,
+    ringProgress: PropTypes.number,
 };
 
 export default StatCard;

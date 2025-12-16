@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { cn } from '../../../lib/utils';
+import PropTypes from 'prop-types';
 
 const SalesRevenueChart = ({ weeklyData, monthlyData }) => {
     const [period, setPeriod] = useState('monthly');
@@ -21,6 +22,12 @@ const SalesRevenueChart = ({ weeklyData, monthlyData }) => {
             );
         }
         return null;
+    };
+
+    CustomTooltip.propTypes = {
+        active: PropTypes.bool,
+        payload: PropTypes.arrayOf(PropTypes.object),
+        label: PropTypes.string,
     };
 
     return (
@@ -92,6 +99,21 @@ const SalesRevenueChart = ({ weeklyData, monthlyData }) => {
             </CardContent>
         </Card>
     );
+};
+
+SalesRevenueChart.propTypes = {
+    weeklyData: PropTypes.arrayOf(
+        PropTypes.shape({
+            day: PropTypes.string.isRequired,
+            revenue: PropTypes.number.isRequired,
+        })
+    ).isRequired,
+    monthlyData: PropTypes.arrayOf(
+        PropTypes.shape({
+            month: PropTypes.string.isRequired,
+            revenue: PropTypes.number.isRequired,
+        })
+    ).isRequired,
 };
 
 export default SalesRevenueChart;

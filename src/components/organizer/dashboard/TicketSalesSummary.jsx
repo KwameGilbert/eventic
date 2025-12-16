@@ -1,11 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const TicketSalesSummary = ({ events }) => {
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">Ticket Sales Summary</h3>
-                <button className="text-sm text-(--brand-primary) font-medium hover:underline">
+                <button className="text-sm text-[--brand-primary] font-medium hover:underline">
                     See Details
                 </button>
             </div>
@@ -45,7 +46,7 @@ const TicketSalesSummary = ({ events }) => {
                         <div className="text-right shrink-0">
                             <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-(--brand-primary) rounded-full transition-all"
+                                    className="h-full bg-[--brand-primary] rounded-full transition-all"
                                     style={{ width: `${event.percentage}%` }}
                                 />
                             </div>
@@ -56,6 +57,18 @@ const TicketSalesSummary = ({ events }) => {
             </div>
         </div>
     );
+};
+
+TicketSalesSummary.propTypes = {
+    events: PropTypes.arrayOf(
+        PropTypes.shape({
+            image: PropTypes.string.isRequired,
+            name: PropTypes.string.isRequired,
+            location: PropTypes.string.isRequired,
+            ticketsSold: PropTypes.number.isRequired,
+            percentage: PropTypes.number.isRequired,
+        })
+    ).isRequired,
 };
 
 export default TicketSalesSummary;

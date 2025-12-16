@@ -24,7 +24,8 @@ import {
     AlertTriangle,
     Image as ImageIcon,
     Plus,
-    CheckCircle
+    CheckCircle,
+    Send
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -34,6 +35,7 @@ import categoryService from '../../services/categoryService';
 import nomineeService from '../../services/nomineeService';
 import CategoryModal from '../../components/organizer/awards/CategoryModal';
 import NomineeModal from '../../components/organizer/awards/NomineeModal';
+import { showSuccess, showError, showConfirm } from '../../utils/toast';
 
 const ViewAward = () => {
     const navigate = useNavigate();
@@ -57,6 +59,9 @@ const ViewAward = () => {
     // Drag and drop states
     const [draggedCategory, setDraggedCategory] = useState(null);
     const [draggedNominee, setDraggedNominee] = useState(null);
+
+    // Submission states
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Fetch award data
     useEffect(() => {
@@ -132,15 +137,24 @@ const ViewAward = () => {
     };
 
     const handleDeleteCategory = async (categoryId) => {
-        if (!window.confirm('Are you sure you want to delete this category? All nominees will be deleted too.')) {
+        const result = await showConfirm({
+            title: 'Delete Category?',
+            text: 'This will permanently delete the category and all its nominees. This action cannot be undone.',
+            confirmButtonText: 'Yes, delete it',
+            icon: 'warning'
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
+
         try {
             await categoryService.delete(categoryId);
+            showSuccess('Category deleted successfully');
             refreshAwardData();
         } catch (err) {
             console.error('Error deleting category:', err);
-            alert('Failed to delete category');
+            showError('Failed to delete category');
         }
     };
 
@@ -162,15 +176,24 @@ const ViewAward = () => {
     };
 
     const handleDeleteNominee = async (nomineeId) => {
-        if (!window.confirm('Are you sure you want to delete this nominee?')) {
+        const result = await showConfirm({
+            title: 'Delete Nominee?',
+            text: 'This will permanently remove this nominee. This action cannot be undone.',
+            confirmButtonText: 'Yes, delete it',
+            icon: 'warning'
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
+
         try {
             await nomineeService.delete(nomineeId);
+            showSuccess('Nominee deleted successfully');
             refreshAwardData();
         } catch (err) {
             console.error('Error deleting nominee:', err);
-            alert('Failed to delete nominee');
+            showError('Failed to delete nominee');
         }
     };
 
@@ -255,6 +278,38 @@ const ViewAward = () => {
         setDraggedNominee(null);
     };
 
+    // Handle submit for approval
+    const handleSubmitForApproval = async () => {
+        const result = await showConfirm({
+            title: 'Submit Award for Approval?',
+            text: 'Once submitted, you will not be able to edit this award until it has been reviewed by an admin.',
+            confirmButtonText: 'Yes, submit it',
+            icon: 'question'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            const response = await awardService.submitForApproval(id);
+
+            if (response.success) {
+                showSuccess(response.data.message || 'Award submitted for approval successfully!');
+                // Refresh award data to show updated status
+                refreshAwardData();
+            } else {
+                showError(response.message || 'Failed to submit award for approval');
+            }
+        } catch (err) {
+            console.error('Error submitting award:', err);
+            showError(err.response?.data?.message || 'An error occurred while submitting the award');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     // Loading state
     if (isLoading) {
         return (
@@ -337,6 +392,28 @@ const ViewAward = () => {
                         <Share2 size={16} />
                         Share
                     </Button>
+                    {/* Submit for Approval - shown only for draft awards */}
+                    {award.status === 'draft' && (
+                        <Button
+                            size="sm"
+                            variant="default"
+                            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                            onClick={handleSubmitForApproval}
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    Submitting...
+                                </>
+                            ) : (
+                                <>
+                                    <Send size={16} />
+                                    Submit for Approval
+                                </>
+                            )}
+                        </Button>
+                    )}
                     <Link to={`/organizer/awards/${award.id}/edit`}>
                         <Button size="sm" className="gap-2">
                             <Edit size={16} />

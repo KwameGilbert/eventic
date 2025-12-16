@@ -238,6 +238,16 @@ const awardService = {
         const response = await api.get('/organizers/data/awards/stats');
         return response;
     },
+
+    /**
+     * Submit award for approval (changes status from draft to pending)
+     * @param {number|string} awardId - Award ID
+     * @returns {Promise<Object>} Submission response
+     */
+    submitForApproval: async (awardId) => {
+        const response = await api.put(`/awards/${awardId}/submit-for-approval`);
+        return response;
+    },
 };
 
 export default awardService;

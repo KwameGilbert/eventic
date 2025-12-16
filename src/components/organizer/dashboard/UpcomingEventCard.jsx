@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock, MapPin, ArrowRight } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 const UpcomingEventCard = ({ event }) => {
     return (
@@ -36,20 +37,20 @@ const UpcomingEventCard = ({ event }) => {
 
                     <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                         <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 rounded-full bg-(--brand-primary)/10 flex items-center justify-center">
-                                <Clock size={12} className="text-(--brand-primary)" />
+                            <div className="w-6 h-6 rounded-full bg-[--brand-primary]/10 flex items-center justify-center">
+                                <Clock size={12} className="text-[--brand-primary]" />
                             </div>
                             <span>{event.date}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 rounded-full bg-(--brand-primary)/10 flex items-center justify-center">
-                                <MapPin size={12} className="text-(--brand-primary)" />
+                            <div className="w-6 h-6 rounded-full bg-[--brand-primary]/10 flex items-center justify-center">
+                                <MapPin size={12} className="text-[--brand-primary]" />
                             </div>
                             <span className="truncate">{event.time}</span>
                         </div>
                     </div>
 
-                    <button className="w-full py-2.5 bg-(--brand-primary) text-white rounded-lg text-sm font-semibold hover:bg-(--brand-primary)/90 transition-colors flex items-center justify-center gap-2">
+                    <button className="w-full py-2.5 bg-[--brand-primary] text-white rounded-lg text-sm font-semibold hover:bg-[--brand-primary]/90 transition-colors flex items-center justify-center gap-2">
                         View Details
                         <ArrowRight size={16} />
                     </button>
@@ -57,6 +58,17 @@ const UpcomingEventCard = ({ event }) => {
             </div>
         </div>
     );
+};
+
+UpcomingEventCard.propTypes = {
+    event: PropTypes.shape({
+        image: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
+        category: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
+        date: PropTypes.string.isRequired,
+        time: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
 export default UpcomingEventCard;

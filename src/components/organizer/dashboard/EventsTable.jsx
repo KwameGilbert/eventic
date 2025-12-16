@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Eye, Edit, Trash2, MoreVertical, FileText } from 'lucide-react';
 
 const EventsTable = ({ events }) => {
@@ -83,7 +84,7 @@ const EventsTable = ({ events }) => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`text-sm font-semibold ${percentSold >= 80 ? 'text-green-600' :
-                                                percentSold >= 50 ? 'text-yellow-600' : 'text-gray-600'
+                                            percentSold >= 50 ? 'text-yellow-600' : 'text-gray-600'
                                             }`}>
                                             {percentSold}%
                                         </span>
@@ -138,6 +139,20 @@ const EventsTable = ({ events }) => {
             </div>
         </div>
     );
+};
+
+EventsTable.propTypes = {
+    events: PropTypes.arrayOf(
+        PropTypes.shape({
+            id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+            name: PropTypes.string.isRequired,
+            image: PropTypes.string.isRequired,
+            date: PropTypes.string.isRequired,
+            soldTickets: PropTypes.number.isRequired,
+            totalTickets: PropTypes.number.isRequired,
+            status: PropTypes.string.isRequired,
+        })
+    ).isRequired,
 };
 
 export default EventsTable;

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { cn } from '../../../lib/utils';
 
 const EventCalendar = ({ events }) => {
@@ -66,7 +66,7 @@ const EventCalendar = ({ events }) => {
             <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base">
-                        {currentMonth} <span className="text-(--brand-primary)">{currentYear}</span>
+                        {currentMonth} <span className="text-[--brand-primary]">{currentYear}</span>
                     </CardTitle>
                     <div className="flex gap-1">
                         <Button
@@ -103,12 +103,12 @@ const EventCalendar = ({ events }) => {
                                 "text-sm py-2 rounded-lg cursor-pointer transition-all relative",
                                 !item.isCurrentMonth && "text-gray-300",
                                 item.isCurrentMonth && "text-gray-700 hover:bg-gray-100",
-                                item.isCurrentMonth && isToday(item.day) && "bg-(--brand-primary) text-white font-semibold hover:bg-(--brand-primary)/90"
+                                item.isCurrentMonth && isToday(item.day) && "bg-[--brand-primary] text-white font-semibold hover:bg-[--brand-primary]/90"
                             )}
                         >
                             {item.day}
                             {item.isCurrentMonth && eventDays.includes(item.day) && !isToday(item.day) && (
-                                <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-(--brand-primary) rounded-full" />
+                                <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-[--brand-primary] rounded-full" />
                             )}
                         </div>
                     ))}
@@ -121,12 +121,12 @@ const EventCalendar = ({ events }) => {
                             key={index}
                             className="flex gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group"
                         >
-                            <div className="w-10 h-10 bg-(--brand-primary)/10 rounded-lg flex flex-col items-center justify-center shrink-0">
-                                <span className="text-xs font-bold text-(--brand-primary)">{event.day}</span>
-                                <span className="text-[10px] text-(--brand-primary)/70">{event.dayName}</span>
+                            <div className="w-10 h-10 bg-[--brand-primary]/10 rounded-lg flex flex-col items-center justify-center shrink-0">
+                                <span className="text-xs font-bold text-[--brand-primary]">{event.day}</span>
+                                <span className="text-[10px] text-[--brand-primary]/70">{event.dayName}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 group-hover:text-(--brand-primary) transition-colors truncate">
+                                <p className="text-sm font-semibold text-gray-900 group-hover:text-[--brand-primary] transition-colors truncate">
                                     {event.name}
                                 </p>
                                 <div className="flex items-center gap-3 mt-1">
@@ -146,6 +146,18 @@ const EventCalendar = ({ events }) => {
             </CardContent>
         </Card>
     );
+};
+
+EventCalendar.propTypes = {
+    events: PropTypes.arrayOf(
+        PropTypes.shape({
+            day: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+            dayName: PropTypes.string.isRequired,
+            name: PropTypes.string.isRequired,
+            category: PropTypes.string.isRequired,
+            time: PropTypes.string.isRequired,
+        })
+    ).isRequired,
 };
 
 export default EventCalendar;

@@ -4,6 +4,7 @@ import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import { MessageSquare, UserPlus, Calendar, Bell, AlertTriangle, ArrowRight } from 'lucide-react';
 import { cn } from '../../../lib/utils';
+import PropTypes from 'prop-types';
 
 const RecentActivities = ({ activities }) => {
     const getActivityIcon = (type) => {
@@ -94,6 +95,16 @@ const RecentActivities = ({ activities }) => {
             </CardContent>
         </Card>
     );
+};
+
+RecentActivities.propTypes = {
+    activities: PropTypes.arrayOf(
+        PropTypes.shape({
+            title: PropTypes.string.isRequired,
+            description: PropTypes.string.isRequired,
+            time: PropTypes.string.isRequired,
+        })
+    ).isRequired,
 };
 
 export default RecentActivities;

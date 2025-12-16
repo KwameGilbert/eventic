@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { ArrowRight, Clock } from 'lucide-react';
-import { cn } from '../../../lib/utils';
+import PropTypes from 'prop-types';
 
 const RecentOrders = ({ orders }) => {
     const getStatusStyle = (status) => {
@@ -72,6 +72,20 @@ const RecentOrders = ({ orders }) => {
             </CardContent>
         </Card>
     );
+};
+
+RecentOrders.propTypes = {
+    orders: PropTypes.arrayOf(
+        PropTypes.shape({
+            customer: PropTypes.string.isRequired,
+            event: PropTypes.string.isRequired,
+            tickets: PropTypes.number.isRequired,
+            amount: PropTypes.number.isRequired,
+            time: PropTypes.string.isRequired,
+            status: PropTypes.string.isRequired,
+            avatar: PropTypes.string,
+        })
+    ).isRequired,
 };
 
 export default RecentOrders;
