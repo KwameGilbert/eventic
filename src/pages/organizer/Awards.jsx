@@ -76,6 +76,7 @@ const Awards = () => {
     const getStatusStyle = (status) => {
         switch (status.toLowerCase()) {
             case 'published': return 'success';      // Green
+            case 'pending': return 'default';        // Blue (info/default)
             case 'draft': return 'warning';          // Yellow/Orange
             case 'voting open': return 'info';       // Blue (computed from voting dates)
             case 'completed': return 'secondary';    // Gray

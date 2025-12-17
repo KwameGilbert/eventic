@@ -3,24 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft,
     Loader2,
-    AlertTriangle,
-    CheckCircle,
     FileText,
     Image as ImageIcon,
     Upload,
-    X
+    X,
+    CheckCircle
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import awardService from '../../services/awardService';
+import { showSuccess, showError } from '../../utils/toast';
 
 const CreateAward = () => {
     const navigate = useNavigate();
 
-    // Loading and error states
+    // Loading states
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitError, setSubmitError] = useState(null);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
 
     // Award form state
     const [awardData, setAwardData] = useState({
@@ -87,7 +85,6 @@ const CreateAward = () => {
     // Handle form submit
     const handleSubmit = async (status = 'draft') => {
         setIsSubmitting(true);
-        setSubmitError(null);
 
         try {
             // Combine date and time for ceremony
@@ -125,20 +122,20 @@ const CreateAward = () => {
             const response = await awardService.create(formData);
 
             if (response.success) {
-                setSubmitSuccess(true);
-                // Redirect to awards page after a short delay
+                showSuccess('Award created successfully!');
+                // Redirect to awards page
                 setTimeout(() => {
                     if (response.data?.id) {
                         navigate(`/organizer/awards/${response.data.id}`);
                     } else {
                         navigate('/organizer/awards');
                     }
-                }, 1500);
+                }, 1000);
             } else {
-                setSubmitError(response.message || 'Failed to create award');
+                showError(response.message || 'Failed to create award');
             }
         } catch (err) {
-            setSubmitError(err.message || 'An error occurred while creating the award');
+            showError(err.message || 'An error occurred while creating the award');
         } finally {
             setIsSubmitting(false);
         }
@@ -158,22 +155,6 @@ const CreateAward = () => {
 
     return (
         <div className="space-y-6">
-            {/* Success Alert */}
-            {submitSuccess && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-green-800">Award created successfully! Redirecting...</span>
-                </div>
-            )}
-
-            {/* Error Alert */}
-            {submitError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                    <span className="text-red-800">{submitError}</span>
-                </div>
-            )}
-
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button

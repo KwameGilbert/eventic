@@ -74,6 +74,7 @@ const Events = () => {
     const getStatusStyle = (status) => {
         switch (status.toLowerCase()) {
             case 'published': return 'success';
+            case 'pending': return 'default';   // Blue for pending approval
             case 'draft': return 'warning';
             case 'completed': return 'info';
             case 'cancelled': return 'destructive';

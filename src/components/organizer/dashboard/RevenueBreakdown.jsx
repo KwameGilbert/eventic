@@ -9,7 +9,7 @@ const RevenueBreakdown = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">Revenue Breakdown</h3>
-                <button className="text-sm text-(--brand-primary) font-medium hover:underline">
+                <button className="text-sm text-[--brand-primary] font-medium hover:underline">
                     See details
                 </button>
             </div>
@@ -20,11 +20,11 @@ const RevenueBreakdown = () => {
                     {months.map((month, index) => (
                         <div key={month} className="flex-1 flex flex-col items-center gap-2">
                             <div
-                                className="w-full bg-(--brand-primary)/20 rounded-t-lg relative overflow-hidden transition-all hover:bg-(--brand-primary)/30"
+                                className="w-full bg-[--brand-primary]/20 rounded-t-lg relative overflow-hidden transition-all hover:bg-[--brand-primary]/30"
                                 style={{ height: `${(values[index] / maxValue) * 100}%` }}
                             >
                                 <div
-                                    className="absolute bottom-0 w-full bg-(--brand-primary) rounded-t-lg transition-all"
+                                    className="absolute bottom-0 w-full bg-[--brand-primary] rounded-t-lg transition-all"
                                     style={{ height: '100%' }}
                                 />
                             </div>
@@ -37,7 +37,7 @@ const RevenueBreakdown = () => {
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                     <div className="p-3 bg-gray-50 rounded-xl">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 bg-(--brand-primary) rounded-full" />
+                            <div className="w-2 h-2 bg-[--brand-primary] rounded-full" />
                             <span className="text-xs text-gray-500">Total Revenue Summary</span>
                         </div>
                         <div className="flex items-baseline gap-2">
@@ -47,7 +47,7 @@ const RevenueBreakdown = () => {
                         </div>
                         <div className="flex items-baseline gap-3 mt-1">
                             <span className="text-xl font-bold text-gray-900">$85,320.00</span>
-                            <span className="text-sm font-medium text-(--brand-primary)">VIP - 72%</span>
+                            <span className="text-sm font-medium text-[--brand-primary]">VIP - 72%</span>
                         </div>
                     </div>
 

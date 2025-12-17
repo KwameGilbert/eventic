@@ -13,7 +13,7 @@ const RevenueChart = () => {
                     <button className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                         7D
                     </button>
-                    <button className="px-3 py-1.5 text-xs font-medium text-white bg-(--brand-primary) rounded-lg">
+                    <button className="px-3 py-1.5 text-xs font-medium text-white bg-[--brand-primary] rounded-lg">
                         30D
                     </button>
                     <button className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">

@@ -92,6 +92,7 @@ const ViewAward = () => {
     const getStatusStyle = (status) => {
         switch (status?.toLowerCase()) {
             case 'published': return 'success';
+            case 'pending': return 'default';   // Blue for pending approval
             case 'draft': return 'warning';
             case 'completed': return 'secondary';
             case 'closed': return 'destructive';
@@ -304,11 +305,57 @@ const ViewAward = () => {
             }
         } catch (err) {
             console.error('Error submitting award:', err);
-            showError(err.response?.data?.message || 'An error occurred while submitting the award');
+            showError(err.message || 'An error occurred while submitting the award');
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    // Handle delete award
+    const handleDeleteAward = async () => {
+        setOpenDropdown(false);
+
+        const result = await showConfirm({
+            title: 'Delete Award?',
+            text: 'This will permanently delete this award, all its categories, nominees, and votes. This action cannot be undone.',
+            confirmButtonText: 'Yes, delete it',
+            icon: 'warning'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            await awardService.delete(id);
+            showSuccess('Award deleted successfully');
+            navigate('/organizer/awards');
+        } catch (err) {
+            console.error('Error deleting award:', err);
+            showError(err.message || 'Failed to delete award');
+        }
+    };
+
+    // Handle view public page
+    const handleViewPublicPage = () => {
+        setOpenDropdown(false);
+        // Navigate to the public award page
+        window.open(`/awards/${award.slug || id}`, '_blank');
+    };
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (openDropdown && !event.target.closest('.dropdown-container')) {
+                setOpenDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openDropdown]);
 
     // Loading state
     if (isLoading) {
@@ -365,32 +412,37 @@ const ViewAward = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => navigate('/organizer/awards')}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft size={20} className="text-gray-600" />
-                    </button>
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold text-gray-900">{award.title}</h1>
-                            <Badge variant={getStatusStyle(award.status)}>{award.status?.toUpperCase()}</Badge>
-                            {award.voting_status && (
-                                <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                                    <AwardIcon size={12} className="mr-1" />
-                                    {award.voting_status}
-                                </Badge>
-                            )}
+            <div className="space-y-4">
+                {/* Title Row */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                        <button
+                            onClick={() => navigate('/organizer/awards')}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+                        >
+                            <ArrowLeft size={20} className="text-gray-600" />
+                        </button>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">{award.title}</h1>
+                                <Badge variant={getStatusStyle(award.status)}>{award.status?.toUpperCase()}</Badge>
+                                {award.voting_status && (
+                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                                        <AwardIcon size={12} className="mr-1" />
+                                        {award.voting_status}
+                                    </Badge>
+                                )}
+                            </div>
+                            <p className="text-gray-500 mt-1 text-sm">Award ID: #{award.id}</p>
                         </div>
-                        <p className="text-gray-500 mt-1">Award ID: #{award.id}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="gap-2">
+
+                {/* Actions Row */}
+                <div className="flex items-center gap-2 flex-wrap md:justify-end">
+                    <Button variant="outline" size="sm" className="gap-2" title="Share Award">
                         <Share2 size={16} />
-                        Share
+                        <span className="hidden md:inline">Share</span>
                     </Button>
                     {/* Submit for Approval - shown only for draft awards */}
                     {award.status === 'draft' && (
@@ -400,42 +452,55 @@ const ViewAward = () => {
                             className="gap-2 bg-green-600 hover:bg-green-700 text-white"
                             onClick={handleSubmitForApproval}
                             disabled={isSubmitting}
+                            title="Submit for Approval"
                         >
                             {isSubmitting ? (
                                 <>
                                     <Loader2 size={16} className="animate-spin" />
-                                    Submitting...
+                                    <span className="hidden md:inline">Submitting...</span>
                                 </>
                             ) : (
                                 <>
                                     <Send size={16} />
-                                    Submit for Approval
+                                    <span className="hidden lg:inline">Submit for Approval</span>
+                                    <span className="hidden md:inline lg:hidden">Submit</span>
                                 </>
                             )}
                         </Button>
                     )}
                     <Link to={`/organizer/awards/${award.id}/edit`}>
-                        <Button size="sm" className="gap-2">
+                        <Button size="sm" className="gap-2" title="Edit Award">
                             <Edit size={16} />
-                            Edit Award
+                            <span className="hidden md:inline">Edit</span>
                         </Button>
                     </Link>
-                    <div className="relative">
+                    <div className="relative dropdown-container">
                         <Button
                             variant="outline"
                             size="icon"
                             onClick={() => setOpenDropdown(!openDropdown)}
+                            title="More Options"
                         >
                             <MoreVertical size={16} />
                         </Button>
                         {openDropdown && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                    <ExternalLink size={14} />
-                                    View Public Page
-                                </button>
-                                <hr className="my-1" />
-                                <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                {(award.status?.toLowerCase() === 'published' || award.status?.toLowerCase() === 'completed') && (
+                                    <>
+                                        <button
+                                            onClick={handleViewPublicPage}
+                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                        >
+                                            <ExternalLink size={14} />
+                                            View Public Page
+                                        </button>
+                                        <hr className="my-1" />
+                                    </>
+                                )}
+                                <button
+                                    onClick={handleDeleteAward}
+                                    className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                >
                                     <Trash2 size={14} />
                                     Delete Award
                                 </button>

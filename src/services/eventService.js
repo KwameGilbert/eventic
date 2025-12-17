@@ -377,6 +377,16 @@ const eventService = {
 
         return response;
     },
+
+    /**
+     * Submit event for approval (changes status from draft to pending)
+     * @param {number|string} eventId - Event ID
+     * @returns {Promise<Object>} Submission response
+     */
+    submitForApproval: async (eventId) => {
+        const response = await api.put(`/events/${eventId}/submit-for-approval`);
+        return response;
+    },
 };
 
 export default eventService;

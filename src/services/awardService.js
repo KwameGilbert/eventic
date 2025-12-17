@@ -84,7 +84,7 @@ const awardService = {
 
     /**
      * Create a new award
-     * @param {Object} awardData - Award data
+     * @param {Object|FormData} awardData - Award data (Object or FormData for file uploads)
      * @param {string} awardData.title - Award title
      * @param {string} awardData.description - Award description
      * @param {string} awardData.ceremony_date - Ceremony date (ISO format)
@@ -92,11 +92,20 @@ const awardService = {
      * @param {string} awardData.voting_end - Voting end date
      * @param {string} awardData.venue_name - Award venue
      * @param {string} awardData.address - Award address
-     * @param {string} [awardData.banner_image] - Banner image URL
+     * @param {string} [awardData.banner_image] - Banner image URL or File
      * @returns {Promise<Object>} Created award
      */
     create: async (awardData) => {
-        const response = await api.post('/awards', awardData);
+        // Check if awardData is FormData (for file uploads)
+        const isFormData = awardData instanceof FormData;
+
+        const config = isFormData ? {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        } : {};
+
+        const response = await api.post('/awards', awardData, config);
         return response;
     },
 
@@ -144,11 +153,20 @@ const awardService = {
     /**
      * Update an existing award
      * @param {number|string} id - Award ID
-     * @param {Object} awardData - Updated award data
+     * @param {Object|FormData} awardData - Updated award data (Object or FormData for file uploads)
      * @returns {Promise<Object>} Updated award
      */
     update: async (id, awardData) => {
-        const response = await api.put(`/awards/${id}`, awardData);
+        // Check if awardData is FormData (for file uploads)
+        const isFormData = awardData instanceof FormData;
+
+        const config = isFormData ? {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        } : {};
+
+        const response = await api.put(`/awards/${id}`, awardData, config);
         return response;
     },
 

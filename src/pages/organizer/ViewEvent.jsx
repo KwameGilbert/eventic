@@ -26,12 +26,15 @@ import {
     Mail,
     Loader2,
     AlertTriangle,
-    Image
+    Image,
+    Send
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import organizerService from '../../services/organizerService';
+import eventService from '../../services/eventService';
+import { showSuccess, showError } from '../../utils/toast';
 
 const ViewEvent = () => {
     const navigate = useNavigate();
@@ -41,6 +44,7 @@ const ViewEvent = () => {
     // Loading and error states
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Event data from API
     const [event, setEvent] = useState(null);
@@ -71,9 +75,42 @@ const ViewEvent = () => {
         }
     }, [id]);
 
+    // Refresh event data after submission
+    const refreshEventData = async () => {
+        try {
+            const response = await organizerService.getEventDetails(id);
+            if (response.success && response.data) {
+                setEvent(response.data);
+            }
+        } catch (err) {
+            console.error('Error refreshing event:', err);
+        }
+    };
+
+    // Handle submit for approval
+    const handleSubmitForApproval = async () => {
+        try {
+            setIsSubmitting(true);
+            const response = await eventService.submitForApproval(id);
+            if (response.success) {
+                showSuccess(response.data.message || 'Event submitted for approval successfully!');
+                // Refresh event data to show updated status
+                refreshEventData();
+            } else {
+                showError(response.message || 'Failed to submit event for approval');
+            }
+        } catch (err) {
+            console.error('Error submitting event:', err);
+            showError(err.response?.data?.message || 'An error occurred while submitting the event');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const getStatusStyle = (status) => {
         switch (status?.toLowerCase()) {
             case 'published': return 'success';
+            case 'pending': return 'default';   // Blue for pending approval
             case 'draft': return 'warning';
             case 'completed': return 'info';
             case 'cancelled': return 'destructive';
@@ -177,6 +214,30 @@ const ViewEvent = () => {
                         <Share2 size={16} />
                         Share
                     </Button>
+                    {/* Submit for Approval - shown only for draft events */}
+                    {event.status?.toLowerCase() === 'draft' && (
+                        <Button
+                            size="sm"
+                            variant="default"
+                            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                            onClick={handleSubmitForApproval}
+                            disabled={isSubmitting}
+                            title="Submit for Approval"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    <span className="hidden md:inline">Submitting...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Send size={16} />
+                                    <span className="hidden lg:inline">Submit for Approval</span>
+                                    <span className="hidden md:inline lg:hidden">Submit</span>
+                                </>
+                            )}
+                        </Button>
+                    )}
                     <Link to={`/organizer/events/${event.id}/edit`}>
                         <Button size="sm" className="gap-2">
                             <Edit size={16} />

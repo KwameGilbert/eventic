@@ -2,7 +2,7 @@ import React from 'react';
 
 const PopularCategories = () => {
     const categories = [
-        { name: 'Music', percentage: 40, count: '20,000', color: 'bg-(--brand-primary)' },
+        { name: 'Music', percentage: 40, count: '20,000', color: 'bg-[--brand-primary]' },
         { name: 'Sports', percentage: 35, count: '17,500', color: 'bg-blue-500' },
         { name: 'Fashion', percentage: 15, count: '12,500', color: 'bg-purple-500' },
         { name: 'Technology', percentage: 10, count: '8,000', color: 'bg-green-500' },
@@ -12,7 +12,7 @@ const PopularCategories = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">Popular Events</h3>
-                <button className="text-sm text-(--brand-primary) font-medium hover:underline">
+                <button className="text-sm text-[--brand-primary] font-medium hover:underline">
                     Popular ↓
                 </button>
             </div>

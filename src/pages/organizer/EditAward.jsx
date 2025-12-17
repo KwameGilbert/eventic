@@ -4,26 +4,25 @@ import {
     ArrowLeft,
     Loader2,
     AlertTriangle,
-    CheckCircle,
     FileText,
     Image as ImageIcon,
     Upload,
-    X
+    X,
+    CheckCircle
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import awardService from '../../services/awardService';
+import { showSuccess, showError } from '../../utils/toast';
 
 const EditAward = () => {
     const navigate = useNavigate();
     const { id } = useParams();
 
-    // Loading and error states
+    // Loading states
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadError, setLoadError] = useState(null);
-    const [submitError, setSubmitError] = useState(null);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
 
     // Award form state
     const [awardData, setAwardData] = useState({
@@ -47,8 +46,7 @@ const EditAward = () => {
         twitter: '',
         instagram: '',
         phone: '',
-        showResults: true,
-        featured: false
+        showResults: true
     });
 
     // Countries (static for now)
@@ -89,22 +87,21 @@ const EditAward = () => {
                         ceremonyTime: ceremonyTime,
                         votingStart: votingStart,
                         votingEnd: votingEnd,
-                        venueName: award.venue || '',
-                        address: award.location || '',
+                        venueName: award.venue || award.venue_name || '',
+                        address: award.location || award.address || '',
                         city: award.city || '',
                         region: award.region || '',
                         country: award.country || '',
-                        mapUrl: award.map_url || '',
+                        mapUrl: award.mapUrl || award.map_url || '',
                         bannerImage: null,
                         bannerImagePreview: award.banner_image || award.image || '',
-                        videoUrl: award.video_url || '',
-                        website: award.website || '',
-                        facebook: award.facebook || '',
-                        twitter: award.twitter || '',
-                        instagram: award.instagram || '',
-                        phone: award.phone || '',
-                        showResults: award.show_results !== false,
-                        featured: award.is_featured || false
+                        videoUrl: award.videoUrl || award.video_url || '',
+                        website: award.contact?.website || award.website || '',
+                        facebook: award.socialMedia?.facebook || award.facebook || '',
+                        twitter: award.socialMedia?.twitter || award.twitter || '',
+                        instagram: award.socialMedia?.instagram || award.instagram || '',
+                        phone: award.contact?.phone || award.phone || '',
+                        showResults: award.show_results !== false
                     });
                 } else {
                     setLoadError(response.message || 'Failed to load award details');
@@ -155,7 +152,6 @@ const EditAward = () => {
     // Handle form submit
     const handleSubmit = async (status = null) => {
         setIsSubmitting(true);
-        setSubmitError(null);
 
         try {
             // Combine date and time for ceremony
@@ -183,7 +179,6 @@ const EditAward = () => {
             formData.append('instagram', awardData.instagram || '');
             formData.append('phone', awardData.phone || '');
             formData.append('show_results', awardData.showResults ? '1' : '0');
-            formData.append('is_featured', awardData.featured ? '1' : '0');
 
             if (status) {
                 formData.append('status', status);
@@ -197,16 +192,16 @@ const EditAward = () => {
             const response = await awardService.update(id, formData);
 
             if (response.success) {
-                setSubmitSuccess(true);
-                // Redirect to award view page after a short delay
+                showSuccess('Award updated successfully!');
+                // Redirect to award view page
                 setTimeout(() => {
                     navigate(`/organizer/awards/${id}`);
-                }, 1500);
+                }, 1000);
             } else {
-                setSubmitError(response.message || 'Failed to update award');
+                showError(response.message || 'Failed to update award');
             }
         } catch (err) {
-            setSubmitError(err.message || 'An error occurred while updating the award');
+            showError(err.message || 'An error occurred while updating the award');
         } finally {
             setIsSubmitting(false);
         }
@@ -218,10 +213,10 @@ const EditAward = () => {
         handleSubmit();
     };
 
-    // Publish handler
-    const handlePublish = (e) => {
+    // Submit for review handler (sets status to pending for admin approval)
+    const handleSubmitForReview = (e) => {
         e.preventDefault();
-        handleSubmit('published');
+        handleSubmit('pending');
     };
 
     // Loading state
@@ -258,22 +253,6 @@ const EditAward = () => {
 
     return (
         <div className="space-y-6">
-            {/* Success Alert */}
-            {submitSuccess && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-green-800">Award updated successfully! Redirecting...</span>
-                </div>
-            )}
-
-            {/* Error Alert */}
-            {submitError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                    <span className="text-red-800">{submitError}</span>
-                </div>
-            )}
-
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button
@@ -649,20 +628,6 @@ const EditAward = () => {
                                         Show voting results publicly
                                     </label>
                                 </div>
-
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        name="featured"
-                                        checked={awardData.featured}
-                                        onChange={handleChange}
-                                        className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                                        id="featured"
-                                    />
-                                    <label htmlFor="featured" className="text-sm text-gray-700">
-                                        Feature this award on homepage
-                                    </label>
-                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -729,30 +694,30 @@ const EditAward = () => {
                                 )}
                             </Button>
                             <Button
-                                onClick={handlePublish}
+                                onClick={handleSubmitForReview}
                                 className="w-full gap-2"
                                 disabled={isSubmitting || !awardData.title || !awardData.ceremonyDate}
                             >
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 size={16} className="animate-spin" />
-                                        Publishing...
+                                        Submitting...
                                     </>
                                 ) : (
                                     <>
                                         <CheckCircle size={16} />
-                                        Update & Publish
+                                        Submit for Review
                                     </>
                                 )}
                             </Button>
                             <p className="text-xs text-gray-500 text-center">
-                                * Title and ceremony date are required to publish
+                                * Title and ceremony date are required for submission
                             </p>
                         </div>
                     </div>
                 </div>
             </form>
-        </div>
+        </div >
     );
 };
 
