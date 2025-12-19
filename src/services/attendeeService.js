@@ -144,6 +144,21 @@ const attendeeService = {
         });
         return response;
     },
+
+    // =============== ORGANIZER ATTENDEE ENDPOINTS ===============
+
+    /**
+     * Get all attendees for organizer's events
+     * @param {Object} params - Query parameters
+     * @param {number} [params.event_id] - Filter by specific event
+     * @param {string} [params.status] - Filter by status: 'checked-in' or 'not-checked-in'
+     * @param {string} [params.search] - Search by name, email, or order ID
+     * @returns {Promise<Object>} Attendees list with stats
+     */
+    getOrganizerAttendees: async (params = {}) => {
+        const response = await api.get('/organizers/data/attendees', { params });
+        return response;
+    },
 };
 
 export default attendeeService;

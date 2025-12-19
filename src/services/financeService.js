@@ -36,16 +36,95 @@ const financeService = {
     },
 
     /**
+     * Get organizer balance summary
+     * @returns {Promise<Object>} Balance data
+     */
+    getBalance: async () => {
+        const response = await api.get('/organizers/finance/balance');
+        return response;
+    },
+
+    /**
+     * Request payout for an event
+     * @param {number} eventId - Event ID
+     * @param {Object} paymentDetails - Payment details
+     * @returns {Promise<Object>} Payout request response
+     */
+    requestEventPayout: async (eventId, paymentDetails) => {
+        const response = await api.post(`/organizers/finance/payouts/events/${eventId}`, paymentDetails);
+        return response;
+    },
+
+    /**
+     * Request payout for an award
+     * @param {number} awardId - Award ID
+     * @param {Object} paymentDetails - Payment details
+     * @returns {Promise<Object>} Payout request response
+     */
+    requestAwardPayout: async (awardId, paymentDetails) => {
+        const response = await api.post(`/organizers/finance/payouts/awards/${awardId}`, paymentDetails);
+        return response;
+    },
+
+    /**
      * Request payout for selected events/awards
      * @param {Object} payoutData - Payout request data
-     * @param {Array} [payoutData.event_ids] - Array of event IDs to include
-     * @param {Array} [payoutData.award_ids] - Array of award IDs to include
+     * @param {Array} [payoutData.events] - Array of {id, amount} for events
+     * @param {Array} [payoutData.awards] - Array of {id, amount} for awards
      * @param {string} payoutData.payment_method - 'mobile_money' or 'bank_transfer'
-     * @param {Object} payoutData.account_details - Payment account details
+     * @param {Object} payoutData.payment_details - Payment account details
      * @returns {Promise<Object>} Payout request response
      */
     requestPayout: async (payoutData) => {
-        const response = await api.post('/organizers/payouts/request', payoutData);
+        const { events = [], awards = [], payment_method, payment_details } = payoutData;
+
+        const results = {
+            success: true,
+            events: [],
+            awards: [],
+            errors: []
+        };
+
+        // Request payouts for events
+        for (const event of events) {
+            try {
+                const response = await financeService.requestEventPayout(event.id, {
+                    payment_method,
+                    amount: event.amount,
+                    ...payment_details
+                });
+                results.events.push(response.data);
+            } catch (error) {
+                results.errors.push({ type: 'event', id: event.id, error: error.message });
+                results.success = false;
+            }
+        }
+
+        // Request payouts for awards
+        for (const award of awards) {
+            try {
+                const response = await financeService.requestAwardPayout(award.id, {
+                    payment_method,
+                    amount: award.amount,
+                    ...payment_details
+                });
+                results.awards.push(response.data);
+            } catch (error) {
+                results.errors.push({ type: 'award', id: award.id, error: error.message });
+                results.success = false;
+            }
+        }
+
+        return results;
+    },
+
+    /**
+     * Cancel a payout request
+     * @param {number} payoutId - Payout request ID
+     * @returns {Promise<Object>} Cancellation response
+     */
+    cancelPayout: async (payoutId) => {
+        const response = await api.post(`/organizers/finance/payouts/${payoutId}/cancel`);
         return response;
     },
 
@@ -53,22 +132,13 @@ const financeService = {
      * Get payout history
      * @param {Object} params - Query parameters
      * @param {string} [params.status] - Filter by status
+     * @param {string} [params.type] - Filter by type (event/award)
      * @param {number} [params.page] - Page number
-     * @param {number} [params.per_page] - Items per page
+     * @param {number} [params.limit] - Items per page
      * @returns {Promise<Object>} Payout history
      */
     getPayoutHistory: async (params = {}) => {
-        const response = await api.get('/organizers/payouts', { params });
-        return response;
-    },
-
-    /**
-     * Get single payout details
-     * @param {number|string} payoutId - Payout ID
-     * @returns {Promise<Object>} Payout details
-     */
-    getPayoutDetails: async (payoutId) => {
-        const response = await api.get(`/organizers/payouts/${payoutId}`);
+        const response = await api.get('/organizers/finance/payouts', { params });
         return response;
     },
 

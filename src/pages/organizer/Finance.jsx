@@ -9,62 +9,32 @@ import {
     ChevronRight,
     Download,
     Plus,
-    X,
+    Trophy,
+    Loader2,
     CreditCard,
     Smartphone,
     Building2,
-    AlertCircle,
-    ChevronDown,
-    Trophy,
-    Loader2
+    AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
 import financeService from '../../services/financeService';
-import { showError, showSuccess } from '../../utils/toast';
+import { showError } from '../../utils/toast';
+import PayoutRequestModal from '../../components/organizer/PayoutRequestModal';
 
 const Finance = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [showPayoutModal, setShowPayoutModal] = useState(false);
-    const [selectedItems, setSelectedItems] = useState({ events: [], awards: [] });
-    const [paymentMethod, setPaymentMethod] = useState('mobile_money');
-    const [payoutFilter, setPayoutFilter] = useState('all'); // all, events, awards
-    const [paymentDetails, setPaymentDetails] = useState({
-        mobileNetwork: '',
-        mobileNumber: '',
-        bankName: '',
-        accountName: '',
-        accountNumber: '',
-        swiftCode: ''
-    });
 
     // Data states
     const [isLoading, setIsLoading] = useState(true);
     const [overview, setOverview] = useState(null);
     const [eventsData, setEventsData] = useState([]);
     const [awardsData, setAwardsData] = useState([]);
+    const [payouts, setPayouts] = useState([]);
     const [error, setError] = useState(null);
-
-    // Mobile networks
-    const mobileNetworks = [
-        'MTN Mobile Money',
-        'Vodafone Cash',
-        'AirtelTigo Money'
-    ];
-
-    // Banks
-    const banks = [
-        'Ghana Commercial Bank',
-        'Ecobank Ghana',
-        'Stanbic Bank',
-        'Zenith Bank',
-        'Fidelity Bank',
-        'Access Bank',
-        'Standard Chartered',
-        'Absa Bank'
-    ];
 
     const tabs = [
         { id: 'overview', label: 'Overview' },
@@ -121,6 +91,18 @@ const Finance = () => {
         }
     };
 
+    const fetchPayoutHistory = async () => {
+        try {
+            const response = await financeService.getPayoutHistory();
+            if (response.success) {
+                setPayouts(response.data.payouts || []);
+            }
+        } catch (err) {
+            console.error('Error fetching payout history:', err);
+            showError('Failed to fetch payout history');
+        }
+    };
+
     const handleTabChange = async (tabId) => {
         setActiveTab(tabId);
 
@@ -129,6 +111,8 @@ const Finance = () => {
             await fetchEventsRevenue();
         } else if (tabId === 'awards' && awardsData.length === 0) {
             await fetchAwardsRevenue();
+        } else if (tabId === 'payouts' && payouts.length === 0) {
+            await fetchPayoutHistory();
         }
     };
 
@@ -149,43 +133,6 @@ const Finance = () => {
             day: 'numeric',
             year: 'numeric'
         });
-    };
-
-    const handleItemSelect = (type, itemId) => {
-        setSelectedItems(prev => ({
-            ...prev,
-            [type]: prev[type].includes(itemId)
-                ? prev[type].filter(id => id !== itemId)
-                : [...prev[type], itemId]
-        }));
-    };
-
-    const getSelectedTotal = () => {
-        const selectedEvents = eventsData.filter(e =>
-            selectedItems.events.includes(e.event_id) && e.is_eligible_for_payout
-        );
-        const selectedAwards = awardsData.filter(a =>
-            selectedItems.awards.includes(a.award_id) && a.is_eligible_for_payout
-        );
-
-        return financeService.calculateSelectedTotal(selectedEvents, selectedAwards);
-    };
-
-    const handlePayoutSubmit = () => {
-        // TODO: Implement actual payout request
-        showSuccess('Payout request submitted successfully');
-        setShowPayoutModal(false);
-        setSelectedItems({ events: [], awards: [] });
-    };
-
-    // Get eligible items for payout based on filter
-    const getEligibleItems = () => {
-        const eligibleEvents = eventsData.filter(e => e.is_eligible_for_payout);
-        const eligibleAwards = awardsData.filter(a => a.is_eligible_for_payout);
-
-        if (payoutFilter === 'events') return { events: eligibleEvents, awards: [] };
-        if (payoutFilter === 'awards') return { events: [], awards: eligibleAwards };
-        return { events: eligibleEvents, awards: eligibleAwards };
     };
 
     // Loading state
@@ -229,9 +176,6 @@ const Finance = () => {
     const stats = overview?.summary || {};
     const revenueBreakdown = overview?.revenue_breakdown || {};
     const availableForPayout = [...(eventsData.filter(e => e.is_eligible_for_payout) || []), ...(awardsData.filter(a => a.is_eligible_for_payout) || [])];
-
-    // Payouts placeholder - will be replaced with real data
-    const payouts = [];
 
     return (
         <div className="space-y-6">
@@ -765,328 +709,18 @@ const Finance = () => {
                 </Card>
             )}
 
-            {/* Payout Request Modal - ENHANCED */}
-            {showPayoutModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-200">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold text-gray-900">Request Payout</h2>
-                                <button
-                                    onClick={() => setShowPayoutModal(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                >
-                                    <X size={20} className="text-gray-500" />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-6 space-y-6">
-                            {/* Filter Tabs - NEW! */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Revenue Source</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <button
-                                        onClick={() => setPayoutFilter('all')}
-                                        className={cn(
-                                            "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                            payoutFilter === 'all'
-                                                ? "bg-(--brand-primary) text-white"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        )}
-                                    >
-                                        All
-                                    </button>
-                                    <button
-                                        onClick={() => setPayoutFilter('events')}
-                                        className={cn(
-                                            "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                            payoutFilter === 'events'
-                                                ? "bg-blue-600 text-white"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        )}
-                                    >
-                                        Events Only
-                                    </button>
-                                    <button
-                                        onClick={() => setPayoutFilter('awards')}
-                                        className={cn(
-                                            "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                            payoutFilter === 'awards'
-                                                ? "bg-purple-600 text-white"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        )}
-                                    >
-                                        Awards Only
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Select Items - ENHANCED */}
-                            <div>
-                                <h3 className="font-medium text-gray-900 mb-3">Select Items to Withdraw</h3>
-                                <div className="space-y-2 max-h-60 overflow-y-auto">
-                                    {/* Events */}
-                                    {getEligibleItems().events.map((event) => (
-                                        <label
-                                            key={`event-${event.event_id}`}
-                                            className={cn(
-                                                "flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors",
-                                                selectedItems.events.includes(event.event_id)
-                                                    ? "border-blue-600 bg-blue-50"
-                                                    : "border-gray-200 hover:border-gray-300"
-                                            )}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedItems.events.includes(event.event_id)}
-                                                    onChange={() => handleItemSelect('events', event.event_id)}
-                                                    className="w-4 h-4 text-blue-600 rounded"
-                                                />
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="font-medium text-gray-900">{event.event_name}</p>
-                                                        <Badge variant="info" className="text-xs">Event</Badge>
-                                                    </div>
-                                                    <p className="text-sm text-gray-500">{formatDate(event.event_date)}</p>
-                                                </div>
-                                            </div>
-                                            <p className="font-semibold text-green-600">
-                                                {financeService.formatCurrency(event.net_revenue)}
-                                            </p>
-                                        </label>
-                                    ))}
-
-                                    {/* Awards */}
-                                    {getEligibleItems().awards.map((award) => (
-                                        <label
-                                            key={`award-${award.award_id}`}
-                                            className={cn(
-                                                "flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors",
-                                                selectedItems.awards.includes(award.award_id)
-                                                    ? "border-purple-600 bg-purple-50"
-                                                    : "border-gray-200 hover:border-gray-300"
-                                            )}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedItems.awards.includes(award.award_id)}
-                                                    onChange={() => handleItemSelect('awards', award.award_id)}
-                                                    className="w-4 h-4 text-purple-600 rounded"
-                                                />
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="font-medium text-gray-900">{award.award_title}</p>
-                                                        <Badge className="text-xs bg-purple-100 text-purple-700">Award</Badge>
-                                                    </div>
-                                                    <p className="text-sm text-gray-500">{formatDate(award.ceremony_date)}</p>
-                                                </div>
-                                            </div>
-                                            <p className="font-semibold text-green-600">
-                                                {financeService.formatCurrency(award.net_revenue)}
-                                            </p>
-                                        </label>
-                                    ))}
-
-                                    {getEligibleItems().events.length === 0 && getEligibleItems().awards.length === 0 && (
-                                        <div className="text-center py-8 text-gray-500">
-                                            <p>No eligible items for payout</p>
-                                            <p className="text-sm mt-1">Items become eligible 7 days after completion</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {(selectedItems.events.length > 0 || selectedItems.awards.length > 0) && (
-                                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                                        <div className="space-y-2">
-                                            {selectedItems.events.length > 0 && (
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-green-800">Events ({selectedItems.events.length})</span>
-                                                    <span className="font-semibold text-green-900">
-                                                        {financeService.formatCurrency(getSelectedTotal().events)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            {selectedItems.awards.length > 0 && (
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-green-800">Awards ({selectedItems.awards.length})</span>
-                                                    <span className="font-semibold text-green-900">
-                                                        {financeService.formatCurrency(getSelectedTotal().awards)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <div className="pt-2 border-t border-green-300">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-medium text-green-800">Total Payout Amount</span>
-                                                    <span className="text-2xl font-bold text-green-600">
-                                                        {financeService.formatCurrency(getSelectedTotal().total)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Payment Method */}
-                            <div>
-                                <h3 className="font-medium text-gray-900 mb-3">Payment Method</h3>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => setPaymentMethod('mobile_money')}
-                                        className={cn(
-                                            "p-4 border-2 rounded-lg text-left transition-colors",
-                                            paymentMethod === 'mobile_money'
-                                                ? "border-(--brand-primary) bg-(--brand-primary)/5"
-                                                : "border-gray-200 hover:border-gray-300"
-                                        )}
-                                    >
-                                        <Smartphone size={24} className={paymentMethod === 'mobile_money' ? "text-(--brand-primary)" : "text-gray-400"} />
-                                        <p className="font-medium text-gray-900 mt-2">Mobile Money</p>
-                                        <p className="text-sm text-gray-500">MTN, Vodafone, AirtelTigo</p>
-                                    </button>
-                                    <button
-                                        onClick={() => setPaymentMethod('bank')}
-                                        className={cn(
-                                            "p-4 border-2 rounded-lg text-left transition-colors",
-                                            paymentMethod === 'bank'
-                                                ? "border-(--brand-primary) bg-(--brand-primary)/5"
-                                                : "border-gray-200 hover:border-gray-300"
-                                        )}
-                                    >
-                                        <Building2 size={24} className={paymentMethod === 'bank' ? "text-(--brand-primary)" : "text-gray-400"} />
-                                        <p className="font-medium text-gray-900 mt-2">Bank Transfer</p>
-                                        <p className="text-sm text-gray-500">Direct bank deposit</p>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Payment Details */}
-                            <div>
-                                <h3 className="font-medium text-gray-900 mb-3">Payment Details</h3>
-
-                                {paymentMethod === 'mobile_money' ? (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                Mobile Network *
-                                            </label>
-                                            <div className="relative">
-                                                <select
-                                                    value={paymentDetails.mobileNetwork}
-                                                    onChange={(e) => setPaymentDetails(prev => ({ ...prev, mobileNetwork: e.target.value }))}
-                                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary) appearance-none bg-white"
-                                                >
-                                                    <option value="">Select network</option>
-                                                    {mobileNetworks.map((network) => (
-                                                        <option key={network} value={network}>{network}</option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                Mobile Number *
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                value={paymentDetails.mobileNumber}
-                                                onChange={(e) => setPaymentDetails(prev => ({ ...prev, mobileNumber: e.target.value }))}
-                                                placeholder="0XX XXX XXXX"
-                                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                            />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                Bank Name *
-                                            </label>
-                                            <div className="relative">
-                                                <select
-                                                    value={paymentDetails.bankName}
-                                                    onChange={(e) => setPaymentDetails(prev => ({ ...prev, bankName: e.target.value }))}
-                                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary) appearance-none bg-white"
-                                                >
-                                                    <option value="">Select bank</option>
-                                                    {banks.map((bank) => (
-                                                        <option key={bank} value={bank}>{bank}</option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                Account Name *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={paymentDetails.accountName}
-                                                onChange={(e) => setPaymentDetails(prev => ({ ...prev, accountName: e.target.value }))}
-                                                placeholder="Enter account name"
-                                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                Account Number *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={paymentDetails.accountNumber}
-                                                onChange={(e) => setPaymentDetails(prev => ({ ...prev, accountNumber: e.target.value }))}
-                                                placeholder="Enter account number"
-                                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                SWIFT/BIC Code (Optional)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={paymentDetails.swiftCode}
-                                                onChange={(e) => setPaymentDetails(prev => ({ ...prev, swiftCode: e.target.value }))}
-                                                placeholder="Enter SWIFT code"
-                                                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Notice */}
-                            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg flex gap-3">
-                                <AlertCircle size={20} className="text-amber-600 shrink-0 mt-0.5" />
-                                <div className="text-sm text-amber-800">
-                                    <p className="font-medium">Processing Time</p>
-                                    <p className="mt-1">
-                                        Payouts are processed within 1-3 business days.
-                                        You will receive a confirmation email once the transfer is complete.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => setShowPayoutModal(false)}>
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={handlePayoutSubmit}
-                                disabled={selectedItems.events.length === 0 && selectedItems.awards.length === 0}
-                            >
-                                Request Payout {financeService.formatCurrency(getSelectedTotal().total)}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Payout Request Modal */}
+            <PayoutRequestModal
+                isOpen={showPayoutModal}
+                onClose={() => setShowPayoutModal(false)}
+                eventsData={eventsData}
+                awardsData={awardsData}
+                onSuccess={() => {
+                    fetchFinancialOverview();
+                    if (activeTab === 'events') fetchEventsRevenue();
+                    if (activeTab === 'awards') fetchAwardsRevenue();
+                }}
+            />
         </div>
     );
 };
