@@ -23,7 +23,7 @@ import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
 
 // Auth Components
-import { OrganizerRoute, AttendeeRoute } from "../components/auth/ProtectedRoute";
+import { OrganizerRoute, AttendeeRoute, AdminRoute } from "../components/auth/ProtectedRoute";
 
 // Organizer Dashboard
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
@@ -42,6 +42,10 @@ import Attendees from "../pages/organizer/Attendees";
 import Finance from "../pages/organizer/Finance";
 import FinanceEventDetails from "../pages/organizer/FinanceEventDetails";
 import OrganizerSettings from "../pages/organizer/OrganizerSettings";
+
+// Admin Dashboard
+import AdminLayout from "../components/admin/layout/AdminLayout";
+import AdminDashboard from "../pages/admin/Dashboard";
 
 const AppRoutes = () => {
     return (
@@ -100,6 +104,13 @@ const AppRoutes = () => {
                 <Route path="finance/events/:id" element={<FinanceEventDetails />} />
                 <Route path="settings" element={<OrganizerSettings />} />
                 <Route path="*" element={<Navigate to="/organizer/dashboard" replace />} />
+            </Route>
+
+            {/* ADMIN DASHBOARD ROUTES */}
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Route>
 
             {/* 404 NOT FOUND */}

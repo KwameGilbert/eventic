@@ -1,6 +1,6 @@
-import React,{ useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Settings, Lock, ShoppingBag, Trophy } from 'lucide-react';
+import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Settings, Lock, ShoppingBag, Trophy, LayoutDashboard, Shield } from 'lucide-react';
 import { categories } from '../../pages/Categories';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -102,6 +102,19 @@ const NavBar = () => {
                                             {/* User Dropdown */}
                                             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
                                                 <div className="py-2">
+                                                    {/* Dashboard Link for Admin/Organizer */}
+                                                    {(user?.role === 'admin' || user?.role === 'organizer') && (
+                                                        <>
+                                                            <Link
+                                                                to={user?.role === 'admin' ? '/admin/dashboard' : '/organizer/dashboard'}
+                                                                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                            >
+                                                                {user?.role === 'admin' ? <Shield size={16} /> : <LayoutDashboard size={16} />}
+                                                                <span className="text-sm font-semibold">Dashboard</span>
+                                                            </Link>
+                                                            <hr className="my-2" />
+                                                        </>
+                                                    )}
                                                     {userMenuItems.map((item) => (
                                                         <Link
                                                             key={item.path}
@@ -216,6 +229,17 @@ const NavBar = () => {
                                                                 <p className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</p>
                                                                 <p className="text-xs text-gray-500">{user?.email || ''}</p>
                                                             </div>
+                                                            {/* Dashboard Link for Admin/Organizer */}
+                                                            {(user?.role === 'admin' || user?.role === 'organizer') && (
+                                                                <Link
+                                                                    to={user?.role === 'admin' ? '/admin/dashboard' : '/organizer/dashboard'}
+                                                                    onClick={() => setIsMobileSignUpOpen(false)}
+                                                                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-200"
+                                                                >
+                                                                    {user?.role === 'admin' ? <Shield size={18} /> : <LayoutDashboard size={18} />}
+                                                                    <span className="text-sm font-semibold">Dashboard</span>
+                                                                </Link>
+                                                            )}
                                                             {userMenuItems.map((item) => (
                                                                 <Link
                                                                     key={item.path}
