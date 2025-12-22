@@ -18,7 +18,8 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import attendeeService from '../../services/attendeeService';
-import { showError } from '../../utils/toast';
+import { showError, showSuccess } from '../../utils/toast';
+import { exportAttendees } from '../../utils/export';
 
 const Attendees = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -140,8 +141,19 @@ const Attendees = () => {
     };
 
     const handleExport = () => {
-        // TODO: Implement export functionality
-        showError('Export functionality coming soon!');
+        if (filteredAttendees.length === 0) {
+            showError('No attendees to export');
+            return;
+        }
+
+        try {
+            const filename = `attendees-export-${new Date().toISOString().split('T')[0]}`;
+            exportAttendees(filteredAttendees, filename);
+            showSuccess(`Exported ${filteredAttendees.length} attendees successfully`);
+        } catch (error) {
+            console.error('Export error:', error);
+            showError('Failed to export attendees');
+        }
     };
 
     // Loading state
