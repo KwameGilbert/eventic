@@ -228,7 +228,7 @@ const Finance = () => {
                 </div>
                 <div className="bg-red-50 border border-red-200 rounded-xl p-6">
                     <div className="flex items-start gap-3">
-                        <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={24} />
+                        <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={24} />
                         <div>
                             <h3 className="font-semibold text-red-800 mb-1">Error Loading Financial Data</h3>
                             <p className="text-red-700">{error}</p>

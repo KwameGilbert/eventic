@@ -20,12 +20,14 @@ import { Badge } from '../../components/ui/badge';
 import attendeeService from '../../services/attendeeService';
 import { showError, showSuccess } from '../../utils/toast';
 import { exportAttendees } from '../../utils/export';
+import EmailAttendeesModal from '../../components/organizer/EmailAttendeesModal';
 
 const Attendees = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [eventFilter, setEventFilter] = useState('all');
     const [selectedAttendees, setSelectedAttendees] = useState([]);
+    const [showEmailModal, setShowEmailModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -156,6 +158,40 @@ const Attendees = () => {
         }
     };
 
+    const handleSendEmail = async (emailData) => {
+        try {
+            // Call the actual backend API
+            const response = await attendeeService.sendBulkEmail({
+                attendee_ids: selectedAttendees,
+                subject: emailData.subject,
+                message: emailData.message,
+            });
+
+            // Check response and show appropriate message
+            if (response.success) {
+                const data = response.data;
+                if (data.fail_count > 0) {
+                    showSuccess(`Email sent to ${data.success_count} attendee(s). ${data.fail_count} failed.`);
+                } else {
+                    showSuccess(`Email sent successfully to ${data.success_count} attendee(s)`);
+                }
+
+                // Log any errors for debugging
+                if (data.errors && data.errors.length > 0) {
+                    console.warn('Email send errors:', data.errors);
+                }
+            } else {
+                throw new Error(response.message || 'Failed to send emails');
+            }
+
+            // Clear selection after sending
+            setSelectedAttendees([]);
+        } catch (error) {
+            console.error('Email send error:', error);
+            throw error; // Re-throw so the modal can handle it
+        }
+    };
+
     // Loading state
     if (isLoading && attendees.length === 0) {
         return (
@@ -208,7 +244,11 @@ const Attendees = () => {
                         Export
                     </Button>
                     {selectedAttendees.length > 0 && (
-                        <Button variant="outline" className="gap-2">
+                        <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => setShowEmailModal(true)}
+                        >
                             <Mail size={18} />
                             Email Selected ({selectedAttendees.length})
                         </Button>
@@ -451,6 +491,14 @@ const Attendees = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Email Attendees Modal */}
+            <EmailAttendeesModal
+                isOpen={showEmailModal}
+                onClose={() => setShowEmailModal(false)}
+                attendees={attendees.filter(att => selectedAttendees.includes(att.id))}
+                onSend={handleSendEmail}
+            />
         </div>
     );
 };
