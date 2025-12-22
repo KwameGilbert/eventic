@@ -80,7 +80,12 @@ const AwardDetail = () => {
         const now = new Date();
         const votingStart = new Date(award.voting_start);
         const votingEnd = new Date(award.voting_end);
+        const ceremonyDate = award.ceremony_date ? new Date(award.ceremony_date) : null;
 
+        // Check if ceremony has passed - show "completed"
+        if (ceremonyDate && now > ceremonyDate) return 'completed';
+
+        // Check voting status
         if (now < votingStart) return 'upcoming';
         if (now >= votingStart && now <= votingEnd) return 'voting_open';
         if (now > votingEnd) return 'voting_closed';
