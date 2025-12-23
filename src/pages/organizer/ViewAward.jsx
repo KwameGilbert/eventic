@@ -447,6 +447,14 @@ const ViewAward = () => {
 
                 {/* Actions Row */}
                 <div className="flex items-center gap-2 flex-wrap md:justify-end">
+                    <Button
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => openCategoryModal()}
+                    >
+                        <Plus size={16} />
+                        Add Category
+                    </Button>
                     <Button variant="outline" size="sm" className="gap-2" title="Share Award">
                         <Share2 size={16} />
                         <span className="hidden md:inline">Share</span>
@@ -602,60 +610,6 @@ const ViewAward = () => {
             <div className="grid grid-cols-12 gap-6">
                 {/* Left Column */}
                 <div className="col-span-12 lg:col-span-8 space-y-6">
-                    {/* Main Image */}
-                    <Card className="overflow-hidden">
-                        {award.image ? (
-                            <img
-                                src={award.image}
-                                alt={award.title}
-                                className="w-full h-64 object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
-                                <ImageIcon size={48} className="text-gray-300" />
-                            </div>
-                        )}
-                    </Card>
-
-                    {/* Description */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">About This Award</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600 whitespace-pre-line">{award.description || 'No description provided.'}</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Award Video */}
-                    {award.videoUrl && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Video size={20} className="text-orange-500" />
-                                    Award Video
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                                    <iframe
-                                        src={award.videoUrl.includes('youtu.be')
-                                            ? award.videoUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0]
-                                            : award.videoUrl.includes('youtube.com/watch')
-                                                ? award.videoUrl.replace('watch?v=', 'embed/')
-                                                : award.videoUrl
-                                        }
-                                        className="w-full h-full"
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        title="Award Video"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
                     {/* Categories & Nominees */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
@@ -789,36 +743,6 @@ const ViewAward = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Votes */}
-                    {award.recent_votes && award.recent_votes.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Users size={20} className="text-orange-500" />
-                                    Recent Votes
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {award.recent_votes.map((vote) => (
-                                        <div key={vote.id} className="flex items-start justify-between py-2 border-b border-gray-100 last:border-0">
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium text-gray-900">{vote.voter}</p>
-                                                <p className="text-xs text-gray-500">voted for <span className="font-medium">{vote.nominee}</span></p>
-                                                <p className="text-xs text-gray-400">{vote.category}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-semibold text-orange-600">{vote.votes} votes</p>
-                                                <p className="text-xs text-gray-500">GH₵{vote.amount}</p>
-                                                <p className="text-xs text-gray-400">{vote.created_at}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
                     {/* Vote Analytics */}
                     {award.vote_analytics && award.vote_analytics.length > 0 && (
                         <Card>
@@ -853,47 +777,85 @@ const ViewAward = () => {
                         </Card>
                     )}
 
-                    {/* Contact & Social */}
-                    {(award.contact || award.socialMedia || award.phone || award.website || award.facebook || award.twitter || award.instagram) && (
+                    {/* Main Image */}
+                    <Card className="overflow-hidden">
+                        {award.image ? (
+                            <img
+                                src={award.image}
+                                alt={award.title}
+                                className="w-full h-64 object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
+                                <ImageIcon size={48} className="text-gray-300" />
+                            </div>
+                        )}
+                    </Card>
+
+                    {/* Description */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">About This Award</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-gray-600 whitespace-pre-line">{award.description || 'No description provided.'}</p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Award Video */}
+                    {award.videoUrl && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg flex items-center gap-2">
-                                    <Globe size={20} className="text-orange-500" />
-                                    Contact & Social Media
+                                    <Video size={20} className="text-orange-500" />
+                                    Award Video
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {(award.contact?.phone || award.phone) && (
-                                        <a href={`tel:${award.contact?.phone || award.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-500">
-                                            <Phone size={16} />
-                                            {award.contact?.phone || award.phone}
-                                        </a>
-                                    )}
-                                    {(award.contact?.website || award.website) && (
-                                        <a href={`http://${award.contact?.website || award.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-500">
-                                            <Globe size={16} />
-                                            Website
-                                        </a>
-                                    )}
-                                    {(award.socialMedia?.facebook || award.facebook) && (
-                                        <a href={award.socialMedia?.facebook || award.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
-                                            <Facebook size={16} />
-                                            Facebook
-                                        </a>
-                                    )}
-                                    {(award.socialMedia?.twitter || award.twitter) && (
-                                        <a href={award.socialMedia?.twitter || award.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-sky-500">
-                                            <Twitter size={16} />
-                                            Twitter / X
-                                        </a>
-                                    )}
-                                    {(award.socialMedia?.instagram || award.instagram) && (
-                                        <a href={award.socialMedia?.instagram || award.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600">
-                                            <Instagram size={16} />
-                                            Instagram
-                                        </a>
-                                    )}
+                                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                                    <iframe
+                                        src={award.videoUrl.includes('youtu.be')
+                                            ? award.videoUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0]
+                                            : award.videoUrl.includes('youtube.com/watch')
+                                                ? award.videoUrl.replace('watch?v=', 'embed/')
+                                                : award.videoUrl
+                                        }
+                                        className="w-full h-full"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        title="Award Video"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Recent Votes */}
+                    {award.recent_votes && award.recent_votes.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Users size={20} className="text-orange-500" />
+                                    Recent Votes
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    {award.recent_votes.map((vote) => (
+                                        <div key={vote.id} className="flex items-start justify-between py-2 border-b border-gray-100 last:border-0">
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium text-gray-900">{vote.voter}</p>
+                                                <p className="text-xs text-gray-500">voted for <span className="font-medium">{vote.nominee}</span></p>
+                                                <p className="text-xs text-gray-400">{vote.category}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm font-semibold text-orange-600">{vote.votes} votes</p>
+                                                <p className="text-xs text-gray-500">GH₵{vote.amount}</p>
+                                                <p className="text-xs text-gray-400">{vote.created_at}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </CardContent>
                         </Card>
@@ -960,6 +922,52 @@ const ViewAward = () => {
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Contact & Social */}
+                    {(award.contact || award.socialMedia || award.phone || award.website || award.facebook || award.twitter || award.instagram) && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Globe size={20} className="text-orange-500" />
+                                    Contact & Social Media
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {(award.contact?.phone || award.phone) && (
+                                        <a href={`tel:${award.contact?.phone || award.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-500">
+                                            <Phone size={16} />
+                                            {award.contact?.phone || award.phone}
+                                        </a>
+                                    )}
+                                    {(award.contact?.website || award.website) && (
+                                        <a href={`http://${award.contact?.website || award.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-500">
+                                            <Globe size={16} />
+                                            Website
+                                        </a>
+                                    )}
+                                    {(award.socialMedia?.facebook || award.facebook) && (
+                                        <a href={award.socialMedia?.facebook || award.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
+                                            <Facebook size={16} />
+                                            Facebook
+                                        </a>
+                                    )}
+                                    {(award.socialMedia?.twitter || award.twitter) && (
+                                        <a href={award.socialMedia?.twitter || award.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-sky-500">
+                                            <Twitter size={16} />
+                                            Twitter / X
+                                        </a>
+                                    )}
+                                    {(award.socialMedia?.instagram || award.instagram) && (
+                                        <a href={award.socialMedia?.instagram || award.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600">
+                                            <Instagram size={16} />
+                                            Instagram
+                                        </a>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Organizer Info */}
                     {award.organizer && (

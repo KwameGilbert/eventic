@@ -510,7 +510,10 @@ const CreateAward = () => {
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
 
+                    {/* Right Column - Preview & Actions */}
+                    <div className="col-span-12 lg:col-span-4 space-y-6">
                         {/* Settings */}
                         <Card>
                             <CardHeader>
@@ -533,10 +536,7 @@ const CreateAward = () => {
 
                             </CardContent>
                         </Card>
-                    </div>
 
-                    {/* Right Column - Preview & Actions */}
-                    <div className="col-span-12 lg:col-span-4 space-y-6">
                         {/* Preview Card */}
                         <Card className="sticky top-6">
                             <CardHeader>
