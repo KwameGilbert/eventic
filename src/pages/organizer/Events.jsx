@@ -23,6 +23,8 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
 import organizerService from '../../services/organizerService';
+import eventService from '../../services/eventService';
+import { showSuccess, showError, showConfirm } from '../../utils/toast';
 
 const Events = () => {
     const navigate = useNavigate();
@@ -88,6 +90,37 @@ const Events = () => {
             event.location.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesTab && matchesSearch;
     });
+
+    const handleDeleteEvent = async (eventId, eventName) => {
+        const confirmed = await showConfirm(
+            'Delete Event?',
+            `Are you sure you want to delete "${eventName}"? This action cannot be undone and will remove all associated data.`,
+            'warning'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            setOpenDropdown(null);
+            const response = await eventService.delete(eventId);
+
+            if (response.success) {
+                showSuccess('Event deleted successfully');
+                // Refresh events list
+                const updatedResponse = await organizerService.getEventsData();
+                if (updatedResponse.success && updatedResponse.data) {
+                    setEvents(updatedResponse.data.events || []);
+                    setStats(updatedResponse.data.stats || []);
+                    setTabs(updatedResponse.data.tabs || []);
+                }
+            } else {
+                showError(response.message || 'Failed to delete event');
+            }
+        } catch (err) {
+            console.error('Error deleting event:', err);
+            showError(err.message || 'An error occurred while deleting the event');
+        }
+    };
 
     const toggleDropdown = (id) => {
         setOpenDropdown(openDropdown === id ? null : id);
@@ -189,7 +222,10 @@ const Events = () => {
                                     </Link>
 
                                     <hr className="my-1 text-gray-200" />
-                                    <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                    <button
+                                        onClick={() => handleDeleteEvent(event.id, event.name)}
+                                        className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
                                         <Trash2 size={14} />
                                         Delete Event
                                     </button>
@@ -338,7 +374,7 @@ const Events = () => {
                                             <Edit size={16} />
                                         </Link>
                                         <button
-                                            onClick={() => {/* Handle delete */ }}
+                                            onClick={() => handleDeleteEvent(event.id, event.name)}
                                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                             title="Delete Event"
                                         >

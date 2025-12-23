@@ -21,7 +21,8 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
 import financeService from '../../services/financeService';
-import { showError } from '../../utils/toast';
+import { showError, showSuccess } from '../../utils/toast';
+import { exportFinanceReport, exportFinanceSummary } from '../../utils/export';
 import PayoutRequestModal from '../../components/organizer/PayoutRequestModal';
 
 const Finance = () => {
@@ -116,6 +117,77 @@ const Finance = () => {
         }
     };
 
+    const handleExportReport = async () => {
+        try {
+            // Make sure we have the data for the active tab
+            if (activeTab === 'overview') {
+                // Ensure we have both events and awards data
+                if (eventsData.length === 0) await fetchEventsRevenue();
+                if (awardsData.length === 0) await fetchAwardsRevenue();
+
+                if (eventsData.length === 0 && awardsData.length === 0) {
+                    showError('No data available to export');
+                    return;
+                }
+
+                exportFinanceSummary(overview, eventsData, awardsData);
+                showSuccess('Finance summary exported successfully');
+            } else if (activeTab === 'events') {
+                if (eventsData.length === 0) await fetchEventsRevenue();
+
+                if (eventsData.length === 0) {
+                    showError('No events data to export');
+                    return;
+                }
+
+                exportFinanceReport(eventsData, 'events');
+                showSuccess(`Exported ${eventsData.length} events successfully`);
+            } else if (activeTab === 'awards') {
+                if (awardsData.length === 0) await fetchAwardsRevenue();
+
+                if (awardsData.length === 0) {
+                    showError('No awards data to export');
+                    return;
+                }
+
+                exportFinanceReport(awardsData, 'awards');
+                showSuccess(`Exported ${awardsData.length} awards successfully`);
+            } else if (activeTab === 'payouts') {
+                if (payouts.length === 0) await fetchPayoutHistory();
+
+                if (payouts.length === 0) {
+                    showError('No payout history to export');
+                    return;
+                }
+
+                // Export payouts (using events format as template)
+                const payoutColumns = payouts.map(p => ({
+                    id: p.id,
+                    date: p.date,
+                    method: `${p.method} •••• ${p.accountEnding}`,
+                    amount: p.amount,
+                    status: p.status,
+                    events: p.events.join(', '),
+                }));
+
+                const { arrayToCSV, downloadCSV } = await import('../../utils/export');
+                const csv = arrayToCSV(payoutColumns, [
+                    { key: 'id', label: 'Payout ID' },
+                    { key: 'date', label: 'Date' },
+                    { key: 'events', label: 'Items' },
+                    { key: 'method', label: 'Payment Method' },
+                    { key: 'amount', label: 'Amount (GH₵)' },
+                    { key: 'status', label: 'Status' },
+                ]);
+                downloadCSV(csv, `payout-history-${new Date().toISOString().split('T')[0]}`);
+                showSuccess(`Exported ${payouts.length} payouts successfully`);
+            }
+        } catch (error) {
+            console.error('Export error:', error);
+            showError('Failed to export report');
+        }
+    };
+
     const getStatusStyle = (status) => {
         switch (status?.toLowerCase()) {
             case 'completed': return 'success';
@@ -156,7 +228,7 @@ const Finance = () => {
                 </div>
                 <div className="bg-red-50 border border-red-200 rounded-xl p-6">
                     <div className="flex items-start gap-3">
-                        <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={24} />
+                        <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={24} />
                         <div>
                             <h3 className="font-semibold text-red-800 mb-1">Error Loading Financial Data</h3>
                             <p className="text-red-700">{error}</p>
@@ -186,7 +258,7 @@ const Finance = () => {
                     <p className="text-gray-500 mt-1">Track your revenue and manage payouts</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2" onClick={handleExportReport}>
                         <Download size={18} />
                         Export Report
                     </Button>
