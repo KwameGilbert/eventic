@@ -18,13 +18,16 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import attendeeService from '../../services/attendeeService';
-import { showError } from '../../utils/toast';
+import { showError, showSuccess } from '../../utils/toast';
+import { exportAttendees } from '../../utils/export';
+import EmailAttendeesModal from '../../components/organizer/EmailAttendeesModal';
 
 const Attendees = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [eventFilter, setEventFilter] = useState('all');
     const [selectedAttendees, setSelectedAttendees] = useState([]);
+    const [showEmailModal, setShowEmailModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -140,8 +143,53 @@ const Attendees = () => {
     };
 
     const handleExport = () => {
-        // TODO: Implement export functionality
-        showError('Export functionality coming soon!');
+        if (filteredAttendees.length === 0) {
+            showError('No attendees to export');
+            return;
+        }
+
+        try {
+            const filename = `attendees-export-${new Date().toISOString().split('T')[0]}`;
+            exportAttendees(filteredAttendees, filename);
+            showSuccess(`Exported ${filteredAttendees.length} attendees successfully`);
+        } catch (error) {
+            console.error('Export error:', error);
+            showError('Failed to export attendees');
+        }
+    };
+
+    const handleSendEmail = async (emailData) => {
+        try {
+            // Call the actual backend API
+            const response = await attendeeService.sendBulkEmail({
+                attendee_ids: selectedAttendees,
+                subject: emailData.subject,
+                message: emailData.message,
+            });
+
+            // Check response and show appropriate message
+            if (response.success) {
+                const data = response.data;
+                if (data.fail_count > 0) {
+                    showSuccess(`Email sent to ${data.success_count} attendee(s). ${data.fail_count} failed.`);
+                } else {
+                    showSuccess(`Email sent successfully to ${data.success_count} attendee(s)`);
+                }
+
+                // Log any errors for debugging
+                if (data.errors && data.errors.length > 0) {
+                    console.warn('Email send errors:', data.errors);
+                }
+            } else {
+                throw new Error(response.message || 'Failed to send emails');
+            }
+
+            // Clear selection after sending
+            setSelectedAttendees([]);
+        } catch (error) {
+            console.error('Email send error:', error);
+            throw error; // Re-throw so the modal can handle it
+        }
     };
 
     // Loading state
@@ -196,7 +244,11 @@ const Attendees = () => {
                         Export
                     </Button>
                     {selectedAttendees.length > 0 && (
-                        <Button variant="outline" className="gap-2">
+                        <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => setShowEmailModal(true)}
+                        >
                             <Mail size={18} />
                             Email Selected ({selectedAttendees.length})
                         </Button>
@@ -439,6 +491,14 @@ const Attendees = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Email Attendees Modal */}
+            <EmailAttendeesModal
+                isOpen={showEmailModal}
+                onClose={() => setShowEmailModal(false)}
+                attendees={attendees.filter(att => selectedAttendees.includes(att.id))}
+                onSend={handleSendEmail}
+            />
         </div>
     );
 };

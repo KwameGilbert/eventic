@@ -162,6 +162,29 @@ const organizerService = {
         const response = await api.get(`/organizers/${organizerId}/stats`);
         return response;
     },
+
+    /**
+     * Resend order confirmation email
+     * @param {number|string} orderId - Order ID
+     * @returns {Promise<Object>} Response with email sent status
+     */
+    resendOrderConfirmation: async (orderId) => {
+        const response = await api.post(`/organizers/data/orders/${orderId}/resend-confirmation`);
+        return response;
+    },
+
+    /**
+     * Process order refund
+     * @param {number|string} orderId - Order ID
+     * @param {Object} refundData - Refund data
+     * @param {number} [refundData.amount] - Refund amount (defaults to full amount)
+     * @param {string} [refundData.reason] - Refund reason
+     * @returns {Promise<Object>} Response with refund status
+     */
+    processOrderRefund: async (orderId, refundData = {}) => {
+        const response = await api.post(`/organizers/data/orders/${orderId}/refund`, refundData);
+        return response;
+    },
 };
 
 export default organizerService;

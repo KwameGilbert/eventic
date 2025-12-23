@@ -22,6 +22,8 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
 import organizerService from '../../services/organizerService';
+import { showSuccess, showError, showConfirm } from '../../utils/toast';
+import { arrayToCSV, downloadCSV } from '../../utils/export';
 
 const Orders = () => {
     const [activeTab, setActiveTab] = useState('all');
@@ -121,6 +123,117 @@ const Orders = () => {
         setOpenDropdown(openDropdown === id ? null : id);
     };
 
+    const handleExportOrders = async () => {
+        try {
+            const data = orders.map(order => ({
+                'Order ID': order.id,
+                'Customer Name': order.customer.name,
+                'Customer Email': order.customer.email,
+                'Event': order.event.name,
+                'Event Date': order.event.date,
+                'Tickets': order.tickets.reduce((sum, t) => sum + t.quantity, 0),
+                'Amount': `$${order.totalAmount.toLocaleString()}`,
+                'Status': order.status,
+                'Order Date': formatDate(order.orderDate),
+            }));
+
+            const csv = arrayToCSV(data);
+            const filename = `orders_${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV(csv, filename);
+            showSuccess(`Exported ${data.length} orders successfully`);
+        } catch (error) {
+            console.error('Export error:', error);
+            showError('Failed to export orders');
+        }
+    };
+
+    const handleDownloadInvoice = (order) => {
+        try {
+            // Generate simple invoice text
+            const invoiceText = `
+INVOICE
+===============================
+Order ID: ${order.id}
+Date: ${formatDate(order.orderDate)}
+
+Customer Information:
+Name: ${order.customer.name}
+Email: ${order.customer.email}
+
+Event: ${order.event.name}
+Event Date: ${order.event.date}
+
+Tickets:
+${order.tickets.map(t => `${t.quantity}x ${t.name || 'Ticket'}`).join('\n')}
+
+Total Amount: $${order.totalAmount.toLocaleString()}
+Status: ${order.status}
+
+Thank you for your purchase!
+===============================
+            `.trim();
+
+            // Create blob and download
+            const blob = new Blob([invoiceText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoice_${order.id}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showSuccess('Invoice downloaded successfully');
+        } catch (error) {
+            console.error('Download invoice error:', error);
+            showError('Failed to download invoice');
+        }
+    };
+
+    const handleResendConfirmation = async (order) => {
+        try {
+            const response = await organizerService.resendOrderConfirmation(order.id);
+
+            if (response.success) {
+                showSuccess(`Confirmation email sent to ${order.customer.email}`);
+            } else {
+                showError(response.message || 'Failed to send confirmation email');
+            }
+        } catch (error) {
+            console.error('Resend confirmation error:', error);
+            showError(error.message || 'Failed to send confirmation email');
+        }
+    };
+
+    const handleProcessRefund = async (order) => {
+        try {
+            const confirmed = await showConfirm(
+                'Process Refund?',
+                `Are you sure you want to process a refund for order ${order.id}? This will refund $${order.totalAmount.toLocaleString()} to ${order.customer.name}.`,
+                'warning'
+            );
+
+            if (!confirmed) return;
+
+            const response = await organizerService.processOrderRefund(order.id, {
+                amount: order.totalAmount,
+                reason: 'Refund requested by organizer'
+            });
+
+            if (response.success) {
+                showSuccess('Refund processed successfully');
+                // Refresh orders
+                fetchOrders();
+            } else {
+                showError(response.message || 'Failed to process refund');
+            }
+        } catch (error) {
+            console.error('Process refund error:', error);
+            showError(error.message || 'Failed to process refund');
+        }
+    };
+
     const formatDate = (dateStr) => {
         const date = new Date(dateStr);
         return date.toLocaleDateString('en-US', {
@@ -167,7 +280,7 @@ const Orders = () => {
                     <p className="text-gray-500 mt-1">Manage and track all your ticket orders</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2" onClick={handleExportOrders}>
                         <Download size={18} />
                         Export
                     </Button>
@@ -367,18 +480,27 @@ const Orders = () => {
                                                             <Eye size={14} />
                                                             View Details
                                                         </Link>
-                                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleDownloadInvoice(order)}
+                                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                        >
                                                             <Download size={14} />
                                                             Download Invoice
                                                         </button>
-                                                        <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleResendConfirmation(order)}
+                                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                        >
                                                             <Mail size={14} />
                                                             Resend Confirmation
                                                         </button>
                                                         {order.status === 'Completed' && (
                                                             <>
                                                                 <hr className="my-1" />
-                                                                <button className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                                                <button
+                                                                    onClick={() => handleProcessRefund(order)}
+                                                                    className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                                                >
                                                                     <RefreshCw size={14} />
                                                                     Process Refund
                                                                 </button>

@@ -159,6 +159,19 @@ const attendeeService = {
         const response = await api.get('/organizers/data/attendees', { params });
         return response;
     },
+
+    /**
+     * Send bulk email to selected attendees
+     * @param {Object} emailData - Email data
+     * @param {Array} emailData.attendee_ids - Array of attendee (ticket) IDs
+     * @param {string} emailData.subject - Email subject
+     * @param {string} emailData.message - Email message body
+     * @returns {Promise<Object>} Send result with success/fail counts
+     */
+    sendBulkEmail: async (emailData) => {
+        const response = await api.post('/organizers/data/attendees/send-email', emailData);
+        return response;
+    },
 };
 
 export default attendeeService;
