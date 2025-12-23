@@ -116,7 +116,7 @@ const AwardLeaderboard = () => {
                     <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Award Not Found</h2>
                     <Link to="/awards" className="text-(--brand-primary) hover:underline font-semibold">
-                        Browse all awards →
+                        Browse all award events →
                     </Link>
                 </div>
             </div>
@@ -137,7 +137,7 @@ const AwardLeaderboard = () => {
                                 <HomeIcon size={16} />
                             </Link>
                             <span>/</span>
-                            <Link to="/awards" className="hover:text-(--brand-primary)">Awards</Link>
+                            <Link to="/awards" className="hover:text-(--brand-primary)">Award Events</Link>
                             <span>/</span>
                             <Link to={`/award/${slug}`} className="hover:text-(--brand-primary)">{award.title}</Link>
                             <span>/</span>

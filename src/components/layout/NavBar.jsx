@@ -17,8 +17,8 @@ const NavBar = () => {
     // Navigation items configuration
     const navItems = [
         { path: '/', label: 'Home', icon: Home, isActive: true },
-        { path: '/awards', label: 'Awards', icon: Trophy },
-        { path: '/events', label: 'Browse Events', icon: Calendar },
+        { path: '/awards', label: 'Award Events', icon: Trophy },
+        { path: '/events', label: 'Ticketing Events', icon: Calendar },
         { path: '/categories', label: 'Event Categories', icon: Compass, hasDropdown: true },
         // { path: '/venues', label: 'Venues', icon: MapPin },
         { path: '/how-it-works', label: 'How it works?', icon: HelpCircle },

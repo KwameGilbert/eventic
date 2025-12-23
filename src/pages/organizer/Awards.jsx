@@ -381,8 +381,8 @@ const Awards = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Awards</h1>
-                    <p className="text-gray-500 mt-1">Manage and monitor all your awards</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Award Events</h1>
+                    <p className="text-gray-500 mt-1">Manage and monitor all your award events</p>
                 </div>
                 <Link to="/organizer/awards/create">
                     <Button className="gap-2">

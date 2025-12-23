@@ -327,12 +327,19 @@ const ViewAward = () => {
         }
 
         try {
-            await awardService.delete(id);
-            showSuccess('Award deleted successfully');
-            navigate('/organizer/awards');
+            const response = await awardService.delete(id);
+
+            if (response.success) {
+                showSuccess('Award deleted successfully');
+                navigate('/organizer/awards');
+            } else {
+                showError(response.message || 'Failed to delete award');
+            }
         } catch (err) {
             console.error('Error deleting award:', err);
-            showError(err.message || 'Failed to delete award');
+            // API errors come with a message property from the interceptor
+            const errorMessage = err.message || 'Failed to delete award';
+            showError(errorMessage);
         }
     };
 

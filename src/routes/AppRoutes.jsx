@@ -46,6 +46,7 @@ import OrganizerSettings from "../pages/organizer/OrganizerSettings";
 // Admin Dashboard
 import AdminLayout from "../components/admin/layout/AdminLayout";
 import AdminDashboard from "../pages/admin/Dashboard";
+import AdminUsers from "../pages/admin/Users";
 
 const AppRoutes = () => {
     return (
@@ -110,6 +111,7 @@ const AppRoutes = () => {
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
                 <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Route>
 

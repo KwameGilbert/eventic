@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -22,8 +23,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const navigation = [
         { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
         { name: 'Users', href: '/admin/users', icon: Users },
-        { name: 'Events', href: '/admin/events', icon: Calendar },
-        { name: 'Awards', href: '/admin/awards', icon: Trophy },
+        { name: 'Ticketing Events', href: '/admin/events', icon: Calendar },
+        { name: 'Award Events', href: '/admin/awards', icon: Trophy },
         { name: 'Finance', href: '/admin/finance', icon: DollarSign },
         { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
         { name: 'Activity Logs', href: '/admin/activity', icon: Activity },
@@ -111,6 +112,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             </aside>
         </>
     );
+};
+
+Sidebar.propTypes = {
+    isSidebarOpen: PropTypes.bool.isRequired,
+    setIsSidebarOpen: PropTypes.func.isRequired,
 };
 
 export default Sidebar;

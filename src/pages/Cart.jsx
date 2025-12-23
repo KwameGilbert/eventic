@@ -67,7 +67,7 @@ const Cart = () => {
                             className="inline-flex items-center gap-2 bg-[var(--brand-primary)] text-white font-semibold py-3 px-8 rounded-full hover:opacity-90 transition-opacity"
                         >
                             <ArrowLeft size={20} />
-                            Browse Events
+                            Browse Ticketing Events
                         </Link>
                     </div>
                 </div>

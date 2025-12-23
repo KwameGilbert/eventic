@@ -19,8 +19,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
     const navigation = [
         { name: 'Dashboard', href: '/organizer/dashboard', icon: LayoutDashboard },
-        { name: 'Events', href: '/organizer/events', icon: Calendar },
-        { name: 'Awards', href: '/organizer/awards', icon: Trophy },
+        { name: 'Ticketing Events', href: '/organizer/events', icon: Calendar },
+        { name: 'Award Events', href: '/organizer/awards', icon: Trophy },
         { name: 'Orders', href: '/organizer/orders', icon: ShoppingBag },
         { name: 'Attendees', href: '/organizer/attendees', icon: Users },
         { name: 'Finance', href: '/organizer/finance', icon: DollarSign },

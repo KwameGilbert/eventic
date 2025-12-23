@@ -170,7 +170,7 @@ const Categories = () => {
 
                                 {/* Link */}
                                 <div className="flex items-center gap-2 text-(--brand-primary) font-medium text-sm group-hover:gap-3 transition-all">
-                                    <span>Browse Events</span>
+                                    <span>Browse Ticketing Events</span>
                                     <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                                 </div>
                             </div>
@@ -190,7 +190,7 @@ const Categories = () => {
                         to="/events"
                         className="inline-flex items-center gap-2 bg-(--brand-primary) text-white px-6 py-3 rounded-xl font-semibold hover:bg-(--brand-primary)/90 transition-all hover:-translate-y-0.5"
                     >
-                        Browse All Events
+                        Browse All Ticketing Events
                         <ArrowRight size={18} />
                     </Link>
                 </div>

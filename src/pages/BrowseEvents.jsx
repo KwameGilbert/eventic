@@ -119,10 +119,10 @@ const BrowseEvents = () => {
         <div className="bg-gray-50 min-h-screen">
             {/* Page Header */}
             <PageHeader
-                title="Events"
+                title="Ticketing Events"
                 breadcrumbs={[
                     { icon: <HomeIcon size={16} />, path: '/' },
-                    { label: 'Events' }
+                    { label: 'Ticketing Events' }
                 ]}
             />
 

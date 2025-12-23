@@ -84,7 +84,7 @@ const EventDetails = () => {
                             to="/events"
                             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                            Browse Events
+                            Browse Ticketing Events
                         </Link>
                     </div>
                 </div>
@@ -101,7 +101,7 @@ const EventDetails = () => {
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Not Found</h2>
                     <p className="text-gray-600 mb-6">The event you are looking for does not exist or has been removed.</p>
                     <Link to="/events" className="text-(--brand-primary) hover:underline font-semibold">
-                        Browse all events →
+                        Browse all ticketing events →
                     </Link>
                 </div>
             </div>
@@ -134,7 +134,7 @@ const EventDetails = () => {
                                 <HomeIcon size={16} />
                             </Link>
                             <span>/</span>
-                            <Link to="/events" className="hover:text-(--brand-primary)">Events</Link>
+                            <Link to="/events" className="hover:text-(--brand-primary)">Ticketing Events</Link>
                             <span>/</span>
                             <span className="text-gray-900 font-medium truncate max-w-[200px]">{event.title}</span>
                         </div>

@@ -91,7 +91,7 @@ const AwardCard = ({ award, viewMode = 'grid' }) => {
                         )}
                         {award.organizer?.name && (
                             <div className="flex items-center gap-2">
-                                <Users size={16} className="flex-shrink-0 text-gray-400" />
+                                <Users size={16} className="shrink-0 text-gray-400" />
                                 <span className="truncate">By {award.organizer.name}</span>
                             </div>
                         )}

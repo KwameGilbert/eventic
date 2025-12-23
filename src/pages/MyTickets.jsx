@@ -196,7 +196,7 @@ const MyTickets = () => {
                             to="/events"
                             className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-orange-500 hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/30"
                         >
-                            Browse Events
+                            Browse Ticketing Events
                         </Link>
                     </div>
                 ) : (

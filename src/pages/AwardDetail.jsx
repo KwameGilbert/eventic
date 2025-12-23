@@ -163,7 +163,7 @@ const AwardDetail = () => {
                                 <HomeIcon size={16} />
                             </Link>
                             <span>/</span>
-                            <Link to="/awards" className="hover:text-(--brand-primary)">Awards</Link>
+                            <Link to="/awards" className="hover:text-(--brand-primary)">Award Events</Link>
                             <span>/</span>
                             <span className="text-gray-900 font-medium truncate max-w-[200px]">{award.title}</span>
                         </div>

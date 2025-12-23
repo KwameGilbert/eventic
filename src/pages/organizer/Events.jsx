@@ -361,8 +361,8 @@ const Events = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Events</h1>
-                    <p className="text-gray-500 mt-1">Manage and monitor all your events</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Ticketing Events</h1>
+                    <p className="text-gray-500 mt-1">Manage and monitor all your ticketing events</p>
                 </div>
                 <Link to="/organizer/events/create">
                     <Button className="gap-2">

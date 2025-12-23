@@ -70,6 +70,59 @@ const adminService = {
     },
 
     /**
+     * Get single user details
+     * @param {number} userId - User ID
+     * @returns {Promise<Object>} User details
+     */
+    getUser: async (userId) => {
+        const response = await api.get(`/admin/users/${userId}`);
+        return response;
+    },
+
+    /**
+     * Update user status
+     * @param {number} userId - User ID
+     * @param {string} status - New status (active, inactive, suspended)
+     * @returns {Promise<Object>} Update response
+     */
+    updateUserStatus: async (userId, status) => {
+        const response = await api.put(`/admin/users/${userId}/status`, { status });
+        return response;
+    },
+
+    /**
+     * Reset user password
+     * @param {number} userId - User ID
+     * @param {string} password - New password
+     * @returns {Promise<Object>} Reset response
+     */
+    resetUserPassword: async (userId, password) => {
+        const response = await api.post(`/admin/users/${userId}/reset-password`, { password });
+        return response;
+    },
+
+    /**
+     * Update user role
+     * @param {number} userId - User ID
+     * @param {string} role - New role (admin, organizer, attendee, pos, scanner)
+     * @returns {Promise<Object>} Update response
+     */
+    updateUserRole: async (userId, role) => {
+        const response = await api.put(`/admin/users/${userId}/role`, { role });
+        return response;
+    },
+
+    /**
+     * Delete user
+     * @param {number} userId - User ID
+     * @returns {Promise<Object>} Deletion response
+     */
+    deleteUser: async (userId) => {
+        const response = await api.delete(`/admin/users/${userId}`);
+        return response;
+    },
+
+    /**
      * Format currency
      * @param {number} amount - Amount to format
      * @param {string} currency - Currency code (default: GHS)
