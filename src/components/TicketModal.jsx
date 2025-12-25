@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { X, Download, Share2, Loader2 } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { X, Download, Share2, Loader2, Ticket, Calendar, Clock, MapPin } from 'lucide-react';
+import { domToPng, domToBlob } from 'modern-screenshot';
 import { showSuccess, showError } from '../utils/toast';
 import PropTypes from 'prop-types';
 
@@ -12,40 +12,53 @@ import PropTypes from 'prop-types';
 const TicketModal = ({ ticket, onClose }) => {
     const ticketRef = useRef(null);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [imageLoaded, setImageLoaded] = useState(false);
     const [bannerBase64, setBannerBase64] = useState(null);
 
-    // Convert external image to base64 to avoid CORS issues
+    // Convert external image to base64 using backend API (bypasses CORS)
     useEffect(() => {
         const imageUrl = ticket?.event?.banner_image || ticket?.event?.image;
         if (imageUrl && imageUrl.startsWith('http')) {
-            // Try to load the image and convert to base64
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.naturalWidth;
-                    canvas.height = img.naturalHeight;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    const base64 = canvas.toDataURL('image/jpeg', 0.8);
-                    setBannerBase64(base64);
-                } catch {
-                    // CORS blocked, use gradient only
-                    setBannerBase64(null);
-                }
-                setImageLoaded(true);
-            };
-            img.onerror = () => {
-                setBannerBase64(null);
-                setImageLoaded(true);
-            };
-            img.src = imageUrl;
-        } else {
-            setImageLoaded(true);
+            // Use backend API to convert image to base64 (no CORS issues on server)
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const encodedUrl = encodeURIComponent(imageUrl);
+
+            fetch(`${apiUrl}/v1/utils/image-to-base64?url=${encodedUrl}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data?.base64) {
+                        setBannerBase64(data.data.base64);
+                    } else {
+                        // Fallback: try client-side conversion (might fail due to CORS)
+                        fallbackClientConversion(imageUrl);
+                    }
+                })
+                .catch(() => {
+                    // Fallback: try client-side conversion
+                    fallbackClientConversion(imageUrl);
+                });
         }
     }, [ticket]);
+
+    // Fallback client-side image conversion (may fail due to CORS)
+    const fallbackClientConversion = (imageUrl) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const base64 = canvas.toDataURL('image/jpeg', 0.8);
+                setBannerBase64(base64);
+            } catch {
+                setBannerBase64(null);
+            }
+        };
+        img.onerror = () => setBannerBase64(null);
+        img.src = imageUrl;
+    };
 
     if (!ticket) return null;
 
@@ -69,7 +82,6 @@ const TicketModal = ({ ticket, onClose }) => {
         });
     };
 
-    // Status colors using hex values
     const getStatusColors = (status) => {
         switch (status) {
             case 'active':
@@ -85,58 +97,45 @@ const TicketModal = ({ ticket, onClose }) => {
         }
     };
 
-    // Get the image source (use base64 for download, original for display)
-    const getBannerSrc = (forCanvas = false) => {
+    const getBannerSrc = () => {
         const original = ticket.event?.banner_image || ticket.event?.image || '/images/event-placeholder.jpg';
-        if (forCanvas && bannerBase64) {
-            return bannerBase64;
-        }
-        return original;
+        return bannerBase64 || original;
     };
 
-    // Generate ticket image using html2canvas
-    const generateTicketImage = async () => {
-        if (!ticketRef.current) return null;
-
-        try {
-            // Wait for QR code to load
-            const qrImage = ticketRef.current.querySelector('img[alt="Ticket QR Code"]');
-            if (qrImage && !qrImage.complete) {
-                await new Promise(resolve => {
-                    qrImage.onload = resolve;
-                    qrImage.onerror = resolve;
-                });
-            }
-
-            const canvas = await html2canvas(ticketRef.current, {
-                backgroundColor: '#ffffff',
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-                imageTimeout: 10000,
-            });
-
-            return canvas;
-        } catch (error) {
-            console.error('Error generating ticket image:', error);
-            return null;
+    // Filter function to skip external images that would cause CORS errors
+    const imageFilter = (node) => {
+        // Skip img elements with external URLs (except QR code)
+        if (node.tagName === 'IMG') {
+            const src = node.getAttribute('src') || '';
+            // Allow QR codes (they have CORS headers)
+            if (src.includes('qrserver.com')) return true;
+            // Allow base64 images
+            if (src.startsWith('data:')) return true;
+            // Allow local images
+            if (src.startsWith('/')) return true;
+            // Skip all other external images
+            if (src.startsWith('http')) return false;
         }
+        return true;
     };
 
-    // Handle save/download ticket as image
     const handleSaveTicket = async () => {
         setIsGenerating(true);
         try {
-            const canvas = await generateTicketImage();
-            if (!canvas) {
+            if (!ticketRef.current) {
                 showError('Failed to generate ticket image');
                 return;
             }
 
+            const dataUrl = await domToPng(ticketRef.current, {
+                scale: 2,
+                quality: 1,
+                filter: imageFilter,
+            });
+
             const link = document.createElement('a');
             link.download = `ticket-${ticket.ticket_code || ticket.id}-${ticket.event?.title?.replace(/\s+/g, '-') || 'event'}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -150,17 +149,24 @@ const TicketModal = ({ ticket, onClose }) => {
         }
     };
 
-    // Handle share ticket as image
     const handleShareTicket = async () => {
         setIsGenerating(true);
         try {
-            const canvas = await generateTicketImage();
-            if (!canvas) {
+            if (!ticketRef.current) {
                 showError('Failed to generate ticket image');
                 return;
             }
 
-            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+            const blob = await domToBlob(ticketRef.current, {
+                scale: 2,
+                quality: 1,
+                filter: imageFilter,
+            });
+
+            if (!blob) {
+                showError('Failed to generate ticket image');
+                return;
+            }
 
             if (navigator.share && navigator.canShare) {
                 const file = new File([blob], `ticket-${ticket.id}.png`, { type: 'image/png' });
@@ -178,9 +184,10 @@ const TicketModal = ({ ticket, onClose }) => {
             }
 
             // Fallback: Download
+            const dataUrl = await domToPng(ticketRef.current, { scale: 2, filter: imageFilter });
             const link = document.createElement('a');
             link.download = `ticket-${ticket.ticket_code || ticket.id}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -203,17 +210,9 @@ const TicketModal = ({ ticket, onClose }) => {
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
         >
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0"
-                onClick={onClose}
-            />
+            <div className="absolute inset-0" onClick={onClose} />
 
-            {/* Modal Container */}
-            <div
-                className="relative w-full max-w-md"
-                style={{ maxHeight: '90vh', overflowY: 'auto' }}
-            >
+            <div className="relative w-full max-w-md" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
                     {/* Close Button */}
                     <button
@@ -226,17 +225,17 @@ const TicketModal = ({ ticket, onClose }) => {
 
                     {/* Ticket Content */}
                     <div ref={ticketRef} style={{ backgroundColor: '#ffffff' }}>
-                        {/* Ticket Header */}
-                        <div style={{
-                            position: 'relative',
-                            height: '160px',
-                            background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                            overflow: 'hidden'
-                        }}>
-                            {/* Banner Image - use base64 if available */}
-                            {(bannerBase64 || getBannerSrc()) && (
+                        {/* Ticket Header with perforated edge built-in */}
+                        <div style={{ position: 'relative' }}>
+                            {/* Header Image Area */}
+                            <div style={{
+                                height: '160px',
+                                background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                                overflow: 'hidden',
+                                position: 'relative'
+                            }}>
                                 <img
-                                    src={bannerBase64 || getBannerSrc()}
+                                    src={getBannerSrc()}
                                     alt=""
                                     style={{
                                         position: 'absolute',
@@ -249,109 +248,123 @@ const TicketModal = ({ ticket, onClose }) => {
                                     }}
                                     onError={(e) => { e.target.style.display = 'none'; }}
                                 />
-                            )}
-                            {/* Gradient Overlay */}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%)'
+                                }} />
+                                {/* Ticket ID Badge */}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '12px',
+                                    left: '12px',
+                                    backgroundColor: 'rgba(255,255,255,0.95)',
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    color: '#1f2937'
+                                }}>
+                                    #{String(ticket.id).toUpperCase()}
+                                </div>
+                                {/* Event Info */}
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: '16px',
+                                    left: '12px',
+                                    right: '12px'
+                                }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        color: '#fed7aa',
+                                        fontSize: '10px',
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        marginBottom: '2px'
+                                    }}>
+                                        <Ticket size={12} color="#fed7aa" />
+                                        <span>E-TICKET</span>
+                                    </div>
+                                    <h2 style={{
+                                        fontSize: '18px',
+                                        fontWeight: 700,
+                                        color: '#ffffff',
+                                        lineHeight: 1.0,
+                                        marginBottom: '0px'
+                                    }}>
+                                        {ticket.event?.title || 'Event'}
+                                    </h2>
+                                    <p style={{
+                                        color: 'rgba(255,255,255,0.85)',
+                                        fontSize: '12px',
+                                        fontWeight: 500
+                                    }}>
+                                        {ticket.ticketName || ticket.ticket_type?.name || 'General Admission'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Perforated Edge - positioned at the bottom of header */}
                             <div style={{
                                 position: 'absolute',
-                                top: 0,
+                                bottom: '4px',
                                 left: 0,
                                 right: 0,
-                                bottom: 0,
-                                background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%)'
-                            }} />
-                            {/* Ticket ID Badge */}
-                            <div style={{
-                                position: 'absolute',
-                                top: '12px',
-                                left: '12px',
-                                backgroundColor: 'rgba(255,255,255,0.95)',
-                                padding: '4px 10px',
-                                borderRadius: '20px',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                color: '#1f2937'
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                padding: '0 2px',
+                                zIndex: 10
                             }}>
-                                #{String(ticket.id).toUpperCase()}
+                                {Array(22).fill().map((_, i) => (
+                                    <div key={i} style={{
+                                        width: '10px',
+                                        height: '10px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#ffffff'
+                                    }} />
+                                ))}
                             </div>
-                            {/* Event Info */}
-                            <div style={{
-                                position: 'absolute',
-                                bottom: '12px',
-                                left: '12px',
-                                right: '12px'
-                            }}>
-                                <p style={{
-                                    color: '#fed7aa',
-                                    fontSize: '10px',
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    marginBottom: '2px'
-                                }}>
-                                    🎫 E-TICKET
-                                </p>
-                                <h2 style={{
-                                    fontSize: '18px',
-                                    fontWeight: 700,
-                                    color: '#ffffff',
-                                    lineHeight: 1.2,
-                                    marginBottom: '2px'
-                                }}>
-                                    {ticket.event?.title || 'Event'}
-                                </h2>
-                                <p style={{
-                                    color: 'rgba(255,255,255,0.85)',
-                                    fontSize: '13px',
-                                    fontWeight: 500
-                                }}>
-                                    {ticket.ticketName || ticket.ticket_type?.name || 'General Admission'}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Perforated Edge */}
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            padding: '0 4px',
-                            marginTop: '-5px',
-                            position: 'relative',
-                            zIndex: 1
-                        }}>
-                            {Array(20).fill().map((_, i) => (
-                                <div key={i} style={{
-                                    width: '10px',
-                                    height: '10px',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#f3f4f6'
-                                }} />
-                            ))}
                         </div>
 
                         {/* Ticket Body */}
-                        <div style={{ padding: '16px' }}>
+                        <div style={{ padding: '16px 16px 16px 16px' }}>
                             {/* Event Details */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                                 <div style={{ backgroundColor: '#f9fafb', borderRadius: '8px', padding: '10px' }}>
-                                    <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px' }}>
-                                        📅 Date
-                                    </p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                                        <Calendar size={12} color="#6b7280" />
+                                        <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>
+                                            Date
+                                        </p>
+                                    </div>
                                     <p style={{ fontWeight: 600, color: '#111827', fontSize: '13px' }}>
                                         {formatDate(ticket.event?.start_time || ticket.event?.date)}
                                     </p>
                                 </div>
                                 <div style={{ backgroundColor: '#f9fafb', borderRadius: '8px', padding: '10px' }}>
-                                    <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px' }}>
-                                        ⏰ Time
-                                    </p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                                        <Clock size={12} color="#6b7280" />
+                                        <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>
+                                            Time
+                                        </p>
+                                    </div>
                                     <p style={{ fontWeight: 600, color: '#111827', fontSize: '13px' }}>
                                         {formatTime(ticket.event?.start_time) || ticket.event?.time || 'TBD'}
                                     </p>
                                 </div>
                                 <div style={{ gridColumn: 'span 2', backgroundColor: '#f9fafb', borderRadius: '8px', padding: '10px' }}>
-                                    <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2px' }}>
-                                        📍 Venue
-                                    </p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                                        <MapPin size={12} color="#6b7280" />
+                                        <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>
+                                            Venue
+                                        </p>
+                                    </div>
                                     <p style={{ fontWeight: 600, color: '#111827', fontSize: '13px' }}>
                                         {ticket.event?.venue_name || ticket.event?.venue || 'TBD'}
                                     </p>
