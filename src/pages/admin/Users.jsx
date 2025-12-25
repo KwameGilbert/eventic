@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
     Users as UsersIcon,
@@ -453,14 +454,15 @@ const Users = () => {
                                             </td>
                                             <td className="py-4 px-4">
                                                 <div className="flex items-center justify-center gap-2 relative">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => setSelectedUser(user)}
-                                                        className="p-2"
-                                                    >
-                                                        <Eye size={16} />
-                                                    </Button>
+                                                    <Link to={`/admin/users/${user.id}`}>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="p-2"
+                                                        >
+                                                            <Eye size={16} />
+                                                        </Button>
+                                                    </Link>
                                                     <div className="relative">
                                                         <Button
                                                             variant="ghost"

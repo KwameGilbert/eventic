@@ -257,6 +257,73 @@ const adminService = {
     },
 
     // =====================================================
+    // FINANCE & PAYOUTS MANAGEMENT
+    // =====================================================
+
+    /**
+     * Get comprehensive finance overview
+     * @returns {Promise<Object>} Finance overview data with charts/trends
+     */
+    getFinanceOverview: async () => {
+        const response = await api.get('/admin/finance');
+        return response;
+    },
+
+    /**
+     * Get all payouts with optional filters
+     * @param {Object} params - Query parameters
+     * @param {string} [params.status] - Filter by status (pending, processing, completed, rejected)
+     * @param {string} [params.type] - Filter by type (event, award)
+     * @returns {Promise<Object>} Payouts data
+     */
+    getPayouts: async (params = {}) => {
+        const response = await api.get('/admin/payouts', { params });
+        return response;
+    },
+
+    /**
+     * Get payout summary statistics
+     * @returns {Promise<Object>} Payout summary
+     */
+    getPayoutSummary: async () => {
+        const response = await api.get('/admin/payouts/summary');
+        return response;
+    },
+
+    /**
+     * Approve a payout request
+     * @param {number} payoutId - Payout ID
+     * @param {string} [notes] - Optional notes
+     * @returns {Promise<Object>} Approval response
+     */
+    approvePayout: async (payoutId, notes = null) => {
+        const response = await api.post(`/admin/payouts/${payoutId}/approve`, { notes });
+        return response;
+    },
+
+    /**
+     * Reject a payout request
+     * @param {number} payoutId - Payout ID
+     * @param {string} reason - Rejection reason (required)
+     * @returns {Promise<Object>} Rejection response
+     */
+    rejectPayout: async (payoutId, reason) => {
+        const response = await api.post(`/admin/payouts/${payoutId}/reject`, { reason });
+        return response;
+    },
+
+    /**
+     * Mark a payout as completed
+     * @param {number} payoutId - Payout ID
+     * @param {string} [notes] - Optional notes
+     * @returns {Promise<Object>} Completion response
+     */
+    completePayout: async (payoutId, notes = null) => {
+        const response = await api.post(`/admin/payouts/${payoutId}/complete`, { notes });
+        return response;
+    },
+
+    // =====================================================
     // UTILITY METHODS
     // =====================================================
 

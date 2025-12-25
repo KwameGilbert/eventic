@@ -259,7 +259,50 @@ const VotePayment = () => {
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column - Payment Form */}
+                    {/* Left Column - Order Summary */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
+
+                            <div className="space-y-3 mb-4 pb-4 border-b border-gray-200">
+                                <div>
+                                    <div className="text-sm text-gray-600 mb-1">Award</div>
+                                    <div className="font-semibold text-gray-900">{award.title}</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-gray-600 mb-1">Category</div>
+                                    <div className="font-semibold text-gray-900">{category.name}</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-gray-600 mb-1">Nominee</div>
+                                    <div className="font-semibold text-gray-900">{nominee.name}</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-gray-600 mb-1">Number of Votes</div>
+                                    <div className="font-semibold text-gray-900">{votePackage.votes} {votePackage.votes === 1 ? 'vote' : 'votes'}</div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span className="font-semibold text-gray-900">GH₵{votePackage.price.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Processing Fee</span>
+                                    <span className="font-semibold text-gray-900">GH₵0.00</span>
+                                </div>
+                                <div className="border-t border-gray-200 pt-2 mt-2">
+                                    <div className="flex justify-between">
+                                        <span className="font-bold text-gray-900">Total</span>
+                                        <span className="font-bold text-(--brand-primary) text-xl">GH₵{votePackage.price.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                   
+                    {/* Right Column - Payment Form */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             {/* Back Button */}
@@ -378,48 +421,7 @@ const VotePayment = () => {
                         </div>
                     </div>
 
-                    {/* Right Column - Order Summary */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
-
-                            <div className="space-y-3 mb-4 pb-4 border-b border-gray-200">
-                                <div>
-                                    <div className="text-sm text-gray-600 mb-1">Award</div>
-                                    <div className="font-semibold text-gray-900">{award.title}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-gray-600 mb-1">Category</div>
-                                    <div className="font-semibold text-gray-900">{category.name}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-gray-600 mb-1">Nominee</div>
-                                    <div className="font-semibold text-gray-900">{nominee.name}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-gray-600 mb-1">Number of Votes</div>
-                                    <div className="font-semibold text-gray-900">{votePackage.votes} {votePackage.votes === 1 ? 'vote' : 'votes'}</div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Subtotal</span>
-                                    <span className="font-semibold text-gray-900">GH₵{votePackage.price.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Processing Fee</span>
-                                    <span className="font-semibold text-gray-900">GH₵0.00</span>
-                                </div>
-                                <div className="border-t border-gray-200 pt-2 mt-2">
-                                    <div className="flex justify-between">
-                                        <span className="font-bold text-gray-900">Total</span>
-                                        <span className="font-bold text-(--brand-primary) text-xl">GH₵{votePackage.price.toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                   
                 </div>
             </div>
         </div>
