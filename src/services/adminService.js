@@ -270,6 +270,17 @@ const adminService = {
     },
 
     /**
+     * Get comprehensive analytics data
+     * @param {Object} params - Query parameters
+     * @param {string} [params.period] - Time period (7days, 30days, 90days, 12months, all)
+     * @returns {Promise<Object>} Analytics data with trends, breakdowns, and top performers
+     */
+    getAnalytics: async (params = {}) => {
+        const response = await api.get('/admin/analytics', { params });
+        return response;
+    },
+
+    /**
      * Get all payouts with optional filters
      * @param {Object} params - Query parameters
      * @param {string} [params.status] - Filter by status (pending, processing, completed, rejected)
