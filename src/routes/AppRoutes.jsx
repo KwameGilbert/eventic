@@ -47,6 +47,10 @@ import OrganizerSettings from "../pages/organizer/OrganizerSettings";
 import AdminLayout from "../components/admin/layout/AdminLayout";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminUsers from "../pages/admin/Users";
+import AdminEvents from "../pages/admin/Events";
+import AdminEventDetail from "../pages/admin/EventDetail";
+import AdminAwards from "../pages/admin/Awards";
+import AdminAwardDetail from "../pages/admin/AwardDetail";
 
 const AppRoutes = () => {
     return (
@@ -112,6 +116,10 @@ const AppRoutes = () => {
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
+                <Route path="events" element={<AdminEvents />} />
+                <Route path="events/:id" element={<AdminEventDetail />} />
+                <Route path="awards" element={<AdminAwards />} />
+                <Route path="awards/:id" element={<AdminAwardDetail />} />
                 <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Route>
 

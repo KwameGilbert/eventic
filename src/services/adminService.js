@@ -122,6 +122,144 @@ const adminService = {
         return response;
     },
 
+    // =====================================================
+    // EVENT MANAGEMENT
+    // =====================================================
+
+    /**
+     * Get all events (admin)
+     * @param {Object} params - Query parameters
+     * @returns {Promise<Object>} Events data
+     */
+    getEvents: async (params = {}) => {
+        const response = await api.get('/admin/events', { params });
+        return response;
+    },
+
+    /**
+     * Toggle event featured status
+     * @param {number} eventId - Event ID
+     * @param {boolean} isFeatured - Featured status
+     * @returns {Promise<Object>} Update response
+     */
+    toggleEventFeatured: async (eventId, isFeatured) => {
+        const response = await api.put(`/admin/events/${eventId}/feature`, { is_featured: isFeatured });
+        return response;
+    },
+
+    /**
+     * Update event status
+     * @param {number} eventId - Event ID
+     * @param {string} status - New status (draft, pending, published, cancelled, completed)
+     * @returns {Promise<Object>} Update response
+     */
+    updateEventStatus: async (eventId, status) => {
+        const response = await api.put(`/admin/events/${eventId}/status`, { status });
+        return response;
+    },
+
+    /**
+     * Delete event
+     * @param {number} eventId - Event ID
+     * @returns {Promise<Object>} Deletion response
+     */
+    deleteEvent: async (eventId) => {
+        const response = await api.delete(`/admin/events/${eventId}`);
+        return response;
+    },
+
+    /**
+     * Get single event details (admin)
+     * @param {number} eventId - Event ID
+     * @returns {Promise<Object>} Event details
+     */
+    getEventDetails: async (eventId) => {
+        const response = await api.get(`/admin/events/${eventId}`);
+        return response;
+    },
+
+    /**
+     * Update event (admin - full edit)
+     * @param {number} eventId - Event ID
+     * @param {Object} data - Event data to update
+     * @returns {Promise<Object>} Update response
+     */
+    updateEvent: async (eventId, data) => {
+        const response = await api.put(`/admin/events/${eventId}`, data);
+        return response;
+    },
+
+    // =====================================================
+    // AWARD MANAGEMENT
+    // =====================================================
+
+    /**
+     * Get all awards (admin)
+     * @param {Object} params - Query parameters
+     * @returns {Promise<Object>} Awards data
+     */
+    getAwards: async (params = {}) => {
+        const response = await api.get('/admin/awards', { params });
+        return response;
+    },
+
+    /**
+     * Toggle award featured status
+     * @param {number} awardId - Award ID
+     * @param {boolean} isFeatured - Featured status
+     * @returns {Promise<Object>} Update response
+     */
+    toggleAwardFeatured: async (awardId, isFeatured) => {
+        const response = await api.put(`/admin/awards/${awardId}/feature`, { is_featured: isFeatured });
+        return response;
+    },
+
+    /**
+     * Update award status
+     * @param {number} awardId - Award ID
+     * @param {string} status - New status (draft, pending, published, completed, closed)
+     * @returns {Promise<Object>} Update response
+     */
+    updateAwardStatus: async (awardId, status) => {
+        const response = await api.put(`/admin/awards/${awardId}/status`, { status });
+        return response;
+    },
+
+    /**
+     * Delete award
+     * @param {number} awardId - Award ID
+     * @returns {Promise<Object>} Deletion response
+     */
+    deleteAward: async (awardId) => {
+        const response = await api.delete(`/admin/awards/${awardId}`);
+        return response;
+    },
+
+    /**
+     * Get single award details (admin)
+     * @param {number} awardId - Award ID
+     * @returns {Promise<Object>} Award details
+     */
+    getAwardDetails: async (awardId) => {
+        const response = await api.get(`/admin/awards/${awardId}`);
+        return response;
+    },
+
+    /**
+     * Update award (admin - full edit)
+     * @param {number} awardId - Award ID
+     * @param {Object} data - Award data to update
+     * @returns {Promise<Object>} Update response
+     */
+    updateAward: async (awardId, data) => {
+        const response = await api.put(`/admin/awards/${awardId}`, data);
+        return response;
+    },
+
+    // =====================================================
+    // UTILITY METHODS
+    // =====================================================
+
     /**
      * Format currency
      * @param {number} amount - Amount to format
