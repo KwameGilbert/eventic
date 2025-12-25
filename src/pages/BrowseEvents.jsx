@@ -35,7 +35,6 @@ const BrowseEvents = () => {
             const params = {
                 page,
                 per_page: pagination.perPage,
-                upcoming: 'true',
                 ...filters
             };
 

@@ -486,7 +486,7 @@ const AdminAwards = () => {
                                                 <Link to={`/award/${award.slug}`} target="_blank">
                                                     <Button size="sm" variant="outline" className="text-xs sm:text-sm">
                                                         <Eye size={14} />
-                                                        <span className="hidden sm:inline">View</span>
+                                                        <span className="hidden sm:inline">Public View</span>
                                                     </Button>
                                                 </Link>
 
@@ -494,7 +494,7 @@ const AdminAwards = () => {
                                                 <Link to={`/admin/awards/${award.id}`}>
                                                     <Button size="sm" variant="outline" className="text-xs sm:text-sm">
                                                         <Edit size={14} />
-                                                        <span className="hidden sm:inline">Edit</span>
+                                                        <span className="hidden sm:inline">Admin View</span>
                                                     </Button>
                                                 </Link>
 

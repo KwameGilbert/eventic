@@ -210,10 +210,10 @@ const VotePayment = () => {
                             Back to Award
                         </Link>
                         <Link
-                            to="/my-votes"
+                            to="/"
                             className="block w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
                         >
-                            View My Votes
+                            Go to Homepage
                         </Link>
                     </div>
                 </div>

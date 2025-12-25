@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
     Calendar,
     Search,
-    Filter,
     Eye,
     Edit,
     Trash2,
@@ -17,13 +16,11 @@ import {
     Clock,
     DollarSign,
     Users,
-    MoreVertical,
     RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { cn } from '../../lib/utils';
 import adminService from '../../services/adminService';
 import { showSuccess, showError, showConfirm } from '../../utils/toast';
 
@@ -489,7 +486,7 @@ const AdminEvents = () => {
                                                 <Link to={`/event/${event.slug}`} target="_blank">
                                                     <Button size="sm" variant="outline" className="text-xs sm:text-sm">
                                                         <Eye size={14} />
-                                                        <span className="hidden sm:inline">View</span>
+                                                        <span className="hidden sm:inline">Public View</span>
                                                     </Button>
                                                 </Link>
 
@@ -497,7 +494,7 @@ const AdminEvents = () => {
                                                 <Link to={`/admin/events/${event.id}`}>
                                                     <Button size="sm" variant="outline" className="text-xs sm:text-sm">
                                                         <Edit size={14} />
-                                                        <span className="hidden sm:inline">Edit</span>
+                                                        <span className="hidden sm:inline">Admin View</span>
                                                     </Button>
                                                 </Link>
 

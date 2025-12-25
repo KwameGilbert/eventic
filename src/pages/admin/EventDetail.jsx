@@ -19,12 +19,9 @@ import {
     Calendar,
     Tag,
     ShoppingCart,
-    TrendingUp,
     Eye,
     TicketCheck,
     RefreshCw,
-    Globe,
-    Trash2,
     Mail
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -315,8 +312,8 @@ const AdminEventDetail = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
-                                    ? 'border-red-600 text-red-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                ? 'border-red-600 text-red-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
                             <tab.icon size={16} />
