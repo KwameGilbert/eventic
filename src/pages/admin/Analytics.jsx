@@ -14,7 +14,8 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     BarChart3,
-    PieChart
+    PieChart,
+    Clock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -40,12 +41,23 @@ const Analytics = () => {
             setLoading(true);
             setError(null);
             const response = await adminService.getAnalytics({ period });
-            if (response?.data?.success) {
-                setData(response.data.data);
+            console.log('Analytics Response:', response);
+
+            // Check if response exists and has the expected structure
+            if (response && response.data) {
+                if (response.success) {
+                    console.log('Setting analytics data:', response.data.data);
+                    setData(response.data);
+                } else {
+                    console.error('API returned success: false', response.data);
+                    setError(response.message || 'Failed to load analytics data');
+                }
             } else {
-                setError('Failed to load analytics data');
+                console.error('Unexpected response structure:', response);
+                setError('Invalid response format');
             }
         } catch (err) {
+            console.error('Analytics fetch error:', err);
             setError(err.message || 'Failed to load analytics data');
         } finally {
             setLoading(false);
@@ -60,8 +72,23 @@ const Analytics = () => {
         return `GH₵${(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     };
 
+    const formatCompactCurrency = (amount) => {
+        if (amount >= 1000000) {
+            return `GH₵${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `GH₵${(amount / 1000).toFixed(1)}K`;
+        }
+        return `GH₵${amount?.toFixed(0) || 0}`;
+    };
+
     const formatNumber = (num) => {
         return (num || 0).toLocaleString();
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
     const getGrowthBadge = (growth) => {
@@ -125,18 +152,25 @@ const Analytics = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-                    <p className="text-gray-500 text-sm">
-                        Comprehensive platform insights and performance metrics
+                    <p className="text-gray-500 text-sm flex items-center gap-2">
+                        <Clock size={14} />
+                        {data?.period?.start && data?.period?.end && (
+                            <>
+                                {formatDate(data.period.start)} - {formatDate(data.period.end)}
+                                <span className="text-gray-400">•</span>
+                                {data.period.days} days
+                            </>
+                        )}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     {/* Period Selector */}
-                    <div className="flex bg-gray-100 rounded-lg p-1">
+                    <div className="flex bg-gray-100 rounded-lg p-1 overflow-x-auto">
                         {periods.map((p) => (
                             <button
                                 key={p.value}
                                 onClick={() => setPeriod(p.value)}
-                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${period === p.value
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${period === p.value
                                     ? 'bg-white text-gray-900 shadow-sm'
                                     : 'text-gray-600 hover:text-gray-900'
                                     }`}
@@ -181,7 +215,7 @@ const Analytics = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-green-100 text-sm">Revenue</p>
-                                <p className="text-3xl font-bold mt-1">{formatCurrency(data?.revenue?.total)}</p>
+                                <p className="text-3xl font-bold mt-1">{formatCompactCurrency(data?.revenue?.total)}</p>
                                 <div className="flex items-center gap-2 mt-2">
                                     {getGrowthBadge(data?.revenue?.growth)}
                                 </div>
@@ -230,6 +264,62 @@ const Analytics = () => {
                 </Card>
             </div>
 
+            {/* Revenue Trend Chart */}
+            {data?.revenue?.daily_trend?.length > 0 && (
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                                <TrendingUp size={20} className="text-gray-500" />
+                                Revenue Trend
+                            </span>
+                            <span className="text-2xl font-bold text-green-600">{formatCurrency(data?.revenue?.total)}</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-32 flex items-end gap-1">
+                            {data?.revenue?.daily_trend?.map((day) => {
+                                const maxValue = Math.max(...data.revenue.daily_trend.map(d => d.total), 1);
+                                const ticketHeight = maxValue > 0 ? (day.tickets / maxValue) * 100 : 0;
+                                const voteHeight = maxValue > 0 ? (day.votes / maxValue) * 100 : 0;
+
+                                return (
+                                    <div
+                                        key={day.date}
+                                        className="flex-1 flex flex-col justify-end gap-0.5 group relative"
+                                    >
+                                        <div
+                                            className="bg-blue-500 rounded-t transition-all hover:bg-blue-400"
+                                            style={{ height: `${Math.max(ticketHeight, day.tickets > 0 ? 4 : 0)}%` }}
+                                        />
+                                        <div
+                                            className="bg-purple-500 rounded-t transition-all hover:bg-purple-400"
+                                            style={{ height: `${Math.max(voteHeight, day.votes > 0 ? 4 : 0)}%` }}
+                                        />
+                                        {/* Tooltip */}
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                            <p className="font-medium">{formatDate(day.date)}</p>
+                                            <p>Tickets: {formatCurrency(day.tickets)}</p>
+                                            <p>Votes: {formatCurrency(day.votes)}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="flex items-center justify-center gap-6 mt-4 text-sm">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded bg-blue-500"></div>
+                                <span className="text-gray-600">Ticket Sales ({formatCurrency(data?.revenue?.tickets)})</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded bg-purple-500"></div>
+                                <span className="text-gray-600">Award Votes ({formatCurrency(data?.revenue?.votes)})</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Transaction Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <Card>
@@ -270,7 +360,7 @@ const Analytics = () => {
                 </Card>
             </div>
 
-            {/* Revenue Breakdown */}
+            {/* Revenue Breakdown & Users by Role */}
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Revenue by Source */}
                 <Card>
@@ -450,14 +540,25 @@ const Analytics = () => {
                             <div className="space-y-3">
                                 {data?.events?.top_performing?.slice(0, 5).map((event, index) => (
                                     <div key={event.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                        <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold text-gray-600">
+                                        <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold text-gray-600 shrink-0">
                                             {index + 1}
                                         </div>
+                                        {event.banner_image ? (
+                                            <img
+                                                src={event.banner_image}
+                                                alt=""
+                                                className="w-12 h-12 rounded-lg object-cover shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shrink-0">
+                                                <Calendar size={20} className="text-white" />
+                                            </div>
+                                        )}
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium text-gray-900 truncate">{event.title}</p>
-                                            <p className="text-sm text-gray-500">{event.tickets_sold} tickets</p>
+                                            <p className="text-sm text-gray-500">{formatNumber(event.tickets_sold)} tickets sold</p>
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-right shrink-0">
                                             <p className="font-semibold text-green-600">{formatCurrency(event.revenue)}</p>
                                         </div>
                                     </div>
@@ -482,14 +583,25 @@ const Analytics = () => {
                             <div className="space-y-3">
                                 {data?.awards?.top_performing?.slice(0, 5).map((award, index) => (
                                     <div key={award.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                        <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold text-gray-600">
+                                        <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full text-sm font-bold text-gray-600 shrink-0">
                                             {index + 1}
                                         </div>
+                                        {award.banner_image ? (
+                                            <img
+                                                src={award.banner_image}
+                                                alt=""
+                                                className="w-12 h-12 rounded-lg object-cover shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shrink-0">
+                                                <Trophy size={20} className="text-white" />
+                                            </div>
+                                        )}
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium text-gray-900 truncate">{award.title}</p>
                                             <p className="text-sm text-gray-500">{formatNumber(award.total_votes)} votes</p>
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-right shrink-0">
                                             <p className="font-semibold text-green-600">{formatCurrency(award.revenue)}</p>
                                         </div>
                                     </div>
@@ -522,7 +634,7 @@ const Analytics = () => {
                                         <div key={city.city}>
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-sm text-gray-700">{city.city || 'Unknown'}</span>
-                                                <span className="font-semibold text-gray-900">{city.count} events</span>
+                                                <span className="font-semibold text-gray-900">{city.count} {city.count === 1 ? 'event' : 'events'}</span>
                                             </div>
                                             <div className="w-full bg-gray-200 rounded-full h-2">
                                                 <div
@@ -553,7 +665,7 @@ const Analytics = () => {
                             <div className="space-y-3">
                                 {data?.top_organizers?.slice(0, 5).map((org) => (
                                     <div key={org.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-bold shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                                             {org.logo ? (
                                                 <img src={org.logo} alt="" className="w-full h-full rounded-full object-cover" />
                                             ) : (
@@ -562,9 +674,9 @@ const Analytics = () => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium text-gray-900 truncate">{org.name}</p>
-                                            <p className="text-sm text-gray-500">{org.events_count} events</p>
+                                            <p className="text-sm text-gray-500">{org.events_count} {org.events_count === 1 ? 'event' : 'events'}</p>
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-right shrink-0">
                                             <p className="font-semibold text-green-600">{formatCurrency(org.revenue)}</p>
                                         </div>
                                     </div>

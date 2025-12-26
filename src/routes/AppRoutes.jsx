@@ -54,6 +54,7 @@ import AdminAwards from "../pages/admin/Awards";
 import AdminAwardDetail from "../pages/admin/AwardDetail";
 import AdminFinance from "../pages/admin/Finance";
 import AdminAnalytics from "../pages/admin/Analytics";
+import AdminSettings from "../pages/admin/Settings";
 
 const AppRoutes = () => {
     return (
@@ -126,6 +127,7 @@ const AppRoutes = () => {
                 <Route path="awards/:id" element={<AdminAwardDetail />} />
                 <Route path="finance" element={<AdminFinance />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="settings" element={<AdminSettings />} />
                 <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Route>
 

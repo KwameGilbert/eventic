@@ -281,6 +281,25 @@ const adminService = {
     },
 
     /**
+     * Get all platform settings
+     * @returns {Promise<Object>} Platform settings grouped by category
+     */
+    getSettings: async () => {
+        const response = await api.get('/admin/settings');
+        return response;
+    },
+
+    /**
+     * Update platform settings
+     * @param {Object} settings - Settings object grouped by category
+     * @returns {Promise<Object>} Update result
+     */
+    updateSettings: async (settings) => {
+        const response = await api.put('/admin/settings', settings);
+        return response;
+    },
+
+    /**
      * Get all payouts with optional filters
      * @param {Object} params - Query parameters
      * @param {string} [params.status] - Filter by status (pending, processing, completed, rejected)
