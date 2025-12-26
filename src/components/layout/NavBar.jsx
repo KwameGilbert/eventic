@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Home, Calendar, Compass, HelpCircle, FileText, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Settings, Lock, ShoppingBag, Trophy, LayoutDashboard, Shield } from 'lucide-react';
+import { Search, Home, Calendar, Compass, Ticket, Plus, ChevronDown, Menu, X, User, UserPlus, ShoppingCart, LogOut, Settings, Lock, ShoppingBag, Trophy, LayoutDashboard, Shield } from 'lucide-react';
 import { categories } from '../../pages/Categories';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -14,17 +14,23 @@ const NavBar = () => {
 
     const cartCount = getCartCount();
 
-    // Navigation items configuration
+    // Navigation items configuration - computed based on user role
+    const getAddEventPath = () => {
+        if (!isAuthenticated()) return '/signup/organizer';
+        if (user?.role === 'organizer' || user?.role === 'admin') return '/organizer/events/create';
+        return '/signup/organizer';
+    };
+
     const navItems = [
         { path: '/', label: 'Home', icon: Home, isActive: true },
         { path: '/awards', label: 'Award Events', icon: Trophy },
         { path: '/events', label: 'Ticketing Events', icon: Calendar },
         { path: '/categories', label: 'Event Categories', icon: Compass, hasDropdown: true },
         // { path: '/venues', label: 'Venues', icon: MapPin },
-        { path: '/how-it-works', label: 'How it works?', icon: HelpCircle },
-        { path: '/blog', label: 'Blog', icon: FileText },
+        // { path: '/how-it-works', label: 'How it works?', icon: HelpCircle },
+        // { path: '/blog', label: 'Blog', icon: FileText },
         { path: '/my-tickets', label: 'My tickets', icon: Ticket },
-        { path: '/add-event', label: 'Add my event', icon: Plus },
+        { path: getAddEventPath(), label: 'Create Event', icon: Plus },
     ];
 
     const userMenuItems = [
