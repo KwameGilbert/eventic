@@ -21,6 +21,7 @@ import OrderDetails from "../pages/OrderDetails";
 import HowItWorks from "../pages/HowItWorks";
 import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
+import VerifyEmail from "../pages/VerifyEmail";
 
 // Auth Components
 import { OrganizerRoute, AttendeeRoute, AdminRoute } from "../components/auth/ProtectedRoute";
@@ -80,6 +81,7 @@ const AppRoutes = () => {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup/attendee" element={<SignUpAttendee />} />
                 <Route path="/signup/organizer" element={<SignUpOrganizer />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
 
                 <Route path="/cart" element={<Cart />} />
             </Route>
