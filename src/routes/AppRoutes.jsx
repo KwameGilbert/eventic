@@ -22,6 +22,8 @@ import HowItWorks from "../pages/HowItWorks";
 import Settings from "../pages/Settings";
 import ChangePassword from "../pages/ChangePassword";
 import VerifyEmail from "../pages/VerifyEmail";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 // Auth Components
 import { OrganizerRoute, AttendeeRoute, AdminRoute } from "../components/auth/ProtectedRoute";
@@ -82,6 +84,8 @@ const AppRoutes = () => {
                 <Route path="/signup/attendee" element={<SignUpAttendee />} />
                 <Route path="/signup/organizer" element={<SignUpOrganizer />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route path="/cart" element={<Cart />} />
             </Route>
