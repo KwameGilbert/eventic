@@ -68,13 +68,15 @@ const SignIn = () => {
         } catch (err) {
             // Handle specific backend errors
             let errorMessage = 'Failed to sign in. Please try again.';
-            if (err.status === 401) {
+            
+            if (err.message) {
+                errorMessage = err.message;
+            } else if (err.status === 401) {
                 errorMessage = 'Invalid email or password';
             } else if (err.status === 403) {
                 errorMessage = 'Your account has been suspended. Please contact support.';
-            } else if (err.message) {
-                errorMessage = err.message;
             }
+            
             setError(errorMessage);
             showError(errorMessage);
         } finally {
