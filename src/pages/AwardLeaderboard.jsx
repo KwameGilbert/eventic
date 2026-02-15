@@ -13,6 +13,7 @@ import {
   BarChart3,
   List,
   Filter,
+  Vote,
 } from "lucide-react";
 import {
   BarChart,
@@ -202,16 +203,18 @@ const AwardLeaderboard = () => {
           String(cat.category_id) === String(selectedCategory),
       )
       .map((cat) => {
-        const filteredNominees = (cat.nominees || [])
-          .filter(
-            (n) =>
-              n.nominee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (n.nominee_code &&
-                n.nominee_code
-                  .toLowerCase()
-                  .includes(searchTerm.toLowerCase())),
-          )
-          .sort((a, b) => (b.total_votes || 0) - (a.total_votes || 0));
+        // Sort all nominees by votes first to establish true rank
+        const allNomineesSorted = (cat.nominees || [])
+          .sort((a, b) => (b.total_votes || 0) - (a.total_votes || 0))
+          .map((n, idx) => ({ ...n, original_rank: idx + 1 }));
+
+        // Then filter the sorted list
+        const filteredNominees = allNomineesSorted.filter(
+          (n) =>
+            n.nominee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (n.nominee_code &&
+              n.nominee_code.toLowerCase().includes(searchTerm.toLowerCase())),
+        );
 
         return { ...cat, nominees: filteredNominees };
       })
@@ -429,12 +432,12 @@ const AwardLeaderboard = () => {
                                   Contestant
                                 </th>
                                 <th className="px-4 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                                  Entry ID
+                                  Nominee Code
                                 </th>
-                                <th className="px-4 py-3 text-right text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                <th className="px-4 py-3 text-right text-[11px] font-bold text-gray-400 uppercase tracking-widest w-24">
                                   Votes
                                 </th>
-                                <th className="px-4 py-3 text-right text-[11px] font-bold text-gray-400 uppercase tracking-widest w-32"></th>
+                                <th className="px-4 py-3 text-right text-[11px] font-bold text-gray-400 uppercase tracking-widest w-20"></th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -453,7 +456,7 @@ const AwardLeaderboard = () => {
                                             : "text-gray-300"
                                       }`}
                                     >
-                                      {index + 1}
+                                      {nominee.original_rank}
                                     </div>
                                   </td>
                                   <td className="px-4 py-3 font-bold text-gray-800">
@@ -474,7 +477,7 @@ const AwardLeaderboard = () => {
                                           nominee.total_votes || 0
                                         ).toLocaleString()}
                                       </span>
-                                      <div className="w-16 h-1 rounded-full bg-gray-100 mt-1.5 overflow-hidden">
+                                      <div className="w-16 h-1 rounded-full bg-gray-100 mt-1.5 overflow-hidden hidden sm:block">
                                         <div
                                           className="h-full bg-(--brand-primary)"
                                           style={{
@@ -488,13 +491,18 @@ const AwardLeaderboard = () => {
                                     <button
                                       onClick={() => handleVoteClick(category)}
                                       disabled={!isVotingOpen()}
-                                      className={`px-4 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 ${
+                                      className={`p-2 rounded-lg font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center ${
                                         isVotingOpen()
-                                          ? "bg-gray-900 text-white hover:bg-black"
+                                          ? "bg-(--brand-primary) text-white hover:bg-orange-600 shadow-orange-100"
                                           : "bg-gray-100 text-gray-400 cursor-not-allowed"
                                       }`}
+                                      title={
+                                        isVotingOpen()
+                                          ? "Cast your vote"
+                                          : "Voting closed"
+                                      }
                                     >
-                                      Vote
+                                      <Vote size={16} />
                                     </button>
                                   </td>
                                 </tr>
