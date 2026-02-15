@@ -204,7 +204,7 @@ const AwardDetail = () => {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column - Categories */}
-          <div className="lg:w-2/3 order-2 lg:order-1">
+          <div className="lg:w-2/3 order-1 lg:order-1">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                 <Trophy className="text-(--brand-primary)" size={28} />
@@ -236,6 +236,113 @@ const AwardDetail = () => {
 
               {/* Additional Sections below categories */}
               <div className="mt-12 space-y-12">
+                {/* Mobile-only Award Banner, Title & Description */}
+                <div className="lg:hidden border-t border-gray-100 pt-8 -mt-4 mb-8">
+                  <div className="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 mb-8">
+                    <div className="aspect-video relative">
+                      <img
+                        src={
+                          award.banner_image ||
+                          award.image ||
+                          "/placeholder-award.jpg"
+                        }
+                        alt={award.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <AwardStatusBadge status={votingStatus} />
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                        {award.title}
+                      </h1>
+                      {award.description && (
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          {award.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile-only Award Details */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6 mb-8">
+                    <h3 className="font-bold text-gray-900 border-b border-gray-50 pb-3">
+                      Event Details
+                    </h3>
+                    <div className="space-y-4">
+                      {award.ceremony_date && (
+                        <div className="flex gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                            <Calendar
+                              className="text-(--brand-primary)"
+                              size={18}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                              Ceremony Date
+                            </p>
+                            <p className="text-gray-900 font-semibold">
+                              {formatDate(award.ceremony_date)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {(award.voting_start || award.voting_end) && (
+                        <div className="flex gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                            <TrendingUp className="text-green-600" size={18} />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                              Voting Period
+                            </p>
+                            <p className="text-gray-900 font-semibold text-sm">
+                              {formatDate(award.voting_start)} -{" "}
+                              {formatDate(award.voting_end)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                          <Users className="text-purple-600" size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                            Categories
+                          </p>
+                          <p className="text-gray-900 font-semibold">
+                            {categories.length} Total
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile-only Voting Status */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+                    <h3 className="text-sm font-semibold text-gray-500 mb-4">
+                      Voting Status
+                    </h3>
+                    <div className="mb-4">
+                      <AwardStatusBadge
+                        status={votingStatus}
+                        className="w-full justify-center py-2.5"
+                      />
+                    </div>
+                    {votingStatus === "voting_open" && (
+                      <p className="text-xs text-gray-500 text-center italic">
+                        Voting is currently active. Select a category to vote.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Mobile-only Organizer Info */}
+                  <AwardOrganizerInfo organizer={award.organizer} />
+                </div>
+
                 {/* Map Section */}
                 <AwardLocationMap mapUrl={award.mapUrl} />
 
@@ -276,9 +383,9 @@ const AwardDetail = () => {
           </div>
 
           {/* Right Column - Award Info & Banner */}
-          <div className="lg:w-1/3 order-1 lg:order-2 space-y-6">
-            {/* Banner Image Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="lg:w-1/3 order-2 lg:order-2 space-y-6">
+            {/* Banner Image Card - Desktop Only */}
+            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="aspect-video relative">
                 <img
                   src={
@@ -305,8 +412,8 @@ const AwardDetail = () => {
               </div>
             </div>
 
-            {/* Award Details Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+            {/* Award Details Card - Desktop Only */}
+            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
               <h3 className="font-bold text-gray-900 border-b border-gray-50 pb-3">
                 Event Details
               </h3>
@@ -382,8 +489,8 @@ const AwardDetail = () => {
               </div>
             </div>
 
-            {/* Status Card (without Vote Button) */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {/* Status Card - Desktop Only */}
+            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-sm font-semibold text-gray-500 mb-4">
                 Voting Status
               </h3>
@@ -408,8 +515,10 @@ const AwardDetail = () => {
               )}
             </div>
 
-            {/* Organizer Info - Sidebar */}
-            <AwardOrganizerInfo organizer={award.organizer} />
+            {/* Organizer Info - Desktop Only */}
+            <div className="hidden lg:block">
+              <AwardOrganizerInfo organizer={award.organizer} />
+            </div>
           </div>
         </div>
       </div>
