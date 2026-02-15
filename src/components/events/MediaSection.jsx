@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Images, Upload, X, Video } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
@@ -70,10 +71,40 @@ const MediaSection = ({
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-primary)/20 focus:border-(--brand-primary)"
                     />
                     <p className="text-xs text-gray-400 mt-1">YouTube or Vimeo link</p>
+
+                    {/* Live Video Preview */}
+                    {eventData.videoUrl && (
+                        <div className="mt-4 aspect-video w-full max-w-md rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
+                            <iframe
+                                src={
+                                    eventData.videoUrl.includes('youtu.be')
+                                        ? eventData.videoUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0]
+                                        : eventData.videoUrl.includes('youtube.com/watch')
+                                            ? eventData.videoUrl.replace('watch?v=', 'embed/')
+                                            : eventData.videoUrl
+                                }
+                                className="w-full h-full"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                title="Media Video Preview"
+                            />
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
     );
+};
+
+MediaSection.propTypes = {
+    eventData: PropTypes.shape({
+        mainImagePreview: PropTypes.string,
+        videoUrl: PropTypes.string
+    }).isRequired,
+    handleEventChange: PropTypes.func.isRequired,
+    handleMainImageUpload: PropTypes.func.isRequired,
+    removeMainImage: PropTypes.func.isRequired
 };
 
 export default MediaSection;

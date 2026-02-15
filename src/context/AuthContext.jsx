@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import authService, { USER_ROLES } from '../services/authService';
 
 const AuthContext = createContext();
@@ -236,7 +237,15 @@ export const AuthProvider = ({ children }) => {
      * @returns {boolean}
      */
     const isAdmin = useCallback(() => {
-        return user?.role === USER_ROLES.ADMIN;
+        return user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.SUPER_ADMIN;
+    }, [user]);
+
+    /**
+     * Check if current user is a super admin
+     * @returns {boolean}
+     */
+    const isSuperAdmin = useCallback(() => {
+        return user?.role === USER_ROLES.SUPER_ADMIN;
     }, [user]);
 
     /**
@@ -283,6 +292,7 @@ export const AuthProvider = ({ children }) => {
         isOrganizer,
         isAttendee,
         isAdmin,
+        isSuperAdmin,
 
         // Password reset
         requestPasswordReset,
@@ -301,6 +311,10 @@ export const AuthProvider = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
+};
+
+AuthProvider.propTypes = {
+    children: PropTypes.node.isRequired,
 };
 
 export default AuthContext;

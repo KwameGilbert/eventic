@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Navigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { AlertTriangle, LogOut, ArrowLeft } from 'lucide-react';
@@ -14,6 +15,7 @@ const RoleAccessDenied = ({ requiredRole, currentRole, pageName = 'this page' })
         attendee: 'Attendee',
         organizer: 'Organizer',
         admin: 'Administrator',
+        super_admin: 'Super Admin',
         pos: 'POS User',
         scanner: 'Scanner',
     };
@@ -23,6 +25,7 @@ const RoleAccessDenied = ({ requiredRole, currentRole, pageName = 'this page' })
             case 'organizer':
                 return '/organizer/dashboard';
             case 'admin':
+            case 'super_admin':
                 return '/admin/dashboard';
             case 'attendee':
             default:
@@ -50,10 +53,10 @@ const RoleAccessDenied = ({ requiredRole, currentRole, pageName = 'this page' })
 
                 {/* Message */}
                 <p className="text-gray-600 mb-2">
-                    You are currently signed in as <strong className="text-gray-900">{roleDisplayNames[currentRole] || currentRole}</strong>.
+                    You are currently signed in as <strong className="text-gray-900">{(roleDisplayNames[currentRole] || currentRole).toUpperCase().replace("_", " ")}</strong>.
                 </p>
                 <p className="text-gray-600 mb-6">
-                    {pageName} is only accessible to <strong className="text-(--brand-primary)">{roleDisplayNames[requiredRole] || requiredRole}</strong> accounts.
+                    {pageName} is only accessible to <strong className="text-(--brand-primary)">{(roleDisplayNames[requiredRole] || requiredRole).toUpperCase().replace("_", " ")}</strong> accounts.
                 </p>
 
                 {/* Info Box */}
@@ -64,7 +67,7 @@ const RoleAccessDenied = ({ requiredRole, currentRole, pageName = 'this page' })
                     <ul className="text-sm text-gray-500 mt-2 space-y-1">
                         <li>• Go back to your dashboard</li>
                         <li>• Sign out and log in with a different account</li>
-                        <li>• Create an {requiredRole} account if you don't have one</li>
+                        <li>• Create an {(roleDisplayNames[requiredRole] || requiredRole).toUpperCase().replace("_", " ")} account if you don&apos;t have one</li>
                     </ul>
                 </div>
 
@@ -109,6 +112,12 @@ const RoleAccessDenied = ({ requiredRole, currentRole, pageName = 'this page' })
             </div>
         </div>
     );
+};
+
+RoleAccessDenied.propTypes = {
+    requiredRole: PropTypes.string.isRequired,
+    currentRole: PropTypes.string,
+    pageName: PropTypes.string,
 };
 
 /**
@@ -176,7 +185,7 @@ const ProtectedRoute = ({
                 // Default behavior: redirect to appropriate dashboard
                 if (user?.role === 'organizer') {
                     return <Navigate to="/organizer/dashboard" replace />;
-                } else if (user?.role === 'admin') {
+                } else if (user?.role === 'admin' || user?.role === 'super_admin') {
                     return <Navigate to="/admin/dashboard" replace />;
                 } else {
                     return <Navigate to="/" replace />;
@@ -189,13 +198,21 @@ const ProtectedRoute = ({
     return children;
 };
 
+ProtectedRoute.propTypes = {
+    children: PropTypes.node.isRequired,
+    allowedRoles: PropTypes.arrayOf(PropTypes.string),
+    redirectTo: PropTypes.string,
+    showRoleError: PropTypes.bool,
+    pageName: PropTypes.string,
+};
+
 /**
  * OrganizerRoute - Shorthand for organizer-only routes
  * Shows role error if non-organizer is logged in
  */
 export const OrganizerRoute = ({ children, pageName = 'Organizer Dashboard' }) => (
     <ProtectedRoute
-        allowedRoles={['organizer', 'admin']}
+        allowedRoles={['organizer', 'admin', 'super_admin']}
         showRoleError={true}
         pageName={pageName}
     >
@@ -208,7 +225,7 @@ export const OrganizerRoute = ({ children, pageName = 'Organizer Dashboard' }) =
  */
 export const AdminRoute = ({ children, pageName = 'Admin Dashboard' }) => (
     <ProtectedRoute
-        allowedRoles={['admin']}
+        allowedRoles={['admin', 'super_admin']}
         showRoleError={true}
         pageName={pageName}
     >
@@ -229,5 +246,20 @@ export const AttendeeRoute = ({ children, pageName = 'this page' }) => (
         {children}
     </ProtectedRoute>
 );
+
+OrganizerRoute.propTypes = {
+    children: PropTypes.node.isRequired,
+    pageName: PropTypes.string,
+};
+
+AdminRoute.propTypes = {
+    children: PropTypes.node.isRequired,
+    pageName: PropTypes.string,
+};
+
+AttendeeRoute.propTypes = {
+    children: PropTypes.node.isRequired,
+    pageName: PropTypes.string,
+};
 
 export default ProtectedRoute;

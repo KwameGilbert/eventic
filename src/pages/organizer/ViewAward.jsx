@@ -440,7 +440,14 @@ const ViewAward = () => {
                                     </Badge>
                                 )}
                             </div>
-                            <p className="text-gray-500 mt-1 text-sm">Award ID: #{award.id}</p>
+                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                                <span>Award ID: #{award.id}</span>
+                                {award.award_code && (
+                                    <>
+                                        <span className="text-gray-300">•</span>
+                                        <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs uppercase">Code: {award.award_code}</span>
+                                    </>
+                                )}                            </div>
                         </div>
                     </div>
                 </div>
@@ -719,6 +726,11 @@ const ViewAward = () => {
                                                             />
                                                         )}
                                                         <h5 className="font-medium text-sm text-gray-900">{nominee.name}</h5>
+                                                        {nominee.nominee_code && (
+                                                            <div className="text-[10px] font-mono text-gray-400 uppercase mt-0.5">
+                                                                Code: {nominee.nominee_code}
+                                                            </div>
+                                                        )}
                                                         {nominee.total_votes !== undefined && (
                                                             <p className="text-xs text-gray-500 mt-1">
                                                                 {nominee.total_votes} votes

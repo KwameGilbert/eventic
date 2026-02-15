@@ -60,7 +60,7 @@ const SignIn = () => {
             let redirectTo = location.state?.from || '/';
             if (user?.role === 'organizer') {
                 redirectTo = location.state?.from || '/organizer/dashboard';
-            } else if (user?.role === 'admin') {
+            } else if (user?.role === 'admin' || user?.role === 'super_admin') {
                 redirectTo = location.state?.from || '/admin/dashboard';
             }
 

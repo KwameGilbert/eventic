@@ -98,15 +98,13 @@ const TicketModal = ({ isOpen, onClose, event }) => {
         <div className="fixed inset-0 z-50 overflow-y-auto">
             {/* Backdrop */}
             <div
-                className={`fixed inset-0 bg-black/50 backdrop-blur-xs transition-all duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'
-                    }`}
+                className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
                 onClick={onClose}
             ></div>
 
-            {/* Modal */}
-            <div className="flex min-h-full items-center justify-center p-4">
-                <div className={`relative bg-white rounded-xl shadow-2xl w-full max-w-3xl transition-all duration-300 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                    }`}>
+            {/* Modal Container */}
+            <div className="relative flex min-h-screen items-center justify-center p-4">
+                <div className={`relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl transition-all duration-300 ${isAnimating ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95'}`}>
                     {/* Compact Header */}
                     <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -137,7 +135,7 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                     </div>
 
                     {/* Ticket Types - Scrollable */}
-                    <div className="px-5 py-4 max-h-[50vh] overflow-y-auto">
+                    <div className="px-5 py-4 max-h-[60vh] overflow-y-auto overscroll-contain">
                         {event.ticketTypes && event.ticketTypes.length > 0 ? (
                             <div className="space-y-3">
                                 {event.ticketTypes.map((ticket) => {
@@ -160,12 +158,12 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                                                     <div className="flex items-start justify-between mb-1">
                                                         <h4 className="font-bold text-gray-900 text-sm">{ticket.name}</h4>
                                                         <div className="flex items-baseline gap-1.5 ml-2">
-                                                            <span className="text-lg font-bold text-[var(--brand-primary)]">
-                                                                ${ticket.price}
+                                                            <span className="text-lg font-bold text-[var(--brand-primary)] whitespace-nowrap">
+                                                                GH₵{ticket.price}
                                                             </span>
                                                             {ticket.originalPrice && ticket.originalPrice > ticket.price && (
-                                                                <span className="text-xs text-gray-400 line-through">
-                                                                    ${ticket.originalPrice}
+                                                                <span className="text-xs text-gray-400 line-through whitespace-nowrap">
+                                                                    GH₵{ticket.originalPrice}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -220,7 +218,7 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                                                         </div>
                                                         {quantity > 0 && (
                                                             <span className="text-xs font-semibold text-gray-700">
-                                                                ${ticket.price * quantity}
+                                                                GH₵{ticket.price * quantity}
                                                             </span>
                                                         )}
                                                     </div>
@@ -241,10 +239,10 @@ const TicketModal = ({ isOpen, onClose, event }) => {
                             {/* Total */}
                             <div>
                                 <p className="text-xs text-gray-500 mb-0.5">Total Amount</p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    ${getTotalAmount()}
+                                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                                    GH₵{getTotalAmount()}
                                     {getTotalTickets() > 0 && (
-                                        <span className="text-sm text-gray-500 font-normal ml-2">
+                                        <span className="text-xs sm:text-sm text-gray-500 font-normal ml-2">
                                             {getTotalTickets()} {getTotalTickets() === 1 ? 'ticket' : 'tickets'}
                                         </span>
                                     )}

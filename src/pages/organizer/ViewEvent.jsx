@@ -27,14 +27,17 @@ import {
     Loader2,
     AlertTriangle,
     Image,
-    Send
+    Send,
+    Plus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import organizerService from '../../services/organizerService';
 import eventService from '../../services/eventService';
-import { showSuccess, showError } from '../../utils/toast';
+import ticketService from '../../services/ticketService';
+import TicketTypeModal from '../../components/modals/TicketTypeModal';
+import { showSuccess, showError, showConfirm } from '../../utils/toast';
 
 const ViewEvent = () => {
     const navigate = useNavigate();
@@ -48,6 +51,8 @@ const ViewEvent = () => {
 
     // Event data from API
     const [event, setEvent] = useState(null);
+    const [ticketModalOpen, setTicketModalOpen] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState(null);
 
     // Fetch event data
     useEffect(() => {
@@ -105,6 +110,63 @@ const ViewEvent = () => {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    // Ticket modal handlers
+    const openTicketModal = (ticket = null) => {
+        setSelectedTicket(ticket);
+        setTicketModalOpen(true);
+    };
+
+    const closeTicketModal = () => {
+        setTicketModalOpen(false);
+        setSelectedTicket(null);
+    };
+
+    const handleTicketSuccess = () => {
+        refreshEventData();
+    };
+
+    const handleDeleteTicket = async (ticketId) => {
+        const result = await showConfirm({
+            title: 'Delete Ticket Type?',
+            text: 'This will permanently delete this ticket type. This action cannot be undone.',
+            confirmButtonText: 'Yes, delete it',
+            icon: 'warning'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            const response = await ticketService.deleteTicketType(ticketId);
+            if (response.success) {
+                showSuccess('Ticket type deleted successfully');
+                refreshEventData();
+            } else {
+                showError(response.message || 'Failed to delete ticket type');
+            }
+        } catch (err) {
+            console.error('Error deleting ticket type:', err);
+            showError('Failed to delete ticket type');
+        }
+    };
+
+    const getYoutubeEmbedUrl = (url) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11)
+            ? `https://www.youtube.com/embed/${match[2]}`
+            : null;
+    };
+
+    const getGoogleMapsEmbedUrl = (url, address, city) => {
+        if (url && url.includes('google.com/maps/embed')) return url;
+        if (!address && !city) return null;
+        const query = encodeURIComponent(`${address || ''} ${city || ''}`.trim());
+        return `https://maps.google.com/maps?q=${query}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
     };
 
     const getStatusStyle = (status) => {
@@ -406,20 +468,22 @@ const ViewEvent = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                                    <iframe
-                                        src={event.videoUrl.includes('youtu.be')
-                                            ? event.videoUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0]
-                                            : event.videoUrl.includes('youtube.com/watch')
-                                                ? event.videoUrl.replace('watch?v=', 'embed/')
-                                                : event.videoUrl
-                                        }
-                                        className="w-full h-full"
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        title="Event Video"
-                                    />
+                                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 border border-gray-200 shadow-sm">
+                                    {getYoutubeEmbedUrl(event.videoUrl) ? (
+                                        <iframe
+                                            src={getYoutubeEmbedUrl(event.videoUrl)}
+                                            className="w-full h-full"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title="Event Video"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
+                                            <Video size={32} />
+                                            <p className="text-sm">Video cannot be embedded. <a href={event.videoUrl} target="_blank" rel="noopener noreferrer" className="text-(--brand-primary) hover:underline">View original video</a></p>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -432,6 +496,15 @@ const ViewEvent = () => {
                                 <Tag size={20} className="text-(--brand-primary)" />
                                 Ticket Types
                             </CardTitle>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-2"
+                                onClick={() => openTicketModal()}
+                            >
+                                <Plus size={16} />
+                                Add Ticket
+                            </Button>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {event.ticketTypes && event.ticketTypes.length > 0 ? (
@@ -451,12 +524,12 @@ const ViewEvent = () => {
                                         )}
 
                                         <div className="flex items-start justify-between">
-                                            <div>
-                                                <h4 className="font-semibold text-gray-900">{ticket.name}</h4>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-semibold text-gray-900 truncate">{ticket.name}</h4>
                                                 {ticket.description && (
-                                                    <p className="text-xs text-gray-600 mt-1">{ticket.description}</p>
+                                                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{ticket.description}</p>
                                                 )}
-                                                <div className="flex items-center gap-3 mt-1">
+                                                <div className="flex items-center gap-3 mt-2">
                                                     {ticket.salePrice ? (
                                                         <>
                                                             <span className="text-lg font-bold text-(--brand-primary)">
@@ -468,23 +541,43 @@ const ViewEvent = () => {
                                                         </>
                                                     ) : (
                                                         <span className="text-lg font-bold text-(--brand-primary)">
-                                                            GH₵{ticket.price}
-                                                        </span>
+                                                                GH₵{ticket.price}
+                                                            </span>
                                                     )}
                                                 </div>
-                                                {ticket.saleStartDate && ticket.saleEndDate && (
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        Sale: {new Date(ticket.saleStartDate).toLocaleDateString()} - {new Date(ticket.saleEndDate).toLocaleDateString()}
+                                                {ticket.saleStartDate && (
+                                                    <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider font-medium">
+                                                        Sale Period: {new Date(ticket.saleStartDate).toLocaleDateString()} - {ticket.saleEndDate ? new Date(ticket.saleEndDate).toLocaleDateString() : 'End of Event'}
                                                     </p>
                                                 )}
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-sm text-gray-600">
-                                                    <span className="font-semibold">{ticket.sold}</span> / {ticket.quantity} sold
-                                                </p>
-                                                <p className="text-xs text-gray-400 mt-1">
-                                                    Max {ticket.maxPerAttendee || 10} per order
-                                                </p>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <div className="flex gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-gray-500 hover:text-(--brand-primary)"
+                                                        onClick={() => openTicketModal(ticket)}
+                                                    >
+                                                        <Edit size={14} />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-gray-500 hover:text-red-600"
+                                                        onClick={() => handleDeleteTicket(ticket.id)}
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </Button>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs font-semibold text-gray-900">
+                                                        {ticket.sold} / {ticket.quantity} SOLD
+                                                    </p>
+                                                    <p className="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">
+                                                        Limit: {ticket.maxPerAttendee || ticket.max_per_user || 10} PER ORDER
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                         {/* Progress bar */}
@@ -581,7 +674,19 @@ const ViewEvent = () => {
                                 <MapPin size={18} className="text-gray-400 mt-0.5" />
                                 <div>
                                     <p className="font-medium text-gray-900">{event.venue || '—'}</p>
-                                    <p className="text-sm text-gray-500">{event.location || '—'}</p>
+                                    <p className="text-sm text-gray-500">{event.location || event.address || '—'}</p>
+                                    {getGoogleMapsEmbedUrl(event.mapUrl, event.address, event.city) && (
+                                        <div className="w-full h-32 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 mt-2">
+                                            <iframe
+                                                src={getGoogleMapsEmbedUrl(event.mapUrl, event.address || event.location, event.city)}
+                                                className="w-full h-full border-0"
+                                                allowFullScreen=""
+                                                loading="lazy"
+                                                referrerPolicy="no-referrer-when-downgrade"
+                                                title="Venue Map"
+                                            ></iframe>
+                                        </div>
+                                    )}
                                     {event.mapUrl && (
                                         <a
                                             href={event.mapUrl}
@@ -649,6 +754,15 @@ const ViewEvent = () => {
                     </Card>
                 </div>
             </div>
+
+            {/* Modals */}
+            <TicketTypeModal
+                isOpen={ticketModalOpen}
+                onClose={closeTicketModal}
+                onSuccess={handleTicketSuccess}
+                eventId={id}
+                ticket={selectedTicket}
+            />
         </div>
     );
 };

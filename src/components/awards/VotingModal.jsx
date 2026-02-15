@@ -119,7 +119,14 @@ const VotingModal = ({ isOpen, onClose, award, category }) => {
 
                                                     {/* Nominee Info */}
                                                     <div className="flex-1">
-                                                        <h4 className="font-bold text-gray-900 mb-1">{nominee.name}</h4>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <h4 className="font-bold text-gray-900">{nominee.name}</h4>
+                                                            {nominee.nominee_code && (
+                                                                <span className="text-[12px] font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase">
+                                                                    {nominee.nominee_code}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         {nominee.description && (
                                                             <p className="text-sm text-gray-600 line-clamp-2">{nominee.description}</p>
                                                         )}

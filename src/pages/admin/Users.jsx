@@ -110,7 +110,7 @@ const Users = () => {
     const stats = useMemo(() => {
         return {
             total: users.length,
-            admins: users.filter(u => u.role === 'admin').length,
+            admins: users.filter(u => u.role === 'admin' || u.role === 'super_admin').length,
             organizers: users.filter(u => u.role === 'organizer').length,
             attendees: users.filter(u => u.role === 'attendee').length,
             pos: users.filter(u => u.role === 'pos').length,
@@ -135,6 +135,7 @@ const Users = () => {
     const getRoleBadge = (role) => {
         const variants = {
             admin: { variant: 'destructive', icon: Shield, label: 'Admin' },
+            super_admin: { variant: 'destructive', icon: Shield, label: 'Super Admin' },
             organizer: { variant: 'default', icon: UserCheck, label: 'Organizer' },
             attendee: { variant: 'secondary', icon: User, label: 'Attendee' },
             pos: { variant: 'outline', icon: User, label: 'POS' },
@@ -171,6 +172,7 @@ const Users = () => {
     const roles = [
         { value: '', label: 'All Roles' },
         { value: 'admin', label: 'Admins' },
+        { value: 'super_admin', label: 'Super Admins' },
         { value: 'organizer', label: 'Organizers' },
         { value: 'attendee', label: 'Attendees' },
         { value: 'pos', label: 'POS Users' },

@@ -46,7 +46,8 @@ const EditAward = () => {
         twitter: '',
         instagram: '',
         phone: '',
-        showResults: true
+        showResults: true,
+        awardCode: ''
     });
 
     // Countries (static for now)
@@ -101,7 +102,8 @@ const EditAward = () => {
                         twitter: award.socialMedia?.twitter || award.twitter || '',
                         instagram: award.socialMedia?.instagram || award.instagram || '',
                         phone: award.contact?.phone || award.phone || '',
-                        showResults: award.show_results !== false
+                        showResults: award.show_results !== false,
+                        awardCode: award.award_code || ''
                     });
                 } else {
                     setLoadError(response.message || 'Failed to load award details');
@@ -292,6 +294,23 @@ const EditAward = () => {
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="e.g., Ghana Music Awards 2025"
                                     />
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Award Code (Read Only)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={awardData.awardCode}
+                                            readOnly
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed uppercase"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Contact an admin to change the award code.
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div>

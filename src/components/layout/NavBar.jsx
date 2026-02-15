@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 
 const NavBar = () => {
-    const { user, isAuthenticated, logout } = useAuth();
+    const { user, isAuthenticated, logout, isAdmin } = useAuth();
     const { getCartCount } = useCart();
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,7 +17,7 @@ const NavBar = () => {
     // Navigation items configuration - computed based on user role
     const getAddEventPath = () => {
         if (!isAuthenticated()) return '/signup/organizer';
-        if (user?.role === 'organizer' || user?.role === 'admin') return '/organizer/events/create';
+        if (user?.role === 'organizer' || user?.role === 'admin' || user?.role === 'super_admin') return '/organizer/events/create';
         return '/signup/organizer';
     };
 
@@ -108,14 +108,14 @@ const NavBar = () => {
                                             {/* User Dropdown */}
                                             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform scale-95 group-hover:scale-100">
                                                 <div className="py-2">
-                                                    {/* Dashboard Link for Admin/Organizer */}
-                                                    {(user?.role === 'admin' || user?.role === 'organizer') && (
+                                                    {/* Dashboard Link for Admin/Organizer/SuperAdmin */}
+                                                    {(isAdmin() || user?.role === 'organizer') && (
                                                         <>
                                                             <Link
-                                                                to={user?.role === 'admin' ? '/admin/dashboard' : '/organizer/dashboard'}
+                                                                to={isAdmin() ? '/admin/dashboard' : '/organizer/dashboard'}
                                                                 className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
                                                             >
-                                                                {user?.role === 'admin' ? <Shield size={16} /> : <LayoutDashboard size={16} />}
+                                                                {isAdmin() ? <Shield size={16} /> : <LayoutDashboard size={16} />}
                                                                 <span className="text-sm font-semibold">Dashboard</span>
                                                             </Link>
                                                             <hr className="my-2" />
@@ -235,14 +235,14 @@ const NavBar = () => {
                                                                 <p className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</p>
                                                                 <p className="text-xs text-gray-500">{user?.email || ''}</p>
                                                             </div>
-                                                            {/* Dashboard Link for Admin/Organizer */}
-                                                            {(user?.role === 'admin' || user?.role === 'organizer') && (
+                                                            {/* Dashboard Link for Admin/Organizer/SuperAdmin */}
+                                                            {(isAdmin() || user?.role === 'organizer') && (
                                                                 <Link
-                                                                    to={user?.role === 'admin' ? '/admin/dashboard' : '/organizer/dashboard'}
+                                                                    to={isAdmin() ? '/admin/dashboard' : '/organizer/dashboard'}
                                                                     onClick={() => setIsMobileSignUpOpen(false)}
                                                                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-200"
                                                                 >
-                                                                    {user?.role === 'admin' ? <Shield size={18} /> : <LayoutDashboard size={18} />}
+                                                                    {isAdmin() ? <Shield size={18} /> : <LayoutDashboard size={18} />}
                                                                     <span className="text-sm font-semibold">Dashboard</span>
                                                                 </Link>
                                                             )}

@@ -135,6 +135,7 @@ export const ChangeRoleModal = ({ user, onClose, onSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const roles = [
+        { value: 'super_admin', label: 'Super Admin', description: 'Maximum platform access and control' },
         { value: 'admin', label: 'Admin', description: 'Full platform access' },
         { value: 'organizer', label: 'Organizer', description: 'Can create events and awards' },
         { value: 'attendee', label: 'Attendee', description: 'Can purchase tickets and vote' },

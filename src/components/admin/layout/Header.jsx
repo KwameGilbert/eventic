@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Menu, Bell, Search } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -47,4 +48,9 @@ const Header = ({ setIsSidebarOpen }) => {
     );
 };
 
+Header.propTypes = {
+    setIsSidebarOpen: PropTypes.func.isRequired,
+};
+
 export default Header;
+

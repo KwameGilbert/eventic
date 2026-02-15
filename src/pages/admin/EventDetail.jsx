@@ -22,13 +22,25 @@ import {
     Eye,
     TicketCheck,
     RefreshCw,
-    Mail
+    Mail,
+    Plus,
+    Trash2,
+    Edit,
+    Globe,
+    Phone,
+    Facebook,
+    Twitter,
+    Instagram,
+    Video
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import adminService from '../../services/adminService';
-import { showSuccess, showError } from '../../utils/toast';
+import ticketService from '../../services/ticketService';
+import eventService from '../../services/eventService';
+import TicketTypeModal from '../../components/modals/TicketTypeModal';
+import { showSuccess, showError, showConfirm } from '../../utils/toast';
 
 const AdminEventDetail = () => {
     const { id } = useParams();
@@ -40,25 +52,70 @@ const AdminEventDetail = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
 
+    // Ticket modal states
+    const [ticketModalOpen, setTicketModalOpen] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState(null);
+
     // Form state
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        event_type_id: '',
         venue_name: '',
         address: '',
         city: '',
+        region: '',
         country: '',
+        map_url: '',
         start_time: '',
         end_time: '',
         status: '',
         is_featured: false,
         platform_fee_percentage: 1.5,
-        banner_image: ''
+        banner_image: '',
+        audience: 'Everyone',
+        language: 'English',
+        website: '',
+        facebook: '',
+        twitter: '',
+        instagram: '',
+        phone: '',
+        video_url: ''
     });
+
+    const [categories, setCategories] = useState([]);
 
     useEffect(() => {
         fetchEventDetails();
+        fetchCategories();
     }, [id]);
+
+    const fetchCategories = async () => {
+        try {
+            const response = await eventService.getEventTypes();
+            if (response.success) {
+                setCategories(response.data.event_types || []);
+            }
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+        }
+    };
+
+    const getYoutubeEmbedUrl = (url) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) 
+            ? `https://www.youtube.com/embed/${match[2]}`
+            : null;
+    };
+
+    const getGoogleMapsEmbedUrl = (url, address, city) => {
+        if (url && url.includes('google.com/maps/embed')) return url;
+        if (!address && !city) return null;
+        const query = encodeURIComponent(`${address || ''} ${city || ''}`.trim());
+        return `https://maps.google.com/maps?q=${query}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+    };
 
     const fetchEventDetails = async () => {
         try {
@@ -74,16 +131,27 @@ const AdminEventDetail = () => {
                 setFormData({
                     title: eventData.title || '',
                     description: eventData.description || '',
+                    event_type_id: eventData.event_type_id || '',
                     venue_name: eventData.venue_name || '',
                     address: eventData.address || '',
                     city: eventData.city || '',
+                    region: eventData.region || '',
                     country: eventData.country || '',
+                    map_url: eventData.map_url || (eventData.mapUrl) || '',
                     start_time: eventData.start_time ? eventData.start_time.substring(0, 16) : '',
                     end_time: eventData.end_time ? eventData.end_time.substring(0, 16) : '',
                     status: eventData.status || 'draft',
                     is_featured: eventData.is_featured || false,
                     platform_fee_percentage: eventData.platform_fee_percentage || 1.5,
-                    banner_image: eventData.banner_image || ''
+                    banner_image: eventData.banner_image || '',
+                    audience: eventData.audience || 'Everyone',
+                    language: eventData.language || 'English',
+                    website: eventData.website || (eventData.contact?.website) || '',
+                    facebook: eventData.facebook || (eventData.socialMedia?.facebook) || '',
+                    twitter: eventData.twitter || (eventData.socialMedia?.twitter) || '',
+                    instagram: eventData.instagram || (eventData.socialMedia?.instagram) || '',
+                    phone: eventData.phone || (eventData.contact?.phone) || '',
+                    video_url: eventData.video_url || (eventData.videoUrl) || ''
                 });
             } else {
                 setError(response.message || 'Failed to fetch event details');
@@ -136,6 +204,43 @@ const AdminEventDetail = () => {
 
     const formatCurrency = (amount) => {
         return `GH₵${(amount || 0).toLocaleString()}`;
+    };
+
+    // Ticket modal handlers
+    const openTicketModal = (ticket = null) => {
+        setSelectedTicket(ticket);
+        setTicketModalOpen(true);
+    };
+
+    const closeTicketModal = () => {
+        setTicketModalOpen(false);
+        setSelectedTicket(null);
+    };
+
+    const handleTicketSuccess = () => {
+        fetchEventDetails();
+    };
+
+    const handleDeleteTicket = async (ticketId) => {
+        const result = await showConfirm({
+            title: 'Delete Ticket Type?',
+            text: 'This will permanently delete this ticket type. This action cannot be undone.',
+            confirmButtonText: 'Yes, delete it',
+            icon: 'warning'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            await ticketService.deleteTicketType(ticketId);
+            showSuccess('Ticket type deleted successfully');
+            fetchEventDetails();
+        } catch (err) {
+            console.error('Error deleting ticket type:', err);
+            showError('Failed to delete ticket type');
+        }
     };
 
     const getStatusColor = (status) => {
@@ -217,14 +322,14 @@ const AdminEventDetail = () => {
                                 </Badge>
                             )}
                         </div>
-                        <p className="text-gray-500 mt-1 text-sm">Event ID: #{event?.id}</p>
+                        <p className="text-gray-500 mt-1 text-sm truncate max-w-full">Event ID: #{event?.id}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Link to={`/event/${event?.slug}`} target="_blank">
-                        <Button variant="outline" size="sm">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Link to={`/event/${event?.slug}`} target="_blank" className="flex-1 sm:flex-none">
+                        <Button variant="outline" size="sm" className="w-full">
                             <ExternalLink size={16} />
-                            <span className="hidden sm:inline">View Public Page</span>
+                            <span className="hidden sm:inline">Public View</span>
                         </Button>
                     </Link>
                     <Button onClick={fetchEventDetails} variant="outline" size="sm">
@@ -234,7 +339,7 @@ const AdminEventDetail = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-5 gap-4">
                 <Card>
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
@@ -348,8 +453,26 @@ const AdminEventDetail = () => {
                             <CardHeader>
                                 <CardTitle>About This Event</CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="space-y-6">
                                 <p className="text-gray-700 whitespace-pre-wrap">{event?.description || 'No description'}</p>
+                                
+                                {event?.video_url && getYoutubeEmbedUrl(event.video_url) && (
+                                    <div className="mt-6">
+                                        <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                            <Video size={16} className="text-red-600" />
+                                            Event Video
+                                        </h4>
+                                        <div className="aspect-video w-full rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                                            <iframe
+                                                src={getYoutubeEmbedUrl(event.video_url)}
+                                                className="w-full h-full"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                title="Event Video"
+                                            ></iframe>
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -375,9 +498,9 @@ const AdminEventDetail = () => {
                                                         <span className="text-lg font-bold text-red-600">
                                                             {formatCurrency(ticket.price)}
                                                         </span>
-                                                        {ticket.sale_price && (
+                                                        {(ticket.sale_price || ticket.salePrice) && (
                                                             <span className="text-sm text-gray-500 line-through">
-                                                                {formatCurrency(ticket.original_price)}
+                                                                {formatCurrency(ticket.original_price || ticket.price)}
                                                             </span>
                                                         )}
                                                     </div>
@@ -432,16 +555,90 @@ const AdminEventDetail = () => {
                                         <p className="text-sm text-gray-500">End Time</p>
                                     </div>
                                 </div>
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-start gap-3">
+                                        <MapPin size={18} className="text-gray-400 mt-0.5 shrink-0" />
+                                        <div>
+                                            <p className="font-medium text-gray-900">{event?.venue_name || 'Not specified'}</p>
+                                            <p className="text-sm text-gray-500">{event?.address}</p>
+                                            <p className="text-sm text-gray-500">{event?.city}{event?.region ? `, ${event.region}` : ''}, {event?.country}</p>
+                                        </div>
+                                    </div>
+                                    {(event?.address || event?.city || event?.map_url) && (
+                                        <div className="w-full h-40 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 mt-1">
+                                            <iframe
+                                                src={getGoogleMapsEmbedUrl(event.map_url, event.address, event.city)}
+                                                className="w-full h-full border-0"
+                                                allowFullScreen=""
+                                                loading="lazy"
+                                                referrerPolicy="no-referrer-when-downgrade"
+                                                title="Venue Map"
+                                            ></iframe>
+                                        </div>
+                                    )}
+                                </div>
                                 <div className="flex items-start gap-3">
-                                    <MapPin size={18} className="text-gray-400 mt-0.5 shrink-0" />
+                                    <Users size={18} className="text-gray-400 mt-0.5 shrink-0" />
                                     <div>
-                                        <p className="font-medium text-gray-900">{event?.venue_name || 'Not specified'}</p>
-                                        <p className="text-sm text-gray-500">{event?.address}</p>
-                                        <p className="text-sm text-gray-500">{event?.city}, {event?.country}</p>
+                                        <p className="font-medium text-gray-900">{event?.audience || 'Everyone'}</p>
+                                        <p className="text-sm text-gray-500">Audience</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <Globe size={18} className="text-gray-400 mt-0.5 shrink-0" />
+                                    <div>
+                                        <p className="font-medium text-gray-900">{event?.language || 'English'}</p>
+                                        <p className="text-sm text-gray-500">Language</p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Contact & Links */}
+                        {(event?.phone || event?.website || event?.facebook || event?.twitter || event?.instagram || event?.video_url) && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Contact & Links</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    {event?.phone && (
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Phone size={14} className="text-gray-400" />
+                                            <span className="text-gray-700">{event.phone}</span>
+                                        </div>
+                                    )}
+                                    {event?.website && (
+                                        <a href={event.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                                            <Globe size={14} />
+                                            Website
+                                        </a>
+                                    )}
+                                    <div className="flex gap-3 pt-1">
+                                        {event?.facebook && (
+                                            <a href={event.facebook} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                                <Facebook size={16} className="text-blue-600" />
+                                            </a>
+                                        )}
+                                        {event?.twitter && (
+                                            <a href={event.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                                <Twitter size={16} className="text-blue-400" />
+                                            </a>
+                                        )}
+                                        {event?.instagram && (
+                                            <a href={event.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                                <Instagram size={16} className="text-pink-600" />
+                                            </a>
+                                        )}
+                                    </div>
+                                    {event?.video_url && (
+                                        <a href={event.video_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-red-600 hover:underline pt-1">
+                                            <Video size={14} />
+                                            Watch Trailer/Video
+                                        </a>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Organizer Information */}
                         <Card>
@@ -507,86 +704,151 @@ const AdminEventDetail = () => {
             )}
 
             {activeTab === 'tickets' && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Tag size={20} className="text-red-600" />
-                            All Ticket Types
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {event?.ticket_types && event.ticket_types.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-gray-200">
-                                            <th className="text-left py-3 px-4 font-medium text-gray-600">Ticket Name</th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-600">Price</th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-600">Quantity</th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-600">Sold</th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-600">Revenue</th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-600">% Sold</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {event.ticket_types.map((ticket) => (
-                                            <tr key={ticket.id} className="border-b border-gray-100">
-                                                <td className="py-3 px-4">
-                                                    <div>
-                                                        <p className="font-medium text-gray-900">{ticket.name}</p>
-                                                        {ticket.description && (
-                                                            <p className="text-xs text-gray-500 truncate max-w-xs">{ticket.description}</p>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="text-right py-3 px-4 font-semibold">{formatCurrency(ticket.price)}</td>
-                                                <td className="text-right py-3 px-4">{ticket.quantity}</td>
-                                                <td className="text-right py-3 px-4">{ticket.sold || 0}</td>
-                                                <td className="text-right py-3 px-4 font-semibold text-green-600">
-                                                    {formatCurrency((ticket.sold || 0) * ticket.price)}
-                                                </td>
-                                                <td className="text-right py-3 px-4">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-red-600 rounded-full"
-                                                                style={{ width: `${ticket.quantity > 0 ? (ticket.sold / ticket.quantity) * 100 : 0}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-sm">
-                                                            {ticket.quantity > 0 ? Math.round((ticket.sold / ticket.quantity) * 100) : 0}%
-                                                        </span>
-                                                    </div>
-                                                </td>
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <h3 className="text-lg font-semibold text-gray-900">Manage Ticket Types</h3>
+                        <Button
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => openTicketModal()}
+                        >
+                            <Plus size={16} />
+                            Add Ticket Type
+                        </Button>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Tag size={20} className="text-red-600" />
+                                All Ticket Types
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {event?.ticket_types && event.ticket_types.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                         <thead>
+                                            <tr className="border-b border-gray-200">
+                                                <th className="text-left py-3 px-4 font-medium text-gray-600">Ticket Name</th>
+                                                <th className="text-center py-3 px-4 font-medium text-gray-600">Status</th>
+                                                <th className="text-right py-3 px-4 font-medium text-gray-600">Price</th>
+                                                <th className="text-right py-3 px-4 font-medium text-gray-600">Sale Price</th>
+                                                <th className="text-right py-3 px-4 font-medium text-gray-600">Total</th>
+                                                <th className="text-right py-3 px-4 font-medium text-gray-600">Sold</th>
+                                                <th className="text-right py-3 px-4 font-medium text-gray-600 text-red-600">Left</th>
+                                                <th className="text-right py-3 px-4 font-medium text-gray-600">Revenue</th>
+                                                <th className="text-right py-3 px-4 font-medium text-gray-600 w-24">Actions</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr className="bg-gray-50 font-semibold">
-                                            <td className="py-3 px-4">Total</td>
-                                            <td className="text-right py-3 px-4">-</td>
-                                            <td className="text-right py-3 px-4">
-                                                {event.ticket_types.reduce((sum, t) => sum + t.quantity, 0)}
-                                            </td>
-                                            <td className="text-right py-3 px-4">
-                                                {event.ticket_types.reduce((sum, t) => sum + (t.sold || 0), 0)}
-                                            </td>
-                                            <td className="text-right py-3 px-4 text-green-600">
-                                                {formatCurrency(event.ticket_types.reduce((sum, t) => sum + ((t.sold || 0) * t.price), 0))}
-                                            </td>
-                                            <td className="text-right py-3 px-4">-</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className="text-center py-12">
-                                <Tag size={48} className="mx-auto text-gray-300 mb-4" />
-                                <p className="text-gray-500">No ticket types available</p>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                                        </thead>
+                                        <tbody>
+                                            {event.ticket_types.map((ticket) => (
+                                                <tr key={ticket.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center gap-3">
+                                                            {(ticket.ticket_image || ticket.ticketImage) && (
+                                                                <img 
+                                                                    src={ticket.ticket_image || ticket.ticketImage} 
+                                                                    alt="" 
+                                                                    className="w-10 h-10 rounded object-cover shadow-sm bg-gray-100"
+                                                                />
+                                                            )}
+                                                            <div className="min-w-0">
+                                                                <p className="font-medium text-gray-900 truncate">{ticket.name}</p>
+                                                                {ticket.description && (
+                                                                    <p className="text-xs text-gray-500 truncate max-w-[200px]">{ticket.description}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex justify-center">
+                                                            <Badge className={
+                                                                ticket.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-100' :
+                                                                ticket.status === 'deactivated' ? 'bg-gray-100 text-gray-700 hover:bg-gray-100' :
+                                                                ticket.status === 'sold_out' ? 'bg-red-100 text-red-700 hover:bg-red-100' :
+                                                                'bg-blue-100 text-blue-700 hover:bg-blue-100'
+                                                            }>
+                                                                {ticket.status === 'deactivated' ? 'Deactivated' : (ticket.status || 'Active')}
+                                                            </Badge>
+                                                        </div>
+                                                    </td>
+                                                    <td className="text-right py-3 px-4 font-medium">{formatCurrency(ticket.price)}</td>
+                                                    <td className="text-right py-3 px-4 text-gray-500">
+                                                        {ticket.sale_price || ticket.salePrice ? formatCurrency(ticket.sale_price || ticket.salePrice) : '-'}
+                                                    </td>
+                                                    <td className="text-right py-3 px-4">{ticket.quantity}</td>
+                                                    <td className="text-right py-3 px-4">{ticket.sold || 0}</td>
+                                                    <td className="text-right py-3 px-4 font-bold text-red-600">
+                                                        {ticket.remaining ?? (ticket.quantity - (ticket.sold || 0))}
+                                                    </td>
+                                                    <td className="text-right py-3 px-4 font-semibold text-green-600">
+                                                        {formatCurrency((ticket.sold || 0) * ticket.price)}
+                                                    </td>
+                                                    <td className="text-right py-3 px-4">
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                className="h-8 w-8"
+                                                                onClick={() => openTicketModal(ticket)}
+                                                            >
+                                                                <Edit size={14} className="text-gray-500" />
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                onClick={() => handleDeleteTicket(ticket.id)}
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr className="bg-gray-50/50 font-bold border-t-2 border-gray-200">
+                                                <td className="py-4 px-4 text-gray-900">Total Summary</td>
+                                                <td className="text-center py-4 px-4">-</td>
+                                                <td className="text-right py-4 px-4">-</td>
+                                                <td className="text-right py-4 px-4">-</td>
+                                                <td className="text-right py-4 px-4 text-gray-900 border-l border-gray-100">
+                                                    {event.ticket_types.reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0).toLocaleString()}
+                                                </td>
+                                                <td className="text-right py-4 px-4 text-gray-900">
+                                                    {event.ticket_types.reduce((sum, t) => sum + (parseInt(t.sold) || 0), 0).toLocaleString()}
+                                                </td>
+                                                <td className="text-right py-4 px-4 text-red-600">
+                                                    {event.ticket_types.reduce((sum, t) => sum + (parseInt(t.remaining ?? (t.quantity - (t.sold || 0))) || 0), 0).toLocaleString()}
+                                                </td>
+                                                <td className="text-right py-4 px-4 text-green-700 bg-green-50/30 border-r border-gray-100">
+                                                    {formatCurrency(event.ticket_types.reduce((sum, t) => sum + ((t.sold || 0) * t.price), 0))}
+                                                </td>
+                                                <td className="text-right py-4 px-4">-</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <Tag size={48} className="mx-auto text-gray-300 mb-4" />
+                                    <p className="text-gray-500">No ticket types available</p>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="mt-4 gap-2"
+                                        onClick={() => openTicketModal()}
+                                    >
+                                        <Plus size={16} />
+                                        Create First Ticket
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
             )}
 
             {activeTab === 'settings' && (
@@ -703,11 +965,81 @@ const AdminEventDetail = () => {
                                     />
                                 </div>
                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                                    <input
+                                        type="text"
+                                        name="region"
+                                        value={formData.region}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
                                     <input
                                         type="text"
                                         name="country"
                                         value={formData.country}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <select
+                                        name="event_type_id"
+                                        value={formData.event_type_id}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Map URL</label>
+                                <input
+                                    type="url"
+                                    name="map_url"
+                                    value={formData.map_url}
+                                    onChange={handleInputChange}
+                                    disabled={!isEditing}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Audience</label>
+                                    <select
+                                        name="audience"
+                                        value={formData.audience}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    >
+                                        <option value="Everyone">Everyone</option>
+                                        <option value="Students">Students</option>
+                                        <option value="Families">Families</option>
+                                        <option value="Professionals">Professionals</option>
+                                        <option value="Members Only">Members Only</option>
+                                        <option value="Adults Only (18+)">Adults Only (18+)</option>
+                                        <option value="Adults Only (21+)">Adults Only (21+)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                                    <input
+                                        type="text"
+                                        name="language"
+                                        value={formData.language}
                                         onChange={handleInputChange}
                                         disabled={!isEditing}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
@@ -720,6 +1052,85 @@ const AdminEventDetail = () => {
                                     type="url"
                                     name="banner_image"
                                     value={formData.banner_image}
+                                    onChange={handleInputChange}
+                                    disabled={!isEditing}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Contact & Media */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Contact & Media</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                    <input
+                                        type="text"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                                    <input
+                                        type="url"
+                                        name="website"
+                                        value={formData.website}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Facebook</label>
+                                    <input
+                                        type="text"
+                                        name="facebook"
+                                        value={formData.facebook}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Twitter</label>
+                                    <input
+                                        type="text"
+                                        name="twitter"
+                                        value={formData.twitter}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
+                                    <input
+                                        type="text"
+                                        name="instagram"
+                                        value={formData.instagram}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Video URL</label>
+                                <input
+                                    type="url"
+                                    name="video_url"
+                                    value={formData.video_url}
                                     onChange={handleInputChange}
                                     disabled={!isEditing}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-50"
@@ -799,6 +1210,14 @@ const AdminEventDetail = () => {
                     </Card>
                 </div>
             )}
+            {/* Modals */}
+            <TicketTypeModal
+                isOpen={ticketModalOpen}
+                onClose={closeTicketModal}
+                onSuccess={handleTicketSuccess}
+                eventId={id}
+                ticket={selectedTicket}
+            />
         </div>
     );
 };

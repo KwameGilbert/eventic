@@ -125,6 +125,21 @@ const NomineeModal = ({ isOpen, onClose, categoryId, nominee = null, onSuccess }
                         </div>
                     )}
 
+                    {/* Nominee Code (Read Only) */}
+                    {nominee && nominee.nominee_code && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Nominee Code (Read Only)
+                            </label>
+                            <input
+                                type="text"
+                                value={nominee.nominee_code}
+                                readOnly
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed uppercase font-mono"
+                            />
+                        </div>
+                    )}
+
                     {/* Nominee Name */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">

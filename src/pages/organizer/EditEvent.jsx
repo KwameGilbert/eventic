@@ -20,7 +20,6 @@ import DateTimeSection from '../../components/events/DateTimeSection';
 import LocationSection from '../../components/events/LocationSection';
 import MediaSection from '../../components/events/MediaSection';
 import AdditionalInfoSection from '../../components/events/AdditionalInfoSection';
-import TicketsSection from '../../components/events/TicketsSection';
 import EventPreviewCard from '../../components/events/EventPreviewCard';
 
 const EditEvent = () => {
@@ -33,7 +32,7 @@ const EditEvent = () => {
     const [loadError, setLoadError] = useState(null);
 
     // Track deleted tickets for API call
-    const [deletedTicketIds, setDeletedTicketIds] = useState([]);
+
 
     // Event form state
     const [eventData, setEventData] = useState({
@@ -68,11 +67,11 @@ const EditEvent = () => {
     const [tags, setTags] = useState([]);
     const [tagInput, setTagInput] = useState('');
 
-    // Event photos state
+    // Event photos state (multiple)
     const [eventPhotos, setEventPhotos] = useState([]);
 
-    // Tickets state
-    const [tickets, setTickets] = useState([]);
+    // Tickets state - removed for independent management
+    const [tickets] = useState([]);
 
     // Categories - fetched from API
     const [categories, setCategories] = useState([]);
@@ -173,38 +172,8 @@ const EditEvent = () => {
                         })));
                     }
 
-                    // Map tickets from API
-                    if (event.ticketTypes && event.ticketTypes.length > 0) {
-                        setTickets(event.ticketTypes.map(ticket => ({
-                            id: ticket.id,
-                            name: ticket.name || '',
-                            price: ticket.price?.toString() || '',
-                            promoPrice: ticket.salePrice?.toString() || '',
-                            saleStartDate: ticket.saleStartDate ? ticket.saleStartDate.slice(0, 16) : '',
-                            saleEndDate: ticket.saleEndDate ? ticket.saleEndDate.slice(0, 16) : '',
-                            quantity: ticket.quantity?.toString() || '',
-                            maxPerOrder: ticket.maxPerAttendee?.toString() || '10',
-                            description: ticket.description || '',
-                            sold: ticket.sold || 0,
-                            ticketImage: null,
-                            ticketImagePreview: ticket.ticketImage || ''
-                        })));
-                    } else {
-                        // Add empty ticket if none exist
-                        setTickets([{
-                            id: 'new-1',
-                            name: '',
-                            price: '',
-                            promoPrice: '',
-                            saleStartDate: '',
-                            saleEndDate: '',
-                            quantity: '',
-                            maxPerOrder: '10',
-                            description: '',
-                            ticketImage: null,
-                            ticketImagePreview: ''
-                        }]);
-                    }
+                    // Tickets are managed separately now
+                    // setTickets(event.ticketTypes.map(ticket => ({ ... })));
                 } else {
                     setLoadError(response.message || 'Failed to load event data');
                 }
@@ -258,23 +227,6 @@ const EditEvent = () => {
         setEventData(prev => ({ ...prev, mainImage: null, mainImagePreview: '' }));
     };
 
-    // Handle event photos upload
-    const handlePhotosUpload = (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setEventPhotos(prev => [...prev, { file, preview: reader.result, id: Date.now() + Math.random() }]);
-            };
-            reader.readAsDataURL(file);
-        });
-    };
-
-    // Remove event photo
-    const removeEventPhoto = (photoId) => {
-        setEventPhotos(prev => prev.filter(photo => photo.id !== photoId));
-    };
-
     // Handle tag input
     const handleTagKeyDown = (e) => {
         if (e.key === 'Enter' || e.key === ',') {
@@ -295,73 +247,7 @@ const EditEvent = () => {
         setTags(prev => prev.filter(tag => tag !== tagToRemove));
     };
 
-    // Handle ticket change
-    const handleTicketChange = (ticketId, field, value) => {
-        setTickets(prev => prev.map(ticket =>
-            ticket.id === ticketId ? { ...ticket, [field]: value } : ticket
-        ));
-    };
 
-    // Add new ticket
-    const addTicket = () => {
-        const newId = `new-${Date.now()}`;
-        setTickets(prev => [...prev, {
-            id: newId,
-            name: '',
-            price: '',
-            promoPrice: '',
-            saleStartDate: '',
-            saleEndDate: '',
-            quantity: '',
-            maxPerOrder: '10',
-            description: '',
-            ticketImage: null,
-            ticketImagePreview: ''
-        }]);
-    };
-
-    // Remove ticket
-    const removeTicket = (ticketId) => {
-        if (tickets.length > 1) {
-            // If it's an existing ticket (numeric ID), track for deletion
-            if (typeof ticketId === 'number') {
-                const ticketToDelete = tickets.find(t => t.id === ticketId);
-                if (ticketToDelete && ticketToDelete.sold > 0) {
-                    alert('Cannot delete a ticket type with sold tickets.');
-                    return;
-                }
-                setDeletedTicketIds(prev => [...prev, ticketId]);
-            }
-            setTickets(prev => prev.filter(ticket => ticket.id !== ticketId));
-        }
-    };
-
-    // Handle ticket image upload
-    const handleTicketImageUpload = (ticketId, file) => {
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setTickets(prev => prev.map(ticket =>
-                    ticket.id === ticketId
-                        ? { ...ticket, ticketImage: file, ticketImagePreview: reader.result }
-                        : ticket
-                ));
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    // Remove ticket image
-    const removeTicketImage = (ticketId) => {
-        setTickets(prev => prev.map(ticket =>
-            ticket.id === ticketId
-                ? { ...ticket, ticketImage: null, ticketImagePreview: '' }
-                : ticket
-        ));
-    };
-
-    // Calculate total tickets
-    const totalTickets = tickets.reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0);
 
     // Handle form submit with specified status
     const handleSubmit = async (status = null) => {
@@ -403,7 +289,7 @@ const EditEvent = () => {
             };
 
             // Filter valid tickets
-            const validTickets = tickets.filter(t => t.name && t.quantity);
+
 
             // Get the banner image if it's a new file (File object, not a URL string)
             const bannerImage = eventData.mainImage instanceof File ? eventData.mainImage : null;
@@ -411,20 +297,19 @@ const EditEvent = () => {
             // Filter only new event photos (those with file property, not existing URLs)
             const newEventPhotos = eventPhotos.filter(photo => photo.file);
 
-            // Call the update service
+            // Call the update service with no tickets
             const response = await eventService.updateWithTickets(
                 id,
                 apiEventData,
-                validTickets,
-                deletedTicketIds,
+                [], // No tickets update here
+                [], // No deleted tickets here
                 bannerImage, // Pass the banner image file if available
                 newEventPhotos // Pass new event photos
             );
 
             if (response.success) {
                 setSubmitSuccess(true);
-                // Clear deleted tickets tracking
-                setDeletedTicketIds([]);
+                // Clear deleted tickets tracking - removed
                 // Navigate back after delay
                 setTimeout(() => {
                     navigate(`/organizer/events/${id}`);
@@ -621,17 +506,6 @@ const EditEvent = () => {
                             eventData={eventData}
                             handleEventChange={handleEventChange}
                         />
-
-                        <TicketsSection
-                            tickets={tickets}
-                            handleTicketChange={handleTicketChange}
-                            handleTicketImageUpload={handleTicketImageUpload}
-                            removeTicketImage={removeTicketImage}
-                            addTicket={addTicket}
-                            removeTicket={removeTicket}
-                            totalTickets={totalTickets}
-                        />
-
                     </div>
 
                     {/* Right Column - Preview */}

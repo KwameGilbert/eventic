@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Globe,
     CreditCard,
-    ToggleLeft,
+//     ToggleLeft,
     Mail,
     Bell,
     Shield,
@@ -32,7 +32,7 @@ const Settings = () => {
     const tabs = [
         { id: 'general', label: 'General', icon: Globe },
         { id: 'payment', label: 'Payment', icon: CreditCard },
-        { id: 'features', label: 'Features', icon: ToggleLeft },
+        // { id: 'features', label: 'Features', icon: ToggleLeft },
         { id: 'email', label: 'Email', icon: Mail },
         { id: 'notifications', label: 'Notifications', icon: Bell },
         { id: 'security', label: 'Security', icon: Shield },
@@ -437,8 +437,8 @@ const Settings = () => {
                 </Card>
             )}
 
-            {/* Feature Settings */}
-            {activeTab === 'features' && settings?.features && (
+            {/* Feature Settings (Not implemented yet) */}
+            {/* activeTab === 'features' && settings?.features && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -480,7 +480,7 @@ const Settings = () => {
                         ))}
                     </CardContent>
                 </Card>
-            )}
+            ) */}
 
             {/* Email Settings */}
             {activeTab === 'email' && settings?.email && (

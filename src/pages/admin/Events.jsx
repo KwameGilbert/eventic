@@ -425,7 +425,7 @@ const AdminEvents = () => {
                                 >
                                     <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                                         {/* Event Image */}
-                                        <div className="w-full sm:w-20 md:w-24 h-20 md:h-24 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                                        <div className="w-full sm:w-20 md:w-24 h-32 sm:h-20 md:h-24 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                                             {event.banner_image ? (
                                                 <img
                                                     src={event.banner_image}
@@ -461,7 +461,7 @@ const AdminEvents = () => {
                                             </div>
 
                                             {/* Event Meta */}
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 mb-3">
                                                 <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                                                     <Clock size={14} className="shrink-0" />
                                                     <span className="truncate">{formatDate(event.start_time)}</span>

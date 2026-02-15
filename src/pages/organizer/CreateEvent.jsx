@@ -16,7 +16,6 @@ import DateTimeSection from '../../components/events/DateTimeSection';
 import LocationSection from '../../components/events/LocationSection';
 import MediaSection from '../../components/events/MediaSection';
 import AdditionalInfoSection from '../../components/events/AdditionalInfoSection';
-import TicketsSection from '../../components/events/TicketsSection';
 import EventPreviewCard from '../../components/events/EventPreviewCard';
 
 const CreateEvent = () => {
@@ -64,24 +63,10 @@ const CreateEvent = () => {
     const [tagInput, setTagInput] = useState('');
 
     // Event photos state (multiple)
-    const [eventPhotos, setEventPhotos] = useState([]);
+    const [eventPhotos] = useState([]);
 
-    // Tickets state
-    const [tickets, setTickets] = useState([
-        {
-            id: 1,
-            name: '',
-            price: '',
-            promoPrice: '',
-            saleStartDate: '',
-            saleEndDate: '',
-            quantity: '',
-            maxPerOrder: '',
-            description: '',
-            ticketImage: null,
-            ticketImagePreview: ''
-        }
-    ]);
+    // Tickets state - removed for simplified creation
+    const [tickets] = useState([]);
 
     // Countries (static for now)
     const countries = [
@@ -152,23 +137,6 @@ const CreateEvent = () => {
         setEventData(prev => ({ ...prev, mainImage: null, mainImagePreview: '' }));
     };
 
-    // Handle event photos upload
-    const handlePhotosUpload = (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setEventPhotos(prev => [...prev, { file, preview: reader.result, id: Date.now() + Math.random() }]);
-            };
-            reader.readAsDataURL(file);
-        });
-    };
-
-    // Remove event photo
-    const removeEventPhoto = (id) => {
-        setEventPhotos(prev => prev.filter(photo => photo.id !== id));
-    };
-
     // Handle tag input
     const handleTagKeyDown = (e) => {
         if (e.key === 'Enter' || e.key === ',') {
@@ -189,64 +157,7 @@ const CreateEvent = () => {
         setTags(prev => prev.filter(tag => tag !== tagToRemove));
     };
 
-    // Handle ticket change
-    const handleTicketChange = (id, field, value) => {
-        setTickets(prev => prev.map(ticket =>
-            ticket.id === id ? { ...ticket, [field]: value } : ticket
-        ));
-    };
 
-    // Add new ticket
-    const addTicket = () => {
-        const newId = Math.max(...tickets.map(t => t.id)) + 1;
-        setTickets(prev => [...prev, {
-            id: newId,
-            name: '',
-            price: '',
-            promoPrice: '',
-            saleStartDate: '',
-            saleEndDate: '',
-            quantity: '',
-            maxPerOrder: '',
-            description: '',
-            ticketImage: null,
-            ticketImagePreview: ''
-        }]);
-    };
-
-    // Remove ticket
-    const removeTicket = (id) => {
-        if (tickets.length > 1) {
-            setTickets(prev => prev.filter(ticket => ticket.id !== id));
-        }
-    };
-
-    // Handle ticket image upload
-    const handleTicketImageUpload = (ticketId, file) => {
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setTickets(prev => prev.map(ticket =>
-                    ticket.id === ticketId
-                        ? { ...ticket, ticketImage: file, ticketImagePreview: reader.result }
-                        : ticket
-                ));
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    // Remove ticket image
-    const removeTicketImage = (ticketId) => {
-        setTickets(prev => prev.map(ticket =>
-            ticket.id === ticketId
-                ? { ...ticket, ticketImage: null, ticketImagePreview: '' }
-                : ticket
-        ));
-    };
-
-    // Calculate total tickets
-    const totalTickets = tickets.reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0);
 
     // Handle form submit with specified status
     const handleSubmit = async (status = 'draft') => {
@@ -290,22 +201,22 @@ const CreateEvent = () => {
                 video_url: eventData.videoUrl || null,
             };
 
-            // Filter out valid tickets (with name and quantity)
-            const validTickets = tickets.filter(t => t.name && t.quantity);
 
-            // Create event with tickets, passing banner image and event photos if available
+
+            // Create event without tickets
             const response = await eventService.createWithTickets(
                 apiEventData,
-                validTickets,
+                [], // Empty tickets
                 eventData.mainImage, // Pass the banner image file
                 eventPhotos // Pass the event photos array
             );
 
-            if (response.success) {
+            if (response.success && response.data) {
                 setSubmitSuccess(true);
-                // Redirect to events page after a short delay
+                const newEventId = response.data.id;
+                // Redirect to event details page after a short delay
                 setTimeout(() => {
-                    navigate('/organizer/events');
+                    navigate(`/organizer/events/${newEventId}`);
                 }, 1500);
             } else {
                 setSubmitError(response.message || 'Failed to create event');
@@ -404,17 +315,6 @@ const CreateEvent = () => {
                             eventData={eventData}
                             handleEventChange={handleEventChange}
                         />
-
-                        <TicketsSection
-                            tickets={tickets}
-                            handleTicketChange={handleTicketChange}
-                            handleTicketImageUpload={handleTicketImageUpload}
-                            removeTicketImage={removeTicketImage}
-                            addTicket={addTicket}
-                            removeTicket={removeTicket}
-                            totalTickets={totalTickets}
-                        />
-
                     </div>
 
                     {/* Right Column - Preview & Actions */}
