@@ -24,6 +24,7 @@ import {
   Key,
   UserCog,
   Ban,
+  Edit,
 } from "lucide-react";
 import {
   Card,
@@ -41,6 +42,7 @@ import {
   ChangeStatusModal,
   DeleteUserModal,
   CreateUserModal,
+  EditUserModal,
 } from "./UserManagementModals";
 
 const Users = () => {
@@ -58,6 +60,7 @@ const Users = () => {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [userToManage, setUserToManage] = useState(null);
   const [openActionMenu, setOpenActionMenu] = useState(null);
 
@@ -562,6 +565,20 @@ const Users = () => {
                                     <button
                                       onClick={() => {
                                         setUserToManage(user);
+                                        setShowEditModal(true);
+                                        setOpenActionMenu(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700"
+                                    >
+                                      <Eye
+                                        size={16}
+                                        className="text-orange-600"
+                                      />
+                                      Edit Profile
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setUserToManage(user);
                                         setShowResetPasswordModal(true);
                                         setOpenActionMenu(null);
                                       }}
@@ -634,6 +651,10 @@ const Users = () => {
         <UserDetailModal
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
+          onEdit={(user) => {
+            setUserToManage(user);
+            setShowEditModal(true);
+          }}
           formatDate={formatDate}
           getRoleBadge={getRoleBadge}
           getStatusBadge={getStatusBadge}
@@ -691,6 +712,17 @@ const Users = () => {
           onSuccess={() => fetchUsers()}
         />
       )}
+
+      {showEditModal && userToManage && (
+        <EditUserModal
+          user={userToManage}
+          onClose={() => {
+            setShowEditModal(false);
+            setUserToManage(null);
+          }}
+          onSuccess={() => fetchUsers()}
+        />
+      )}
     </div>
   );
 };
@@ -699,6 +731,7 @@ const Users = () => {
 const UserDetailModal = ({
   user,
   onClose,
+  onEdit,
   formatDate,
   getRoleBadge,
   getStatusBadge,
@@ -810,7 +843,18 @@ const UserDetailModal = ({
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-200 flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={onClose}>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => {
+              onEdit(user);
+              onClose();
+            }}
+          >
+            <Edit size={16} className="mr-2" />
+            Edit Profile
+          </Button>
+          <Button variant="default" className="flex-1" onClick={onClose}>
             Close
           </Button>
         </div>
@@ -820,6 +864,7 @@ const UserDetailModal = ({
 };
 
 UserDetailModal.propTypes = {
+  onEdit: PropTypes.func.isRequired,
   user: PropTypes.shape({
     id: PropTypes.number,
     name: PropTypes.string,

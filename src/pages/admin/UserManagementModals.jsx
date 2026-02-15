@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Trash2, Key, UserCog, Ban, CheckCircle, X } from "lucide-react";
+import {
+  Trash2,
+  Key,
+  UserCog,
+  Ban,
+  CheckCircle,
+  X,
+  Edit,
+  Loader2,
+} from "lucide-react";
 import { Button } from "../../components/ui/button";
 import adminService from "../../services/adminService";
 import { showSuccess, showError } from "../../utils/toast";
@@ -715,6 +724,341 @@ export const CreateUserModal = ({ onClose, onSuccess }) => {
 };
 
 CreateUserModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onSuccess: PropTypes.func.isRequired,
+};
+
+// Edit User Modal
+export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    name: initialUser.name || "",
+    email: initialUser.email || "",
+    phone: initialUser.phone || "",
+    // Organizer fields
+    organization_name: "",
+    business_name: "",
+    business_type: "",
+    description: "",
+    website: "",
+    address: "",
+    city: "",
+    region: "",
+    country: "",
+    bio: "",
+    // Attendee fields
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
+    gender: "",
+    interests: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+
+  React.useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        setIsFetching(true);
+        const response = await adminService.getUser(initialUser.id);
+        if (response.success) {
+          const user = response.data.user;
+          const roleData = response.data.role_data;
+          
+          let roleSpecificData = {};
+          if (user.role === 'organizer' && roleData.organizer) {
+            roleSpecificData = {
+              organization_name: roleData.organizer.organization_name || roleData.organizer.business_name || "",
+              business_name: roleData.organizer.business_name || "",
+              business_type: roleData.organizer.business_type || "",
+              description: roleData.organizer.description || "",
+              website: roleData.organizer.website || "",
+              address: roleData.organizer.address || "",
+              city: roleData.organizer.city || "",
+              region: roleData.organizer.region || "",
+              country: roleData.organizer.country || "",
+              bio: roleData.organizer.bio || roleData.organizer.description || "",
+            };
+          } else if (user.role === 'attendee' && roleData.attendee) {
+            roleSpecificData = {
+              first_name: roleData.attendee.first_name || "",
+              last_name: roleData.attendee.last_name || "",
+              date_of_birth: roleData.attendee.date_of_birth || "",
+              gender: roleData.attendee.gender || "",
+              interests: roleData.attendee.interests || "",
+              bio: roleData.attendee.bio || "",
+            };
+          }
+
+          setFormData({
+            name: user.name || "",
+            email: user.email || "",
+            phone: user.phone || "",
+            ...roleSpecificData
+          });
+        }
+      } catch (err) {
+        showError("Failed to fetch user details", err);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, [initialUser.id]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const response = await adminService.updateUser(initialUser.id, formData);
+
+      if (response.success) {
+        showSuccess("User profile updated successfully");
+        onSuccess();
+        onClose();
+      } else {
+        showError(response.message || "Failed to update user");
+      }
+    } catch (err) {
+      showError(err.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                <Edit size={24} className="text-orange-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Edit User Profile
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Update information for {initialUser.name}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
+        </div>
+
+        {isFetching ? (
+          <div className="p-12 flex flex-col items-center justify-center gap-4">
+            <Loader2 size={40} className="text-orange-500 animate-spin" />
+            <p className="text-gray-500">Fetching user details...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Basic Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <input
+                    name="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <input
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Role Specific Fields */}
+            {initialUser.role === 'organizer' && (
+              <div className="space-y-4 pt-4 border-t border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Organizer Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Organization/Business Name</label>
+                    <input
+                      name="organization_name"
+                      type="text"
+                      value={formData.organization_name}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
+                    <input
+                      name="business_type"
+                      type="text"
+                      value={formData.business_type}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      placeholder="e.g. Media, Agency, Individual"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                    <input
+                      name="website"
+                      type="url"
+                      value={formData.website}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Bio / Description</label>
+                    <textarea
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input
+                      name="city"
+                      type="text"
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <input
+                      name="country"
+                      type="text"
+                      value={formData.country}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {initialUser.role === 'attendee' && (
+              <div className="space-y-4 pt-4 border-t border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Attendee Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <input
+                      name="first_name"
+                      type="text"
+                      value={formData.first_name}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input
+                      name="last_name"
+                      type="text"
+                      value={formData.last_name}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                    <input
+                      name="date_of_birth"
+                      type="date"
+                      value={formData.date_of_birth}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </form>
+        )}
+
+        <div className="p-6 border-t border-gray-200 bg-gray-50 flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            className="flex-1 bg-orange-600 hover:bg-orange-700"
+            disabled={isLoading || isFetching}
+          >
+            {isLoading ? "Saving Changes..." : "Save Profile"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+EditUserModal.propTypes = {
+  user: PropTypes.object.isRequired,
   onClose: PropTypes.func.isRequired,
   onSuccess: PropTypes.func.isRequired,
 };

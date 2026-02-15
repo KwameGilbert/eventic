@@ -134,6 +134,17 @@ const adminService = {
     return response;
   },
 
+  /**
+   * Update user details (Admin/Super Admin)
+   * @param {number} userId - User ID
+   * @param {Object} userData - User data to update
+   * @returns {Promise<Object>} Update response
+   */
+  updateUser: async (userId, userData) => {
+    const response = await api.put(`/admin/users/${userId}`, userData);
+    return response;
+  },
+
   // =====================================================
   // EVENT MANAGEMENT
   // =====================================================
