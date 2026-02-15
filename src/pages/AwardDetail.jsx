@@ -333,9 +333,17 @@ const AwardDetail = () => {
                       />
                     </div>
                     {votingStatus === "voting_open" && (
-                      <p className="text-xs text-gray-500 text-center italic">
+                      <p className="text-xs text-gray-500 text-center italic mb-4">
                         Voting is currently active. Select a category to vote.
                       </p>
+                    )}
+                    {award.show_results && (
+                      <Link
+                        to={`/award/${slug}/results`}
+                        className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-colors"
+                      >
+                        View Results
+                      </Link>
                     )}
                   </div>
 
@@ -501,17 +509,22 @@ const AwardDetail = () => {
                 />
               </div>
               {votingStatus === "voting_open" && (
-                <p className="text-xs text-gray-500 text-center italic">
+                <p className="text-xs text-gray-500 text-center italic mb-4">
                   Voting is currently active. Select a category to vote.
                 </p>
               )}
-              {votingStatus === "voting_closed" && (
+              {award.show_results && (
                 <Link
                   to={`/award/${slug}/results`}
                   className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-colors"
                 >
                   View Results
                 </Link>
+              )}
+              {votingStatus === "voting_closed" && !award.show_results && (
+                <p className="text-xs text-gray-500 text-center italic">
+                  Results will be announced soon.
+                </p>
               )}
             </div>
 

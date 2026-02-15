@@ -1,19 +1,116 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
+import PropTypes from "prop-types";
 import {
   Trophy,
-  Home as HomeIcon,
-  TrendingUp,
-  Medal,
   Award,
-  Crown,
-  Users,
-  Download,
   AlertCircle,
   RefreshCw,
+  Search,
+  ChevronRight,
+  ChevronDown,
+  Eye,
+  BarChart3,
+  List,
+  Filter,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LabelList,
+} from "recharts";
 import awardService from "../services/awardService";
 import PageLoader from "../components/ui/PageLoader";
+import VotingModal from "../components/awards/VotingModal";
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100">
+        <p className="font-bold text-gray-900 leading-none mb-1">{label}</p>
+        <p className="text-(--brand-primary) font-black">
+          {payload[0].value.toLocaleString()} votes
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+CustomTooltip.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.number,
+    }),
+  ),
+  label: PropTypes.string,
+};
+
+const RenderCustomBar = (props) => {
+  const { fill, x, y, width, height, index, payload } = props;
+  const radius = 8;
+
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+        rx={radius}
+        ry={radius}
+      />
+      {payload.nominee_image && (
+        <defs>
+          <clipPath id={`clip-${index}`}>
+            <circle cx={x + width / 2} cy={y - 25} r={18} />
+          </clipPath>
+        </defs>
+      )}
+      {payload.nominee_image && (
+        <image
+          x={x + width / 2 - 18}
+          y={y - 43}
+          width={36}
+          height={36}
+          xlinkHref={payload.nominee_image}
+          clipPath={`url(#clip-${index})`}
+          preserveAspectRatio="xMidYMid slice"
+        />
+      )}
+      {payload.nominee_image && (
+        <circle
+          cx={x + width / 2}
+          cy={y - 25}
+          r={18}
+          fill="none"
+          stroke={fill}
+          strokeWidth={2}
+        />
+      )}
+    </g>
+  );
+};
+
+RenderCustomBar.propTypes = {
+  fill: PropTypes.string,
+  x: PropTypes.number,
+  y: PropTypes.number,
+  width: PropTypes.number,
+  height: PropTypes.number,
+  index: PropTypes.number,
+  payload: PropTypes.shape({
+    nominee_image: PropTypes.string,
+  }),
+};
 
 const AwardLeaderboard = () => {
   const { slug } = useParams();
@@ -22,6 +119,12 @@ const AwardLeaderboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState("table");
+
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [isVotingModalOpen, setIsVotingModalOpen] = useState(false);
+  const [votingCategory, setVotingCategory] = useState(null);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -33,13 +136,17 @@ const AwardLeaderboard = () => {
         const awardData = awardResponse?.data || awardResponse;
         setAward(awardData);
 
-        // Fetch leaderboard data
         const leaderboardResponse = await awardService.getLeaderboard(
           awardData.id,
         );
         const leaderboardData =
           leaderboardResponse?.data || leaderboardResponse;
-        setLeaderboard(leaderboardData.leaderboard || []);
+        const data = leaderboardData.leaderboard || [];
+        setLeaderboard(data);
+
+        if (data.length > 0) {
+          setExpandedCategories({ [data[0].category_id]: true });
+        }
       } catch (err) {
         console.error("Failed to fetch leaderboard:", err);
         setError("Failed to load leaderboard data. Please try again.");
@@ -51,6 +158,13 @@ const AwardLeaderboard = () => {
     fetchLeaderboard();
   }, [slug]);
 
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [categoryId]: !prev[categoryId],
+    }));
+  };
+
   const handleRetry = () => {
     setIsLoading(true);
     setError(null);
@@ -59,7 +173,6 @@ const AwardLeaderboard = () => {
       .then(async (awardResponse) => {
         const awardData = awardResponse?.data || awardResponse;
         setAward(awardData);
-
         const leaderboardResponse = await awardService.getLeaderboard(
           awardData.id,
         );
@@ -68,7 +181,7 @@ const AwardLeaderboard = () => {
         setLeaderboard(leaderboardData.leaderboard || []);
       })
       .catch((err) => {
-        console.error("Failed to fetch leaderboard:", err);
+        console.log(err);
         setError("Failed to load leaderboard data. Please try again.");
       })
       .finally(() => {
@@ -76,300 +189,428 @@ const AwardLeaderboard = () => {
       });
   };
 
-  const downloadResults = () => {
-    // Download results as CSV or PDF
-    console.log("Downloading results...");
+  const handleVoteClick = (category) => {
+    setVotingCategory(category);
+    setIsVotingModalOpen(true);
   };
 
-  const getRankIcon = (rank) => {
-    switch (rank) {
-      case 1:
-        return <Crown className="text-yellow-500" size={24} />;
-      case 2:
-        return <Medal className="text-gray-400" size={24} />;
-      case 3:
-        return <Award className="text-orange-400" size={24} />;
-      default:
-        return null;
-    }
-  };
+  const filteredLeaderboard = useMemo(() => {
+    return leaderboard
+      .filter(
+        (cat) =>
+          selectedCategory === "all" ||
+          String(cat.category_id) === String(selectedCategory),
+      )
+      .map((cat) => {
+        const filteredNominees = (cat.nominees || [])
+          .filter(
+            (n) =>
+              n.nominee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (n.nominee_code &&
+                n.nominee_code
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase())),
+          )
+          .sort((a, b) => (b.total_votes || 0) - (a.total_votes || 0));
 
-  // Loading State
-  if (isLoading) {
-    return <PageLoader message="Loading leaderboard..." />;
+        return { ...cat, nominees: filteredNominees };
+      })
+      .filter((cat) => cat.nominees.length > 0);
+  }, [leaderboard, selectedCategory, searchTerm]);
+
+  if (isLoading) return <PageLoader message="Loading leaderboard..." />;
+
+  if (error || !award) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <div className="text-center bg-white p-12 rounded-2xl shadow-sm max-w-md w-full border border-gray-100">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6 opacity-20" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {error ? "Error" : "Not Found"}
+          </h2>
+          <p className="text-gray-500 mb-8">{error || "Award not found."}</p>
+          <div className="flex flex-col gap-3">
+            {error && (
+              <button
+                onClick={handleRetry}
+                className="py-3 bg-(--brand-primary) text-white rounded-xl font-bold hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <RefreshCw size={18} /> Retry
+              </button>
+            )}
+            <Link
+              to="/awards"
+              className="py-3 text-gray-600 font-semibold hover:underline"
+            >
+              Browse Awards
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Error State
-  if (error) {
+  const isVotingOpen = () => {
+    const now = new Date();
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center bg-white p-8 rounded-xl shadow-sm max-w-md">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Error Loading Leaderboard
-          </h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={handleRetry}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-(--brand-primary) text-white rounded-lg hover:opacity-90 transition-opacity"
+      award.voting_start &&
+      award.voting_end &&
+      now >= new Date(award.voting_start) &&
+      now <= new Date(award.voting_end)
+    );
+  };
+
+  return (
+    <div className="bg-gray-50 min-h-screen pb-20">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link
+                to={`/award/${slug}`}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ChevronRight size={24} className="rotate-180 text-gray-400" />
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">
+                  Results & Leaderboard
+                </h1>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Trophy size={14} className="text-(--brand-primary)" />
+                  <span>{award.title}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:block text-right mr-4 font-semibold text-sm">
+                <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">
+                  Total Votes
+                </p>
+                <p className="text-gray-900 leading-none">
+                  {(award.total_votes || 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="flex items-center bg-gray-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`p-2 rounded-lg transition-all ${viewMode === "table" ? "bg-white shadow-sm text-(--brand-primary)" : "text-gray-400 hover:text-gray-600"}`}
+                >
+                  <List size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode("chart")}
+                  className={`p-2 rounded-lg transition-all ${viewMode === "chart" ? "bg-white shadow-sm text-(--brand-primary)" : "text-gray-400 hover:text-gray-600"}`}
+                >
+                  <BarChart3 size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Toolbar */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8">
+          <div className="relative md:col-span-8">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search by name or code..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-(--brand-primary) outline-none transition-all font-medium text-gray-700"
+            />
+          </div>
+          <div className="relative md:col-span-4">
+            <Filter
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full pl-12 pr-10 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-(--brand-primary) outline-none appearance-none cursor-pointer font-semibold text-gray-700"
             >
-              <RefreshCw size={18} />
-              Try Again
-            </button>
+              <option value="all">All Categories</option>
+              {leaderboard.map((cat) => (
+                <option key={cat.category_id} value={cat.category_id}>
+                  {cat.category_name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              size={18}
+            />
+          </div>
+        </div>
+
+        {/* Results */}
+        {award.show_results === false ? (
+          <div className="bg-white p-16 rounded-2xl border border-gray-200 shadow-sm text-center">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Eye size={36} className="text-gray-300" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Results are hidden
+            </h2>
+            <p className="text-gray-500 max-w-sm mx-auto mb-8">
+              The organizer has not enabled result visibility for this award
+              event.
+            </p>
             <Link
               to={`/award/${slug}`}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="inline-flex py-3 px-8 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors"
             >
               Back to Award
             </Link>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!award) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center bg-white p-8 rounded-xl shadow-sm">
-          <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Award Not Found
-          </h2>
-          <Link
-            to="/awards"
-            className="text-(--brand-primary) hover:underline font-semibold"
-          >
-            Browse all award events →
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Page Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Results & Leaderboard
-            </h1>
-
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Link to="/" className="hover:text-(--brand-primary)">
-                <HomeIcon size={16} />
-              </Link>
-              <span>/</span>
-              <Link to="/awards" className="hover:text-(--brand-primary)">
-                Award Events
-              </Link>
-              <span>/</span>
-              <Link
-                to={`/award/${slug}`}
-                className="hover:text-(--brand-primary)"
-              >
-                {award.title}
-              </Link>
-              <span>/</span>
-              <span className="text-gray-900 font-medium">Results</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Award Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <Trophy className="text-(--brand-primary)" size={32} />
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {award.title}
-                </h1>
-              </div>
-              {award.description && (
-                <p className="text-gray-600 mb-4">{award.description}</p>
-              )}
-
-              {/* Stats */}
-              <div className="flex items-center gap-6 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="text-(--brand-primary)" size={20} />
-                  <span className="text-sm font-medium text-gray-600">
-                    {award.total_votes?.toLocaleString() || 0} Total Votes
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="text-(--brand-primary)" size={20} />
-                  <span className="text-sm font-medium text-gray-600">
-                    {leaderboard.length} Categories
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={downloadResults}
-              className="flex items-center gap-2 px-4 py-2 bg-(--brand-primary) text-white rounded-lg hover:opacity-90 transition-opacity font-semibold"
-            >
-              <Download size={18} />
-              Download Results
-            </button>
-          </div>
-        </div>
-
-        {/* Category Filter */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={() => setSelectedCategory("all")}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                selectedCategory === "all"
-                  ? "bg-(--brand-primary) text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-              }`}
-            >
-              All Categories
-            </button>
-            {leaderboard.map((category) => (
-              <button
-                key={category.category_id}
-                onClick={() => setSelectedCategory(category.category_id)}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                  selectedCategory === category.category_id
-                    ? "bg-(--brand-primary) text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-                }`}
-              >
-                {category.category_name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Check if results are allowed to be shown */}
-        {award.show_results === false ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <Trophy className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold text-gray-900 mb-3">
-              Results Currently Hidden
-            </h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              The organizer has temporarily hidden the voting results. Results
-              will be displayed when made available.
-            </p>
-            <Link
-              to={`/award/${slug}`}
-              className="inline-block px-6 py-3 bg-(--brand-primary) text-white rounded-lg hover:opacity-90 transition-opacity font-semibold"
-            >
-              Back to Award Details
-            </Link>
-          </div>
-        ) : leaderboard.length > 0 ? (
+        ) : filteredLeaderboard.length > 0 ? (
           <div className="space-y-6">
-            {leaderboard
-              .filter(
-                (cat) =>
-                  selectedCategory === "all" ||
-                  cat.category_id === selectedCategory,
-              )
-              .map((category) => (
+            {filteredLeaderboard.map((category) => {
+              const isExpanded = expandedCategories[category.category_id];
+              const categoryTotalVotes = category.nominees.reduce(
+                (sum, n) => sum + (n.total_votes || 0),
+                0,
+              );
+
+              return (
                 <div
                   key={category.category_id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
                 >
-                  {/* Category Header */}
-                  <div className="bg-gradient-to-r from-(--brand-primary) to-orange-600 text-white p-6">
-                    <h2 className="text-2xl font-bold mb-2">
-                      {category.category_name}
-                    </h2>
-                    <p className="text-white/90 text-sm">
-                      {category.nominees
-                        ?.reduce((sum, n) => sum + (n.total_votes || 0), 0)
-                        ?.toLocaleString() || 0}{" "}
-                      total votes
-                    </p>
-                  </div>
-
-                  {/* Nominees List */}
-                  <div className="p-6">
-                    <div className="space-y-4">
-                      {category.nominees?.map((nominee, index) => (
-                        <div
-                          key={nominee.nominee_id}
-                          className={`flex items-center gap-4 p-4 rounded-lg transition-all ${
-                            index === 0
-                              ? "bg-yellow-50 border-2 border-yellow-400"
-                              : index === 1
-                                ? "bg-gray-50 border-2 border-gray-300"
-                                : index === 2
-                                  ? "bg-orange-50 border-2 border-orange-300"
-                                  : "bg-gray-50 border border-gray-200"
-                          }`}
-                        >
-                          {/* Rank */}
-                          <div className="flex items-center justify-center w-12 h-12 shrink-0">
-                            {getRankIcon(index + 1) || (
-                              <span className="text-xl font-bold text-gray-400">
-                                #{index + 1}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Nominee Image */}
-                          {nominee.nominee_image && (
-                            <img
-                              src={nominee.nominee_image}
-                              alt={nominee.nominee_name}
-                              className="w-16 h-16 rounded-lg object-cover shrink-0"
-                            />
-                          )}
-
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-bold text-gray-900 text-lg">
-                                {nominee.nominee_name}
-                              </h3>
-                              {nominee.nominee_code && (
-                                <span className="text-[10px] font-mono bg-white/50 text-gray-500 px-1.5 py-0.5 rounded uppercase border border-gray-200">
-                                  {nominee.nominee_code}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Vote Count */}
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-(--brand-primary)">
-                              {nominee.total_votes?.toLocaleString() || 0}
-                            </div>
-                            <div className="text-sm text-gray-600">votes</div>
-                          </div>
-                        </div>
-                      ))}
+                  {/* Category Accordion Header */}
+                  <div
+                    onClick={() => toggleCategory(category.category_id)}
+                    className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isExpanded ? "bg-orange-50 text-(--brand-primary)" : "bg-gray-50 text-gray-400"}`}
+                      >
+                        <Award size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1">
+                          {category.category_name}
+                        </h3>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
+                          {category.nominees.length} Nominees •{" "}
+                          {categoryTotalVotes.toLocaleString()} Votes
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className={`p-2 rounded-lg transition-transform ${isExpanded ? "rotate-180 text-(--brand-primary)" : "text-gray-400"}`}
+                    >
+                      <ChevronDown size={20} />
                     </div>
                   </div>
+
+                  {/* Collapsible Content */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-100">
+                      {viewMode === "table" ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left">
+                            <thead>
+                              <tr className="bg-gray-50/50">
+                                <th className="px-4 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest w-16">
+                                  Rank
+                                </th>
+                                <th className="px-4 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                  Contestant
+                                </th>
+                                <th className="px-4 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                  Entry ID
+                                </th>
+                                <th className="px-4 py-3 text-right text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                  Votes
+                                </th>
+                                <th className="px-4 py-3 text-right text-[11px] font-bold text-gray-400 uppercase tracking-widest w-32"></th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                              {category.nominees.map((nominee, index) => (
+                                <tr
+                                  key={nominee.nominee_id}
+                                  className={`group ${index === 0 ? "bg-orange-50/20" : ""}`}
+                                >
+                                  <td className="px-4 py-3">
+                                    <div
+                                      className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                                        index === 0
+                                          ? "bg-yellow-100 text-yellow-700"
+                                          : index === 1
+                                            ? "bg-gray-100 text-gray-500"
+                                            : "text-gray-300"
+                                      }`}
+                                    >
+                                      {index + 1}
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 font-bold text-gray-800">
+                                    <div
+                                      className="max-w-[150px] sm:max-w-[200px] truncate"
+                                      title={nominee.nominee_name}
+                                    >
+                                      {nominee.nominee_name}
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 font-mono text-xs text-gray-500 uppercase tracking-wider">
+                                    {nominee.nominee_code || "-"}
+                                  </td>
+                                  <td className="px-4 py-3 text-right">
+                                    <div className="flex flex-col items-end">
+                                      <span className="font-bold text-gray-900">
+                                        {(
+                                          nominee.total_votes || 0
+                                        ).toLocaleString()}
+                                      </span>
+                                      <div className="w-16 h-1 rounded-full bg-gray-100 mt-1.5 overflow-hidden">
+                                        <div
+                                          className="h-full bg-(--brand-primary)"
+                                          style={{
+                                            width: `${(nominee.total_votes / (categoryTotalVotes || 1)) * 100}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 text-right">
+                                    <button
+                                      onClick={() => handleVoteClick(category)}
+                                      disabled={!isVotingOpen()}
+                                      className={`px-4 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 ${
+                                        isVotingOpen()
+                                          ? "bg-gray-900 text-white hover:bg-black"
+                                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                      }`}
+                                    >
+                                      Vote
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        /* Chart View */
+                        <div className="p-8 pb-12 bg-gray-50/10">
+                          <div className="h-[400px] w-full pt-16">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                data={category.nominees.slice(0, 10)}
+                                margin={{
+                                  top: 20,
+                                  right: 30,
+                                  left: 0,
+                                  bottom: 40,
+                                }}
+                              >
+                                <CartesianGrid
+                                  strokeDasharray="3 3"
+                                  vertical={false}
+                                  stroke="#e5e7eb"
+                                />
+                                <XAxis
+                                  dataKey="nominee_name"
+                                  angle={-20}
+                                  textAnchor="end"
+                                  interval={0}
+                                  tick={{
+                                    fill: "#9ca3af",
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                  }}
+                                  axisLine={{ stroke: "#e5e7eb" }}
+                                />
+                                <YAxis
+                                  axisLine={false}
+                                  tickLine={false}
+                                  tick={{ fill: "#d1d5db", fontSize: 10 }}
+                                />
+                                <Tooltip
+                                  content={<CustomTooltip />}
+                                  cursor={{ fill: "#f3f4f6", radius: 10 }}
+                                />
+                                <Bar
+                                  dataKey="total_votes"
+                                  shape={<RenderCustomBar />}
+                                  barSize={40}
+                                >
+                                  {category.nominees
+                                    .slice(0, 10)
+                                    .map((entry, index) => (
+                                      <Cell
+                                        key={`cell-${index}`}
+                                        fill={
+                                          index === 0 ? "#fbbf24" : "#f97316"
+                                        }
+                                      />
+                                    ))}
+                                  <LabelList
+                                    dataKey="total_votes"
+                                    position="top"
+                                    formatter={(val) => val.toLocaleString()}
+                                    style={{
+                                      fill: "#4b5563",
+                                      fontSize: 11,
+                                      fontWeight: 800,
+                                    }}
+                                  />
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              ))}
+              );
+            })}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No Results Yet
+          <div className="bg-white p-20 rounded-2xl border border-gray-200 shadow-sm text-center">
+            <Search size={48} className="text-gray-200 mx-auto mb-6" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2 underline-offset-4 decoration-(--brand-primary)">
+              No matching results
             </h3>
-            <p className="text-gray-600">
-              Voting results will appear here when available
+            <p className="text-gray-500 mb-8 max-w-xs mx-auto font-medium">
+              Try searching for a different name or changing the category
+              filter.
             </p>
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("all");
+              }}
+              className="text-(--brand-primary) font-bold hover:underline py-2 px-4"
+            >
+              Clear Filters
+            </button>
           </div>
         )}
       </div>
+
+      {/* Voting Modal */}
+      {votingCategory && (
+        <VotingModal
+          isOpen={isVotingModalOpen}
+          onClose={() => setIsVotingModalOpen(false)}
+          award={award}
+          category={votingCategory}
+        />
+      )}
     </div>
   );
 };
