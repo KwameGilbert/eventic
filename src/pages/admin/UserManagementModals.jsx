@@ -736,21 +736,13 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
     phone: initialUser.phone || "",
     // Organizer fields
     organization_name: "",
-    business_name: "",
-    business_type: "",
-    description: "",
-    website: "",
-    address: "",
-    city: "",
-    region: "",
-    country: "",
     bio: "",
+    social_facebook: "",
+    social_instagram: "",
+    social_twitter: "",
     // Attendee fields
     first_name: "",
     last_name: "",
-    date_of_birth: "",
-    gender: "",
-    interests: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -763,28 +755,20 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
         if (response.success) {
           const user = response.data.user;
           const roleData = response.data.role_data;
-          
+
           let roleSpecificData = {};
-          if (user.role === 'organizer' && roleData.organizer) {
+          if (user.role === "organizer" && roleData.organizer) {
             roleSpecificData = {
-              organization_name: roleData.organizer.organization_name || roleData.organizer.business_name || "",
-              business_name: roleData.organizer.business_name || "",
-              business_type: roleData.organizer.business_type || "",
-              description: roleData.organizer.description || "",
-              website: roleData.organizer.website || "",
-              address: roleData.organizer.address || "",
-              city: roleData.organizer.city || "",
-              region: roleData.organizer.region || "",
-              country: roleData.organizer.country || "",
-              bio: roleData.organizer.bio || roleData.organizer.description || "",
+              organization_name: roleData.organizer.organization_name || "",
+              bio: roleData.organizer.bio || "",
+              social_facebook: roleData.organizer.social_facebook || "",
+              social_instagram: roleData.organizer.social_instagram || "",
+              social_twitter: roleData.organizer.social_twitter || "",
             };
-          } else if (user.role === 'attendee' && roleData.attendee) {
+          } else if (user.role === "attendee" && roleData.attendee) {
             roleSpecificData = {
               first_name: roleData.attendee.first_name || "",
               last_name: roleData.attendee.last_name || "",
-              date_of_birth: roleData.attendee.date_of_birth || "",
-              gender: roleData.attendee.gender || "",
-              interests: roleData.attendee.interests || "",
               bio: roleData.attendee.bio || "",
             };
           }
@@ -793,11 +777,11 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
             name: user.name || "",
             email: user.email || "",
             phone: user.phone || "",
-            ...roleSpecificData
+            ...roleSpecificData,
           });
         }
-      } catch (err) {
-        showError("Failed to fetch user details", err);
+      } catch {
+        showError("Failed to fetch user details");
       } finally {
         setIsFetching(false);
       }
@@ -828,7 +812,7 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -850,7 +834,7 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
                   Edit User Profile
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Update information for {initialUser.name}
+                  Update information for {initialUser.name} ({initialUser.role})
                 </p>
               </div>
             </div>
@@ -869,13 +853,21 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
             <p className="text-gray-500">Fetching user details...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+          <form
+            id="edit-user-form"
+            onSubmit={handleSubmit}
+            className="flex-1 overflow-y-auto p-6 space-y-6"
+          >
             {/* Basic Information */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Basic Information</h3>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                Basic Information
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name
+                  </label>
                   <input
                     name="name"
                     type="text"
@@ -886,7 +878,9 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address
+                  </label>
                   <input
                     name="email"
                     type="email"
@@ -897,7 +891,9 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone Number
+                  </label>
                   <input
                     name="phone"
                     type="tel"
@@ -910,12 +906,16 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
             </div>
 
             {/* Role Specific Fields */}
-            {initialUser.role === 'organizer' && (
+            {initialUser.role === "organizer" && (
               <div className="space-y-4 pt-4 border-t border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Organizer Details</h3>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                  Organizer Details
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Organization/Business Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Organization Name
+                    </label>
                     <input
                       name="organization_name"
                       type="text"
@@ -924,30 +924,10 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
-                    <input
-                      name="business_type"
-                      type="text"
-                      value={formData.business_type}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                      placeholder="e.g. Media, Agency, Individual"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                    <input
-                      name="website"
-                      type="url"
-                      value={formData.website}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                      placeholder="https://..."
-                    />
-                  </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bio / Description</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bio
+                    </label>
                     <textarea
                       name="bio"
                       value={formData.bio}
@@ -957,21 +937,37 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Facebook URL
+                    </label>
                     <input
-                      name="city"
+                      name="social_facebook"
                       type="text"
-                      value={formData.city}
+                      value={formData.social_facebook}
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Instagram URL
+                    </label>
                     <input
-                      name="country"
+                      name="social_instagram"
                       type="text"
-                      value={formData.country}
+                      value={formData.social_instagram}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Twitter URL
+                    </label>
+                    <input
+                      name="social_twitter"
+                      type="text"
+                      value={formData.social_twitter}
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                     />
@@ -980,12 +976,16 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
               </div>
             )}
 
-            {initialUser.role === 'attendee' && (
+            {initialUser.role === "attendee" && (
               <div className="space-y-4 pt-4 border-t border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Attendee Details</h3>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                  Attendee Details
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name
+                    </label>
                     <input
                       name="first_name"
                       type="text"
@@ -995,7 +995,9 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name
+                    </label>
                     <input
                       name="last_name"
                       type="text"
@@ -1004,36 +1006,23 @@ export const EditUserModal = ({ user: initialUser, onClose, onSuccess }) => {
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                    <input
-                      name="date_of_birth"
-                      type="date"
-                      value={formData.date_of_birth}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bio
+                    </label>
+                    <textarea
+                      name="bio"
+                      value={formData.bio}
                       onChange={handleChange}
+                      rows={3}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                    <select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white"
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
                   </div>
                 </div>
               </div>
             )}
           </form>
         )}
-
         <div className="p-6 border-t border-gray-200 bg-gray-50 flex gap-3">
           <Button
             type="button"
