@@ -328,10 +328,18 @@ const AdminAwards = () => {
             Manage all awards on the platform
           </p>
         </div>
-        <Button onClick={fetchAwards} variant="outline" size="sm">
-          <RefreshCw size={16} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={fetchAwards} variant="outline" size="sm">
+            <RefreshCw size={16} />
+            Refresh
+          </Button>
+          <Link to="/admin/awards/create">
+            <Button size="sm" className="bg-red-600 hover:bg-red-700">
+              <Trophy size={16} className="mr-2" />
+              Create Award
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -339,8 +347,8 @@ const AdminAwards = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                <Trophy size={20} className="text-purple-600" />
+              <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                <Trophy size={20} className="text-red-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">

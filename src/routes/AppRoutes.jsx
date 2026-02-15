@@ -26,7 +26,11 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 
 // Auth Components
-import { OrganizerRoute, AttendeeRoute, AdminRoute } from "../components/auth/ProtectedRoute";
+import {
+  OrganizerRoute,
+  AttendeeRoute,
+  AdminRoute,
+} from "../components/auth/ProtectedRoute";
 
 // Organizer Dashboard
 import DashboardLayout from "../components/organizer/layout/DashboardLayout";
@@ -60,87 +64,167 @@ import AdminAnalytics from "../pages/admin/Analytics";
 import AdminSettings from "../pages/admin/Settings";
 
 const AppRoutes = () => {
-    return (
-        <Routes>
-            <Route element={<Layout><Outlet /></Layout>}>
-                {/* Home & Browse */}
-                <Route path="/" element={<Home />} />
+  return (
+    <Routes>
+      <Route
+        element={
+          <Layout>
+            <Outlet />
+          </Layout>
+        }
+      >
+        {/* Home & Browse */}
+        <Route path="/" element={<Home />} />
 
-                {/* Awards Routes */}
-                <Route path="/awards" element={<BrowseAwards />} />
-                <Route path="/award/:slug" element={<AwardDetail />} />
-                <Route path="/award/:slug/results" element={<AwardLeaderboard />} />
-                <Route path="/award/:slug/leaderboard" element={<AwardLeaderboard />} />
-                <Route path="/award/:slug/vote/payment" element={<VotePayment />} />
+        {/* Awards Routes */}
+        <Route path="/awards" element={<BrowseAwards />} />
+        <Route path="/award/:slug" element={<AwardDetail />} />
+        <Route path="/award/:slug/results" element={<AwardLeaderboard />} />
+        <Route path="/award/:slug/leaderboard" element={<AwardLeaderboard />} />
+        <Route path="/award/:slug/vote/payment" element={<VotePayment />} />
 
-                {/* Events Routes */}
-                <Route path="/events" element={<BrowseEvents />} />
-                <Route path="/event/:slug" element={<EventDetails />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/how-it-works" element={<HowItWorks />} />
+        {/* Events Routes */}
+        <Route path="/events" element={<BrowseEvents />} />
+        <Route path="/event/:slug" element={<EventDetails />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
 
-                {/* Authentication */}
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup/attendee" element={<SignUpAttendee />} />
-                <Route path="/signup/organizer" element={<SignUpOrganizer />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+        {/* Authentication */}
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup/attendee" element={<SignUpAttendee />} />
+        <Route path="/signup/organizer" element={<SignUpOrganizer />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-                <Route path="/cart" element={<Cart />} />
-            </Route>
+        <Route path="/cart" element={<Cart />} />
+      </Route>
 
-            {/* Attendee-Only Routes */}
-            <Route element={<Layout><Outlet /></Layout>}>
-                <Route path="/checkout" element={<AttendeeRoute pageName="Checkout"><Checkout /></AttendeeRoute>} />
-                <Route path="/my-tickets" element={<AttendeeRoute pageName="My Tickets"><MyTickets /></AttendeeRoute>} />
-                <Route path="/my-orders" element={<AttendeeRoute pageName="My Orders"><MyOrders /></AttendeeRoute>} />
-                <Route path="/orders/:id" element={<AttendeeRoute pageName="Order Details"><OrderDetails /></AttendeeRoute>} />
-                <Route path="/settings" element={<AttendeeRoute pageName="Settings"><Settings /></AttendeeRoute>} />
-                <Route path="/change-password" element={<AttendeeRoute pageName="Change Password"><ChangePassword /></AttendeeRoute>} />
-            </Route>
+      {/* Attendee-Only Routes */}
+      <Route
+        element={
+          <Layout>
+            <Outlet />
+          </Layout>
+        }
+      >
+        <Route
+          path="/checkout"
+          element={
+            <AttendeeRoute pageName="Checkout">
+              <Checkout />
+            </AttendeeRoute>
+          }
+        />
+        <Route
+          path="/my-tickets"
+          element={
+            <AttendeeRoute pageName="My Tickets">
+              <MyTickets />
+            </AttendeeRoute>
+          }
+        />
+        <Route
+          path="/my-orders"
+          element={
+            <AttendeeRoute pageName="My Orders">
+              <MyOrders />
+            </AttendeeRoute>
+          }
+        />
+        <Route
+          path="/orders/:id"
+          element={
+            <AttendeeRoute pageName="Order Details">
+              <OrderDetails />
+            </AttendeeRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <AttendeeRoute pageName="Settings">
+              <Settings />
+            </AttendeeRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <AttendeeRoute pageName="Change Password">
+              <ChangePassword />
+            </AttendeeRoute>
+          }
+        />
+      </Route>
 
-            {/* ORGANIZER DASHBOARD ROUTES */}
-            <Route path="/organizer" element={<OrganizerRoute><DashboardLayout /></OrganizerRoute>}>
-                <Route index element={<Navigate to="/organizer/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="events" element={<Events />} />
-                <Route path="events/create" element={<CreateEvent />} />
-                <Route path="events/:id" element={<ViewEvent />} />
-                <Route path="events/:id/edit" element={<EditEvent />} />
-                <Route path="awards" element={<Awards />} />
-                <Route path="awards/create" element={<CreateAward />} />
-                <Route path="awards/:id" element={<ViewAward />} />
-                <Route path="awards/:id/edit" element={<EditAward />} />
-                <Route path="orders" element={<Orders />} />
-                <Route path="orders/:id" element={<ViewOrder />} />
-                <Route path="attendees" element={<Attendees />} />
-                <Route path="finance" element={<Finance />} />
-                <Route path="finance/events/:id" element={<FinanceEventDetails />} />
-                <Route path="settings" element={<OrganizerSettings />} />
-                <Route path="*" element={<Navigate to="/organizer/dashboard" replace />} />
-            </Route>
+      {/* ORGANIZER DASHBOARD ROUTES */}
+      <Route
+        path="/organizer"
+        element={
+          <OrganizerRoute>
+            <DashboardLayout />
+          </OrganizerRoute>
+        }
+      >
+        <Route index element={<Navigate to="/organizer/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="events" element={<Events />} />
+        <Route path="events/create" element={<CreateEvent />} />
+        <Route path="events/:id" element={<ViewEvent />} />
+        <Route path="events/:id/edit" element={<EditEvent />} />
+        <Route path="awards" element={<Awards />} />
+        <Route path="awards/create" element={<CreateAward />} />
+        <Route path="awards/:id" element={<ViewAward />} />
+        <Route path="awards/:id/edit" element={<EditAward />} />
+        <Route path="orders" element={<Orders />} />
+        <Route path="orders/:id" element={<ViewOrder />} />
+        <Route path="attendees" element={<Attendees />} />
+        <Route path="finance" element={<Finance />} />
+        <Route path="finance/events/:id" element={<FinanceEventDetails />} />
+        <Route path="settings" element={<OrganizerSettings />} />
+        <Route
+          path="*"
+          element={<Navigate to="/organizer/dashboard" replace />}
+        />
+      </Route>
 
-            {/* ADMIN DASHBOARD ROUTES */}
-            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="users/:id" element={<AdminUserDetail />} />
-                <Route path="events" element={<AdminEvents />} />
-                <Route path="events/:id" element={<AdminEventDetail />} />
-                <Route path="awards" element={<AdminAwards />} />
-                <Route path="awards/:id" element={<AdminAwardDetail />} />
-                <Route path="finance" element={<AdminFinance />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-            </Route>
+      {/* ADMIN DASHBOARD ROUTES */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="users/:id" element={<AdminUserDetail />} />
+        <Route path="events" element={<AdminEvents />} />
+        <Route path="events/create" element={<CreateEvent />} />
+        <Route path="events/:id" element={<AdminEventDetail />} />
+        <Route path="awards" element={<AdminAwards />} />
+        <Route path="awards/create" element={<CreateAward />} />
+        <Route path="awards/:id" element={<AdminAwardDetail />} />
+        <Route path="finance" element={<AdminFinance />} />
+        <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="settings" element={<AdminSettings />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+      </Route>
 
-            {/* 404 NOT FOUND */}
-            <Route path="*" element={<Layout><NotFound /></Layout>} />
-        </Routes>
-    )
-}
+      {/* 404 NOT FOUND */}
+      <Route
+        path="*"
+        element={
+          <Layout>
+            <NotFound />
+          </Layout>
+        }
+      />
+    </Routes>
+  );
+};
 
-export default AppRoutes
+export default AppRoutes;
