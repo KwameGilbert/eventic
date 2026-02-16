@@ -85,6 +85,11 @@ const AwardDetail = () => {
   };
 
   const getVotingStatus = () => {
+    // 1. Master toggle from backend
+    if (award?.voting_status === "open") return "voting_open";
+    if (award?.voting_status === "closed") return "voting_closed";
+
+    // 2. Date-based logic (fallback if master is missing or we want date-aware status)
     if (!award?.voting_start || !award?.voting_end) return "upcoming";
 
     const now = new Date();

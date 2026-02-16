@@ -85,9 +85,10 @@ const AwardOverview = ({
             <CardContent>
               <div className="space-y-4">
                 {award.categories.slice(0, 5).map((category) => {
+                  const totalVotes = award?.stats?.total_votes || 0;
                   const percentage =
-                    award.total_votes > 0
-                      ? ((category.total_votes || 0) / award.total_votes) * 100
+                    totalVotes > 0
+                      ? ((category.total_votes || 0) / totalVotes) * 100
                       : 0;
                   return (
                     <div key={category.id} className="space-y-1">

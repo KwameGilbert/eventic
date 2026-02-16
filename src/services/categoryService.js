@@ -9,7 +9,7 @@ const categoryService = {
       const response = await api.get(
         `/award-categories/events/${awardId}?include_results=${includeResults}`,
       );
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -23,7 +23,7 @@ const categoryService = {
       const response = await api.get(
         `/award-categories/${categoryId}?include_results=${includeResults}`,
       );
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -38,7 +38,7 @@ const categoryService = {
         `/award-categories/events/${awardId}`,
         categoryData,
       );
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -53,7 +53,7 @@ const categoryService = {
         `/award-categories/${categoryId}`,
         categoryData,
       );
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -65,7 +65,7 @@ const categoryService = {
   delete: async (categoryId) => {
     try {
       const response = await api.delete(`/award-categories/${categoryId}`);
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -82,7 +82,7 @@ const categoryService = {
           categories: categoryOrders,
         },
       );
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -94,7 +94,7 @@ const categoryService = {
   getStats: async (categoryId) => {
     try {
       const response = await api.get(`/award-categories/${categoryId}/stats`);
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -111,7 +111,7 @@ const categoryService = {
         `/award-categories/${categoryId}/toggle-voting`,
         { voting_status: status },
       );
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }

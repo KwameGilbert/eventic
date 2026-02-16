@@ -100,33 +100,40 @@ const AwardCategories = ({
                             handleToggleCategoryVoting(
                               e,
                               category.id,
-                              (category.voting_status || "open") === "open"
+                              category.voting_status === "open"
                                 ? "closed"
                                 : "open",
                             )
                           }
                         >
-                          {togglingCategoryId === category.id ? (
+                          {String(togglingCategoryId) ===
+                          String(category.id) ? (
                             <Loader2
                               size={14}
                               className="animate-spin text-orange-600"
                             />
-                          ) : (category.voting_status || "open") === "open" ? (
+                          ) : category.voting_status === "open" ? (
                             <CheckCircle size={14} className="text-green-600" />
                           ) : (
                             <XCircle size={14} className="text-red-600" />
                           )}
                           <span
                             className={`text-[10px] font-bold uppercase tracking-tight ${
-                              (category.voting_status || "open") === "open"
+                              category.voting_status === "open"
                                 ? "text-green-700"
                                 : "text-red-700"
                             }`}
                           >
                             Category Voting:{" "}
-                            {(category.voting_status || "open") === "open"
+                            {category.voting_status === "open"
                               ? "OPEN"
                               : "CLOSED"}
+                            {award?.voting_status !== "open" &&
+                              category.voting_status === "closed" && (
+                                <span className="ml-1 opacity-60">
+                                  (Award Closed)
+                                </span>
+                              )}
                           </span>
                         </div>
 
@@ -181,22 +188,19 @@ const AwardCategories = ({
                           <table className="w-full text-sm text-left">
                             <thead className="text-[10px] text-gray-400 font-bold uppercase bg-gray-50/50">
                               <tr>
-                                <th className="px-4 py-3 font-semibold">
+                                <th className="px-2 sm:px-4 py-3 font-semibold">
                                   Nominee
                                 </th>
-                                <th className="px-4 py-3 font-semibold">
+                                <th className="hidden lg:table-cell px-4 py-3 font-semibold">
                                   Code
                                 </th>
-                                <th className="px-4 py-3 font-semibold text-right">
+                                <th className="px-2 sm:px-4 py-3 font-semibold text-right">
                                   Votes
                                 </th>
-                                <th className="px-4 py-3 font-semibold text-right whitespace-nowrap">
+                                <th className="hidden sm:table-cell px-2 sm:px-4 py-3 font-semibold text-right whitespace-nowrap">
                                   % Share
                                 </th>
-                                <th className="px-4 py-3 font-semibold text-right">
-                                  Revenue
-                                </th>
-                                <th className="px-4 py-3 font-semibold text-center">
+                                <th className="px-2 sm:px-4 py-3 font-semibold text-center">
                                   Actions
                                 </th>
                               </tr>
@@ -214,9 +218,6 @@ const AwardCategories = ({
                                           categoryTotalVotes) *
                                         100
                                       : 0;
-                                  const revenue =
-                                    (nominee.total_votes || 0) *
-                                    (category.cost_per_vote || 0);
 
                                   return (
                                     <tr
@@ -233,11 +234,15 @@ const AwardCategories = ({
                                           category.id,
                                         )
                                       }
-                                      className={`hover:bg-gray-50/50 transition-colors group cursor-move ${draggedNominee?.id === nominee.id ? "opacity-50" : ""}`}
+                                      className={`hover:bg-gray-50/50 transition-colors group cursor-move ${
+                                        draggedNominee?.id === nominee.id
+                                          ? "opacity-50"
+                                          : ""
+                                      }`}
                                     >
-                                      <td className="px-4 py-3">
-                                        <div className="flex items-center gap-3">
-                                          <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
+                                      <td className="px-2 sm:px-4 py-2 sm:py-3">
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
                                             {nominee.image ? (
                                               <img
                                                 src={nominee.image}
@@ -246,33 +251,36 @@ const AwardCategories = ({
                                               />
                                             ) : (
                                               <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                <Users size={20} />
+                                                <Users size={14} />
                                               </div>
                                             )}
                                           </div>
                                           <div className="min-w-0">
-                                            <p className="font-bold text-gray-900 truncate">
+                                            <p className="font-bold text-gray-900 truncate text-xs sm:text-sm">
                                               {nominee.name}
+                                            </p>
+                                            <p className="lg:hidden text-[10px] font-mono font-bold text-gray-400 uppercase tracking-tight">
+                                              {nominee.nominee_code}
                                             </p>
                                           </div>
                                         </div>
                                       </td>
-                                      <td className="px-4 py-3 text-[10px] font-mono font-bold text-gray-400 uppercase tracking-tight">
+                                      <td className="hidden lg:table-cell px-4 py-3 text-[10px] font-mono font-bold text-gray-400 uppercase tracking-tight">
                                         {nominee.nominee_code}
                                       </td>
-                                      <td className="px-4 py-3 text-right font-bold text-green-600">
+                                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-bold text-green-600 text-xs sm:text-sm">
                                         {(
                                           nominee.total_votes || 0
                                         ).toLocaleString()}
                                       </td>
-                                      <td className="px-4 py-3 text-right">
+                                      <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-3 text-right">
                                         <div className="flex flex-col items-end gap-1">
                                           <span className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded leading-none">
                                             {votePercentage.toFixed(1)}%
                                           </span>
-                                          <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                          <div className="w-12 sm:w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
                                             <div
-                                              className="h-full bg-orange-500 rounded-full"
+                                              className="h-full bg-orange-500 rounded-full transition-all duration-500"
                                               style={{
                                                 width: `${votePercentage}%`,
                                               }}
@@ -280,15 +288,12 @@ const AwardCategories = ({
                                           </div>
                                         </div>
                                       </td>
-                                      <td className="px-4 py-3 text-right font-semibold text-emerald-600 whitespace-nowrap font-mono text-xs">
-                                        {formatCurrency(revenue)}
-                                      </td>
-                                      <td className="px-4 py-3">
-                                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <td className="px-2 sm:px-4 py-2 sm:py-3">
+                                        <div className="flex items-center justify-center gap-0.5 sm:gap-1 opacity-100 transition-opacity">
                                           <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-7 w-7"
+                                            className="h-7 w-7 text-gray-400 hover:text-orange-600 hover:bg-orange-50"
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               openNomineeModal(
@@ -298,15 +303,12 @@ const AwardCategories = ({
                                               );
                                             }}
                                           >
-                                            <Edit
-                                              size={14}
-                                              className="text-gray-500 hover:text-orange-600"
-                                            />
+                                            <Edit size={14} />
                                           </Button>
                                           <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50"
+                                            className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50"
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               handleDeleteNominee(

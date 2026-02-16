@@ -18,7 +18,7 @@ const AwardStats = ({ award }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.categories?.length || 0}
+                {award?.stats.total_categories || 0}
               </p>
               <p className="text-xs text-gray-500">Categories</p>
             </div>
@@ -33,7 +33,7 @@ const AwardStats = ({ award }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.nominees_count || 0}
+                {award?.stats.total_nominees || 0}
               </p>
               <p className="text-xs text-gray-500">Nominees</p>
             </div>
@@ -48,7 +48,7 @@ const AwardStats = ({ award }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.total_votes || 0}
+                {award?.stats?.total_votes || 0}
               </p>
               <p className="text-xs text-gray-500">Total Votes</p>
             </div>
@@ -63,7 +63,7 @@ const AwardStats = ({ award }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {formatCurrency(award?.total_revenue)}
+                {formatCurrency(award?.stats?.revenue)}
               </p>
               <p className="text-xs text-gray-500">Revenue</p>
             </div>
@@ -78,7 +78,7 @@ const AwardStats = ({ award }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.unique_voters || 0}
+                {award?.stats?.unique_voters || 0}
               </p>
               <p className="text-xs text-gray-500">Unique Voters</p>
             </div>
@@ -106,12 +106,14 @@ const AwardStats = ({ award }) => {
 
 AwardStats.propTypes = {
   award: PropTypes.shape({
-    categories: PropTypes.array,
-    nominees_count: PropTypes.number,
-    total_votes: PropTypes.number,
-    total_revenue: PropTypes.number,
-    unique_voters: PropTypes.number,
     views: PropTypes.number,
+    stats: PropTypes.shape({
+      total_categories: PropTypes.number,
+      total_nominees: PropTypes.number,
+      total_votes: PropTypes.number,
+      revenue: PropTypes.number,
+      unique_voters: PropTypes.number,
+    }),
   }),
 };
 
