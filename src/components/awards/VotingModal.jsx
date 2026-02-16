@@ -7,10 +7,19 @@ import { useNavigate } from "react-router-dom";
  * Voting Modal Component
  * Displays category nominees and allows users to cast votes
  */
-const VotingModal = ({ isOpen, onClose, award, category }) => {
+const VotingModal = ({ isOpen, onClose, award, category, nominee }) => {
   const [selectedNominee, setSelectedNominee] = useState(null);
   const [voteQuantity, setVoteQuantity] = useState(1);
   const navigate = useNavigate();
+
+  // Initialize selected nominee if provided via props
+  React.useEffect(() => {
+    if (isOpen && nominee) {
+      setSelectedNominee(nominee);
+    } else if (isOpen && !nominee) {
+      setSelectedNominee(null);
+    }
+  }, [isOpen, nominee]);
 
   if (!isOpen || !category) return null;
 
@@ -95,75 +104,146 @@ const VotingModal = ({ isOpen, onClose, award, category }) => {
                 )}
 
                 {/* Nominees Grid */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
-                    Select a Nominee
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {category.nominees?.map((nominee) => (
-                      <button
-                        key={nominee.id}
-                        onClick={() => setSelectedNominee(nominee)}
-                        className={`text-left p-4 rounded-xl border-2 transition-all ${
-                          selectedNominee?.id === nominee.id
-                            ? "border-(--brand-primary) bg-(--brand-primary)/5 shadow-md"
-                            : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                        }`}
-                      >
-                        <div className="flex items-start gap-4">
-                          {/* Nominee Image */}
-                          {nominee.image && (
-                            <img
-                              src={nominee.image}
-                              alt={nominee.name}
-                              className="w-16 h-16 rounded-lg object-cover shrink-0"
-                            />
-                          )}
-
-                          {/* Nominee Info */}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-bold text-gray-900">
-                                {nominee.name}
-                              </h4>
-                              {nominee.nominee_code && (
-                                <span className="text-[12px] font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase">
-                                  {nominee.nominee_code}
-                                </span>
-                              )}
-                            </div>
-                            {nominee.description && (
-                              <p className="text-sm text-gray-600 line-clamp-2">
-                                {nominee.description}
-                              </p>
+                {/* Nominees Grid (Only show if no pre-selected nominee) */}
+                {!nominee ? (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">
+                      Select a Nominee
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {category.nominees?.map((n) => (
+                        <button
+                          key={n.id}
+                          onClick={() => setSelectedNominee(n)}
+                          className={`text-left p-4 rounded-xl border-2 transition-all ${
+                            selectedNominee?.id === n.id
+                              ? "border-(--brand-primary) bg-(--brand-primary)/5 shadow-md"
+                              : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                          }`}
+                        >
+                          <div className="flex items-start gap-4">
+                            {/* Nominee Image */}
+                            {n.image && (
+                              <img
+                                src={n.image}
+                                alt={n.name}
+                                className="w-16 h-16 rounded-lg object-cover shrink-0"
+                              />
                             )}
-                            {award.show_results &&
-                              nominee.votes !== undefined && (
-                                <div className="flex items-center gap-2 mt-2 text-sm text-(--brand-primary) font-semibold">
-                                  <TrendingUp size={14} />
-                                  <span>
-                                    {nominee.votes.toLocaleString()} votes
-                                  </span>
-                                </div>
-                              )}
-                          </div>
 
-                          {/* Selection Indicator */}
-                          {selectedNominee?.id === nominee.id && (
-                            <div className="shrink-0">
-                              <div className="w-6 h-6 bg-(--brand-primary) rounded-full flex items-center justify-center">
-                                <Heart
-                                  className="text-white fill-current"
-                                  size={14}
-                                />
+                            {/* Nominee Info */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-bold text-gray-900">
+                                  {n.name}
+                                </h4>
+                                {n.nominee_code && (
+                                  <span className="text-[12px] font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase">
+                                    {n.nominee_code}
+                                  </span>
+                                )}
                               </div>
+
+                              {award.show_results &&
+                                (n.votes !== undefined ||
+                                  n.total_votes !== undefined) && (
+                                  <div className="flex items-center gap-2 mt-2 text-sm text-(--brand-primary) font-semibold">
+                                    <TrendingUp size={14} />
+                                    <span>
+                                      {(
+                                        n.votes ||
+                                        n.total_votes ||
+                                        0
+                                      ).toLocaleString()}{" "}
+                                      votes
+                                    </span>
+                                  </div>
+                                )}
                             </div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+
+                            {/* Selection Indicator */}
+                            {selectedNominee?.id === n.id && (
+                              <div className="shrink-0">
+                                <div className="w-6 h-6 bg-(--brand-primary) rounded-full flex items-center justify-center">
+                                  <Heart
+                                    className="text-white fill-current"
+                                    size={14}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Pre-selected Nominee Display */
+                  <div className="mb-8 bg-orange-50/50 border border-orange-100 rounded-2xl p-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
+                    {selectedNominee?.image ||
+                    selectedNominee?.nominee_image ? (
+                      <img
+                        src={
+                          selectedNominee.image || selectedNominee.nominee_image
+                        }
+                        alt={
+                          selectedNominee.name || selectedNominee.nominee_name
+                        }
+                        className="w-24 h-24 rounded-2xl object-cover shadow-sm ring-4 ring-white"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-500 font-bold text-3xl">
+                        {(
+                          selectedNominee?.name ||
+                          selectedNominee?.nominee_name ||
+                          "?"
+                        ).charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 mb-2">
+                        <h3 className="text-2xl font-black text-gray-900">
+                          Voting for{" "}
+                          {selectedNominee?.name ||
+                            selectedNominee?.nominee_name}
+                        </h3>
+                        {(selectedNominee?.nominee_code ||
+                          selectedNominee?.code) && (
+                          <span className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm font-mono font-bold text-gray-500 uppercase tracking-widest">
+                            {selectedNominee.nominee_code ||
+                              selectedNominee.code}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-500 mb-4 max-w-lg">
+                        You are casting votes for this nominee in the category{" "}
+                        <strong className="text-gray-900">
+                          {category.name || category.category_name}
+                        </strong>
+                        .
+                      </p>
+
+                      {award.show_results &&
+                        (selectedNominee?.votes !== undefined ||
+                          selectedNominee?.total_votes !== undefined) && (
+                          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
+                            <TrendingUp
+                              size={16}
+                              className="text-(--brand-primary)"
+                            />
+                            <span className="font-bold text-gray-900">
+                              Current Votes:{" "}
+                              {(
+                                selectedNominee.votes ||
+                                selectedNominee.total_votes ||
+                                0
+                              ).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Vote Package Selection */}
                 <div className="mb-6">
@@ -247,13 +327,13 @@ const VotingModal = ({ isOpen, onClose, award, category }) => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Nominee:</span>
                         <span className="font-semibold text-gray-900">
-                          {selectedNominee.name}
+                          {selectedNominee.name || selectedNominee.nominee_name}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Category:</span>
                         <span className="font-semibold text-gray-900">
-                          {category.name}
+                          {category.name || category.category_name}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -315,6 +395,7 @@ VotingModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   award: PropTypes.object.isRequired,
   category: PropTypes.object,
+  nominee: PropTypes.object,
 };
 
 export default VotingModal;

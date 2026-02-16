@@ -126,6 +126,7 @@ const AwardLeaderboard = () => {
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isVotingModalOpen, setIsVotingModalOpen] = useState(false);
   const [votingCategory, setVotingCategory] = useState(null);
+  const [votingNominee, setVotingNominee] = useState(null);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -190,8 +191,9 @@ const AwardLeaderboard = () => {
       });
   };
 
-  const handleVoteClick = (category) => {
+  const handleVoteClick = (category, nominee = null) => {
     setVotingCategory(category);
+    setVotingNominee(nominee);
     setIsVotingModalOpen(true);
   };
 
@@ -489,7 +491,9 @@ const AwardLeaderboard = () => {
                                   </td>
                                   <td className="px-4 py-3 text-right">
                                     <button
-                                      onClick={() => handleVoteClick(category)}
+                                      onClick={() =>
+                                        handleVoteClick(category, nominee)
+                                      }
                                       disabled={!isVotingOpen()}
                                       className={`p-2 rounded-lg font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center ${
                                         isVotingOpen()
@@ -617,6 +621,7 @@ const AwardLeaderboard = () => {
           onClose={() => setIsVotingModalOpen(false)}
           award={award}
           category={votingCategory}
+          nominee={votingNominee}
         />
       )}
     </div>
