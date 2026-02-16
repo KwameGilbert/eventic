@@ -243,13 +243,19 @@ const AdminAwardDetail = () => {
 
       if (response.success) {
         showSuccess(response.message || `Category voting is now ${status}`);
-        const effectiveStatus = response.data?.voting_status || status;
+        const awardData = response.data;
+        const effectiveStatus = awardData?.voting_status || status;
         // Update the specific category in the local state
         setAward((prev) => ({
           ...prev,
           categories: prev.categories.map((cat) =>
             String(cat.id) === String(categoryId)
-              ? { ...cat, voting_status: effectiveStatus }
+              ? {
+                  ...cat,
+                  voting_status: effectiveStatus,
+                  internal_voting_status:
+                    awardData?.internal_voting_status || status,
+                }
               : cat,
           ),
         }));
@@ -1103,7 +1109,8 @@ const AdminAwardDetail = () => {
                           handleToggleCategoryVoting(
                             e,
                             category.id,
-                            category.voting_status === "open"
+                            (category.internal_voting_status ||
+                              category.voting_status) === "open"
                               ? "closed"
                               : "open",
                           )
@@ -1114,7 +1121,8 @@ const AdminAwardDetail = () => {
                             size={14}
                             className="animate-spin text-orange-600"
                           />
-                        ) : category.voting_status === "open" ? (
+                        ) : (category.internal_voting_status ||
+                            category.voting_status) === "open" ? (
                           <CheckCircle size={14} className="text-green-600" />
                         ) : (
                           <XCircle size={14} className="text-red-600" />
@@ -1131,8 +1139,16 @@ const AdminAwardDetail = () => {
                             ? "OPEN"
                             : "CLOSED"}
                           {award?.voting_status !== "open" &&
-                            category.voting_status === "closed" && (
+                            (category.internal_voting_status ||
+                              category.voting_status) === "open" && (
                               <span className="ml-1 opacity-60">
+                                (Suppressed by Award)
+                              </span>
+                            )}
+                          {award?.voting_status !== "open" &&
+                            (category.internal_voting_status ||
+                              category.voting_status) === "closed" && (
+                              <span className="ml-1 opacity-60 text-red-400">
                                 (Award Closed)
                               </span>
                             )}

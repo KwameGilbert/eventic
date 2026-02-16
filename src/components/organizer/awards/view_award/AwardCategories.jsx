@@ -100,7 +100,8 @@ const AwardCategories = ({
                             handleToggleCategoryVoting(
                               e,
                               category.id,
-                              category.voting_status === "open"
+                              (category.internal_voting_status ||
+                                category.voting_status) === "open"
                                 ? "closed"
                                 : "open",
                             )
@@ -112,7 +113,8 @@ const AwardCategories = ({
                               size={14}
                               className="animate-spin text-orange-600"
                             />
-                          ) : category.voting_status === "open" ? (
+                          ) : (category.internal_voting_status ||
+                              category.voting_status) === "open" ? (
                             <CheckCircle size={14} className="text-green-600" />
                           ) : (
                             <XCircle size={14} className="text-red-600" />
@@ -129,8 +131,16 @@ const AwardCategories = ({
                               ? "OPEN"
                               : "CLOSED"}
                             {award?.voting_status !== "open" &&
-                              category.voting_status === "closed" && (
+                              (category.internal_voting_status ||
+                                category.voting_status) === "open" && (
                                 <span className="ml-1 opacity-60">
+                                  (Suppressed by Award)
+                                </span>
+                              )}
+                            {award?.voting_status !== "open" &&
+                              (category.internal_voting_status ||
+                                category.voting_status) === "closed" && (
+                                <span className="ml-1 opacity-60 text-red-400">
                                   (Award Closed)
                                 </span>
                               )}

@@ -330,7 +330,12 @@ const ViewAward = () => {
           ...prev,
           categories: prev.categories.map((cat) =>
             String(cat.id) === String(categoryId)
-              ? { ...cat, voting_status: effectiveStatus }
+              ? {
+                  ...cat,
+                  voting_status: effectiveStatus,
+                  internal_voting_status:
+                    awardData?.internal_voting_status || status,
+                }
               : cat,
           ),
         }));
