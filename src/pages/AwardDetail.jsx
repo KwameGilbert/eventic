@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Trophy,
   Home as HomeIcon,
@@ -18,18 +18,16 @@ import AwardCategoryCard from "../components/awards/AwardCategoryCard";
 import AwardOrganizerInfo from "../components/awards/AwardOrganizerInfo";
 import AwardLocationMap from "../components/awards/AwardLocationMap";
 import AwardContactInfo from "../components/awards/AwardContactInfo";
-import VotingModal from "../components/awards/VotingModal";
 import PageLoader from "../components/ui/PageLoader";
 
 const AwardDetail = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [award, setAward] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isVotingModalOpen, setIsVotingModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchAward = async () => {
@@ -108,8 +106,7 @@ const AwardDetail = () => {
   };
 
   const handleVoteClick = (category) => {
-    setSelectedCategory(category);
-    setIsVotingModalOpen(true);
+    navigate(`/award/${slug}/category/${category.id}`);
   };
 
   // Loading State
@@ -536,13 +533,7 @@ const AwardDetail = () => {
         </div>
       </div>
 
-      {/* Voting Modal */}
-      <VotingModal
-        isOpen={isVotingModalOpen}
-        onClose={() => setIsVotingModalOpen(false)}
-        award={award}
-        category={selectedCategory}
-      />
+      {/* Voting Modal removed in favor of pages */}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import {
   Trophy,
@@ -28,7 +28,6 @@ import {
 } from "recharts";
 import awardService from "../services/awardService";
 import PageLoader from "../components/ui/PageLoader";
-import VotingModal from "../components/awards/VotingModal";
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -115,6 +114,7 @@ RenderCustomBar.propTypes = {
 
 const AwardLeaderboard = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [award, setAward] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,9 +124,6 @@ const AwardLeaderboard = () => {
   const [viewMode, setViewMode] = useState("table");
 
   const [expandedCategories, setExpandedCategories] = useState({});
-  const [isVotingModalOpen, setIsVotingModalOpen] = useState(false);
-  const [votingCategory, setVotingCategory] = useState(null);
-  const [votingNominee, setVotingNominee] = useState(null);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -192,9 +189,13 @@ const AwardLeaderboard = () => {
   };
 
   const handleVoteClick = (category, nominee = null) => {
-    setVotingCategory(category);
-    setVotingNominee(nominee);
-    setIsVotingModalOpen(true);
+    if (nominee) {
+      navigate(`/award/${slug}/nominee/${nominee.nominee_id}`);
+    } else {
+      navigate(
+        `/award/${slug}/category/${category.category_id || category.id}`,
+      );
+    }
   };
 
   const filteredLeaderboard = useMemo(() => {
@@ -614,16 +615,7 @@ const AwardLeaderboard = () => {
         )}
       </div>
 
-      {/* Voting Modal */}
-      {votingCategory && (
-        <VotingModal
-          isOpen={isVotingModalOpen}
-          onClose={() => setIsVotingModalOpen(false)}
-          award={award}
-          category={votingCategory}
-          nominee={votingNominee}
-        />
-      )}
+      {/* Voting Modal removed in favor of pages */}
     </div>
   );
 };
