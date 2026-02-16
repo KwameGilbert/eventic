@@ -123,9 +123,9 @@ const AdminAwardDetail = () => {
     return `https://maps.google.com/maps?q=${query}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
   };
 
-  const fetchAwardDetails = async () => {
+  const fetchAwardDetails = async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       setError(null);
       const response = await adminService.getAwardDetails(id);
 
@@ -167,8 +167,11 @@ const AdminAwardDetail = () => {
           award_code: awardData.award_code || "",
         });
 
-        // Expand all categories by default
-        if (awardData.categories) {
+        // Expand all categories by default if not already set
+        if (
+          awardData.categories &&
+          Object.keys(expandedCategories).length === 0
+        ) {
           const expanded = {};
           awardData.categories.forEach((cat) => {
             expanded[cat.id] = true;
@@ -182,7 +185,7 @@ const AdminAwardDetail = () => {
       console.error("Error fetching award details:", err);
       setError(err.message || "An error occurred while fetching award details");
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
@@ -288,7 +291,7 @@ const AdminAwardDetail = () => {
   };
 
   const handleCategorySuccess = () => {
-    fetchAwardDetails();
+    fetchAwardDetails(true);
   };
 
   const handleDeleteCategory = async (e, categoryId) => {
@@ -329,7 +332,7 @@ const AdminAwardDetail = () => {
   };
 
   const handleNomineeSuccess = () => {
-    fetchAwardDetails();
+    fetchAwardDetails(true);
   };
 
   const handleDeleteNominee = async (e, nomineeId) => {
@@ -389,7 +392,7 @@ const AdminAwardDetail = () => {
 
     try {
       await categoryService.reorder(id, reorderedCategories);
-      fetchAwardDetails();
+      fetchAwardDetails(true);
     } catch (err) {
       console.error("Error reordering categories:", err);
     }
@@ -431,7 +434,7 @@ const AdminAwardDetail = () => {
 
     try {
       await nomineeService.reorder(categoryId, reorderedNominees);
-      fetchAwardDetails();
+      fetchAwardDetails(true);
     } catch (err) {
       console.error("Error reordering nominees:", err);
     }
@@ -1836,7 +1839,7 @@ const AdminAwardDetail = () => {
                     </span>
                     <span className="font-bold text-green-600 ml-2">
                       {formatCurrency(
-                        ((award?.total_revenue || 0) *
+                        ((award?.stats?.revenue || award?.total_revenue || 0) *
                           formData.platform_fee_percentage) /
                           100,
                       )}
