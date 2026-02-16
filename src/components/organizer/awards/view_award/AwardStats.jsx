@@ -18,7 +18,7 @@ const AwardStats = ({ award }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.stats.total_categories || 0}
+                {award?.stats?.total_categories || 0}
               </p>
               <p className="text-xs text-gray-500">Categories</p>
             </div>
@@ -33,7 +33,7 @@ const AwardStats = ({ award }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.stats.total_nominees || 0}
+                {award?.stats?.total_nominees || 0}
               </p>
               <p className="text-xs text-gray-500">Nominees</p>
             </div>

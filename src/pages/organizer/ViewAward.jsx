@@ -323,7 +323,9 @@ const ViewAward = () => {
 
       if (response.success) {
         showSuccess(response.message || `Category voting is now ${status}`);
-        const effectiveStatus = response.data.voting_status || status;
+        const awardData = response.data;
+        const effectiveStatus = awardData?.voting_status || status;
+
         setAward((prev) => ({
           ...prev,
           categories: prev.categories.map((cat) =>

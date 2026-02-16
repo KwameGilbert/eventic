@@ -220,8 +220,11 @@ const AdminAwardDetail = () => {
 
       if (response.success) {
         showSuccess(response.message || `Voting is now ${status}`);
-        // Update local state without full refetch if possible, or just refetch
-        setAward((prev) => ({ ...prev, voting_status: status }));
+        if (response.data && response.data.award) {
+          setAward(response.data.award);
+        } else {
+          setAward((prev) => ({ ...prev, voting_status: status }));
+        }
       } else {
         showError(response.message || "Failed to toggle voting status");
       }
@@ -240,11 +243,14 @@ const AdminAwardDetail = () => {
 
       if (response.success) {
         showSuccess(response.message || `Category voting is now ${status}`);
+        const effectiveStatus = response.data?.voting_status || status;
         // Update the specific category in the local state
         setAward((prev) => ({
           ...prev,
           categories: prev.categories.map((cat) =>
-            cat.id === categoryId ? { ...cat, voting_status: status } : cat,
+            String(cat.id) === String(categoryId)
+              ? { ...cat, voting_status: effectiveStatus }
+              : cat,
           ),
         }));
       } else {
@@ -578,7 +584,9 @@ const AdminAwardDetail = () => {
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {award?.categories_count || 0}
+                  {award?.stats?.total_categories ||
+                    award?.categories_count ||
+                    0}
                 </p>
                 <p className="text-xs text-gray-500">Categories</p>
               </div>
@@ -593,7 +601,7 @@ const AdminAwardDetail = () => {
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {award?.nominees_count || 0}
+                  {award?.stats?.total_nominees || award?.nominees_count || 0}
                 </p>
                 <p className="text-xs text-gray-500">Nominees</p>
               </div>
@@ -608,7 +616,11 @@ const AdminAwardDetail = () => {
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {(award?.total_votes || 0).toLocaleString()}
+                  {(
+                    award?.stats?.total_votes ||
+                    award?.total_votes ||
+                    0
+                  ).toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500">Total Votes</p>
               </div>
@@ -623,7 +635,9 @@ const AdminAwardDetail = () => {
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {formatCurrency(award?.total_revenue)}
+                  {formatCurrency(
+                    award?.stats?.revenue || award?.total_revenue,
+                  )}
                 </p>
                 <p className="text-xs text-gray-500">Total Revenue</p>
               </div>
@@ -654,7 +668,7 @@ const AdminAwardDetail = () => {
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {formatCurrency(
-                    ((award?.total_revenue || 0) *
+                    ((award?.stats?.revenue || award?.total_revenue || 0) *
                       (award?.platform_fee_percentage || 5)) /
                       100,
                   )}
@@ -1084,12 +1098,12 @@ const AdminAwardDetail = () => {
                     <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                       {/* Voting Status Toggle */}
                       <div
-                        className="flex items-center gap-2 mr-2 bg-gray-50 px-2 py-1 rounded-full border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-2 mr-2 bg-white px-2.5 py-1 rounded-full border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
                         onClick={(e) =>
                           handleToggleCategoryVoting(
                             e,
                             category.id,
-                            (category.voting_status || "open") === "open"
+                            category.voting_status === "open"
                               ? "closed"
                               : "open",
                           )
@@ -1100,21 +1114,28 @@ const AdminAwardDetail = () => {
                             size={14}
                             className="animate-spin text-orange-600"
                           />
-                        ) : (category.voting_status || "open") === "open" ? (
+                        ) : category.voting_status === "open" ? (
                           <CheckCircle size={14} className="text-green-600" />
                         ) : (
                           <XCircle size={14} className="text-red-600" />
                         )}
                         <span
-                          className={`text-xs font-semibold ${
-                            (category.voting_status || "open") === "open"
+                          className={`text-[10px] font-bold uppercase tracking-tight ${
+                            category.voting_status === "open"
                               ? "text-green-700"
                               : "text-red-700"
                           }`}
                         >
-                          {(category.voting_status || "open") === "open"
-                            ? "Voting Open"
-                            : "Voting Closed"}
+                          Category Voting:{" "}
+                          {category.voting_status === "open"
+                            ? "OPEN"
+                            : "CLOSED"}
+                          {award?.voting_status !== "open" &&
+                            category.voting_status === "closed" && (
+                              <span className="ml-1 opacity-60">
+                                (Award Closed)
+                              </span>
+                            )}
                         </span>
                       </div>
 
