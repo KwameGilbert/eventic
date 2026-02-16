@@ -1,1064 +1,666 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import {
-    ArrowLeft,
-    Calendar,
-    MapPin,
-    DollarSign,
-    Trophy,
-    Edit,
-    Trash2,
-    Share2,
-    ExternalLink,
-    MoreVertical,
-    Globe,
-    Phone,
-    Facebook,
-    Instagram,
-    Twitter,
-    Video,
-    Map,
-    Users,
-    Award as AwardIcon,
-    Loader2,
-    AlertTriangle,
-    Image as ImageIcon,
-    Plus,
-    CheckCircle,
-    Send
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
-import awardService from '../../services/awardService';
-import categoryService from '../../services/categoryService';
-import nomineeService from '../../services/nomineeService';
-import CategoryModal from '../../components/organizer/awards/CategoryModal';
-import NomineeModal from '../../components/organizer/awards/NomineeModal';
-import { showSuccess, showError, showConfirm } from '../../utils/toast';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Loader2, AlertCircle, Eye, Trophy, Settings } from "lucide-react";
+import awardService from "../../services/awardService";
+import categoryService from "../../services/categoryService";
+import nomineeService from "../../services/nomineeService";
+import CategoryModal from "../../components/organizer/awards/CategoryModal";
+import NomineeModal from "../../components/organizer/awards/NomineeModal";
+import { showSuccess, showError, showConfirm } from "../../utils/toast";
+
+// Sub-components
+import AwardHeader from "../../components/organizer/awards/view_award/AwardHeader";
+import AwardStats from "../../components/organizer/awards/view_award/AwardStats";
+import AwardOverview from "../../components/organizer/awards/view_award/AwardOverview";
+import AwardCategories from "../../components/organizer/awards/view_award/AwardCategories";
+import AwardSettings from "../../components/organizer/awards/view_award/AwardSettings";
 
 const ViewAward = () => {
-    const navigate = useNavigate();
-    const { id } = useParams();
-    const [openDropdown, setOpenDropdown] = useState(false);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [award, setAward] = useState(null);
+  const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [expandedCategories, setExpandedCategories] = useState({});
 
-    // Loading and error states
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+  // Modal states
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [nomineeModalOpen, setNomineeModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedNominee, setSelectedNominee] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
 
-    // Award data from API
-    const [award, setAward] = useState(null);
+  // Drag and drop states
+  const [draggedCategory, setDraggedCategory] = useState(null);
+  const [draggedNominee, setDraggedNominee] = useState(null);
 
-    // Modal states
-    const [categoryModalOpen, setCategoryModalOpen] = useState(false);
-    const [nomineeModalOpen, setNomineeModalOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [selectedNominee, setSelectedNominee] = useState(null);
-    const [activeCategory, setActiveCategory] = useState(null);
+  const [isTogglingAwardVoting, setIsTogglingAwardVoting] = useState(false);
+  const [togglingCategoryId, setTogglingCategoryId] = useState(null);
 
-    // Drag and drop states
-    const [draggedCategory, setDraggedCategory] = useState(null);
-    const [draggedNominee, setDraggedNominee] = useState(null);
+  // Countries (static for now)
+  const countries = [
+    "Ghana",
+    "Nigeria",
+    "Kenya",
+    "South Africa",
+    "United States",
+    "United Kingdom",
+    "Canada",
+    "Australia",
+    "Germany",
+    "France",
+    "Spain",
+    "Italy",
+    "Netherlands",
+    "India",
+    "Japan",
+    "China",
+    "Brazil",
+    "Mexico",
+    "Other",
+  ];
 
-    // Submission states
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    ceremony_date: "",
+    voting_start: "",
+    voting_end: "",
+    venue_name: "",
+    address: "",
+    city: "",
+    region: "",
+    country: "",
+    map_url: "",
+    status: "",
+    is_featured: false,
+    show_results: true,
+    banner_image: null,
+    bannerImagePreview: "",
+    phone: "",
+    website: "",
+    facebook: "",
+    twitter: "",
+    instagram: "",
+    video_url: "",
+    award_code: "",
+  });
 
-    // Fetch award data
-    useEffect(() => {
-        const fetchAwardDetails = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const response = await awardService.getAwardDetails(id);
+  useEffect(() => {
+    fetchAwardDetails();
+  }, [id]);
 
-                if (response.success && response.data) {
-                    setAward(response.data);
-                } else {
-                    setError(response.message || 'Failed to load award details');
-                }
-            } catch (err) {
-                console.error('Error fetching award details:', err);
-                setError(err.message || 'An error occurred while loading award details');
-            } finally {
-                setIsLoading(false);
-            }
-        };
+  const getYoutubeEmbedUrl = (url) => {
+    if (!url) return null;
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11
+      ? `https://www.youtube.com/embed/${match[2]}`
+      : null;
+  };
 
-        if (id) {
-            fetchAwardDetails();
-        }
-    }, [id]);
+  const getGoogleMapsEmbedUrl = (url, address, city) => {
+    if (url && url.includes("google.com/maps/embed")) return url;
+    if (!address && !city) return null;
+    const query = encodeURIComponent(`${address || ""} ${city || ""}`.trim());
+    return `https://maps.google.com/maps?q=${query}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+  };
 
-    const getStatusStyle = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'published': return 'success';
-            case 'pending': return 'default';   // Blue for pending approval
-            case 'draft': return 'warning';
-            case 'completed': return 'secondary';
-            case 'closed': return 'destructive';
-            default: return 'secondary';
-        }
-    };
+  const fetchAwardDetails = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await awardService.getAwardDetails(id);
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return '—';
-        return new Date(dateStr).toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
+      if (response.success && response.data) {
+        const awardData = response.data.award || response.data;
+        setAward(awardData);
 
-    // Refresh award data
-    const refreshAwardData = async () => {
-        try {
-            const response = await awardService.getAwardDetails(id);
-            if (response.success && response.data) {
-                setAward(response.data);
-            }
-        } catch (err) {
-            console.error('Error refreshing award:', err);
-        }
-    };
-
-    // Category modal handlers
-    const openCategoryModal = (category = null) => {
-        setSelectedCategory(category);
-        setCategoryModalOpen(true);
-    };
-
-    const closeCategoryModal = () => {
-        setCategoryModalOpen(false);
-        setSelectedCategory(null);
-    };
-
-    const handleCategorySuccess = () => {
-        refreshAwardData();
-    };
-
-    const handleDeleteCategory = async (categoryId) => {
-        const result = await showConfirm({
-            title: 'Delete Category?',
-            text: 'This will permanently delete the category and all its nominees. This action cannot be undone.',
-            confirmButtonText: 'Yes, delete it',
-            icon: 'warning'
-        });
-
-        if (!result.isConfirmed) {
-            return;
-        }
-
-        try {
-            await categoryService.delete(categoryId);
-            showSuccess('Category deleted successfully');
-            refreshAwardData();
-        } catch (err) {
-            console.error('Error deleting category:', err);
-            showError('Failed to delete category');
-        }
-    };
-
-    // Nominee modal handlers
-    const openNomineeModal = (categoryId, nominee = null) => {
-        setActiveCategory(categoryId);
-        setSelectedNominee(nominee);
-        setNomineeModalOpen(true);
-    };
-
-    const closeNomineeModal = () => {
-        setNomineeModalOpen(false);
-        setSelectedNominee(null);
-        setActiveCategory(null);
-    };
-
-    const handleNomineeSuccess = () => {
-        refreshAwardData();
-    };
-
-    const handleDeleteNominee = async (nomineeId) => {
-        const result = await showConfirm({
-            title: 'Delete Nominee?',
-            text: 'This will permanently remove this nominee. This action cannot be undone.',
-            confirmButtonText: 'Yes, delete it',
-            icon: 'warning'
+        // Populate form data
+        setFormData({
+          title: awardData.title || "",
+          description: awardData.description || "",
+          ceremony_date: awardData.ceremony_date
+            ? new Date(awardData.ceremony_date).toISOString().substring(0, 16)
+            : "",
+          voting_start: awardData.voting_start
+            ? new Date(awardData.voting_start).toISOString().substring(0, 16)
+            : "",
+          voting_end: awardData.voting_end
+            ? new Date(awardData.voting_end).toISOString().substring(0, 16)
+            : "",
+          venue_name: awardData.venue || awardData.venue_name || "",
+          address: awardData.location || awardData.address || "",
+          city: awardData.city || "",
+          region: awardData.region || "",
+          country: awardData.country || "",
+          map_url: awardData.mapUrl || awardData.map_url || "",
+          status: awardData.status || "draft",
+          is_featured: awardData.is_featured || false,
+          show_results: awardData.show_results !== false,
+          banner_image: null,
+          bannerImagePreview: awardData.banner_image || awardData.image || "",
+          phone: awardData.contact?.phone || awardData.phone || "",
+          website: awardData.contact?.website || awardData.website || "",
+          facebook: awardData.facebook || awardData.socialMedia?.facebook || "",
+          twitter: awardData.twitter || awardData.socialMedia?.twitter || "",
+          instagram:
+            awardData.instagram || awardData.socialMedia?.instagram || "",
+          video_url: awardData.video_url || awardData.videoUrl || "",
+          award_code: awardData.award_code || "",
         });
 
-        if (!result.isConfirmed) {
-            return;
+        // Expand all categories by default
+        if (awardData.categories) {
+          const expanded = {};
+          awardData.categories.forEach((cat) => {
+            expanded[cat.id] = true;
+          });
+          setExpandedCategories(expanded);
         }
+      } else {
+        setError(response.message || "Failed to fetch award details");
+      }
+    } catch (err) {
+      console.error("Error fetching award details:", err);
+      setError(err.message || "An error occurred while fetching award details");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        try {
-            await nomineeService.delete(nomineeId);
-            showSuccess('Nominee deleted successfully');
-            refreshAwardData();
-        } catch (err) {
-            console.error('Error deleting nominee:', err);
-            showError('Failed to delete nominee');
-        }
-    };
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
 
-    // Drag and drop handlers for categories
-    const handleCategoryDragStart = (e, category) => {
-        setDraggedCategory(category);
-        e.dataTransfer.effectAllowed = 'move';
-    };
-
-    const handleCategoryDragOver = (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-    };
-
-    const handleCategoryDrop = async (e, targetCategory) => {
-        e.preventDefault();
-        if (!draggedCategory || draggedCategory.id === targetCategory.id) {
-            setDraggedCategory(null);
-            return;
-        }
-
-        const categories = [...award.categories];
-        const draggedIndex = categories.findIndex(c => c.id === draggedCategory.id);
-        const targetIndex = categories.findIndex(c => c.id === targetCategory.id);
-
-        categories.splice(draggedIndex, 1);
-        categories.splice(targetIndex, 0, draggedCategory);
-
-        const reorderedCategories = categories.map((cat, index) => ({
-            id: cat.id,
-            display_order: index
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          banner_image: file,
+          bannerImagePreview: reader.result,
         }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-        try {
-            await categoryService.reorder(id, reorderedCategories);
-            refreshAwardData();
-        } catch (err) {
-            console.error('Error reordering categories:', err);
+  const removeBannerImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      banner_image: null,
+      bannerImagePreview: "",
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const data = new FormData();
+      Object.keys(formData).forEach((key) => {
+        if (key === "banner_image" && formData[key]) {
+          data.append("banner_image", formData[key]);
+        } else if (key !== "bannerImagePreview" && formData[key] !== null) {
+          data.append(key, formData[key]);
         }
-        setDraggedCategory(null);
-    };
+      });
 
-    // Drag and drop handlers for nominees
-    const handleNomineeDragStart = (e, nominee) => {
-        setDraggedNominee(nominee);
-        e.dataTransfer.effectAllowed = 'move';
-    };
+      const response = await awardService.update(id, data);
 
-    const handleNomineeDragOver = (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-    };
+      if (response.success) {
+        showSuccess("Award updated successfully");
+        setIsEditing(false);
+        fetchAwardDetails();
+      } else {
+        showError(response.message || "Failed to update award");
+      }
+    } catch (err) {
+      showError(err.message || "Failed to update award");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    const handleNomineeDrop = async (e, targetNominee, categoryId) => {
-        e.preventDefault();
-        if (!draggedNominee || draggedNominee.id === targetNominee.id) {
-            setDraggedNominee(null);
-            return;
-        }
+  const [isStatusChanging, setIsStatusChanging] = useState(false);
 
-        const category = award.categories.find(c => c.id === categoryId);
-        if (!category) return;
+  const handleUpdateStatus = async (newStatus) => {
+    try {
+      setIsStatusChanging(true);
+      let response;
 
-        const nominees = [...category.nominees];
-        const draggedIndex = nominees.findIndex(n => n.id === draggedNominee.id);
-        const targetIndex = nominees.findIndex(n => n.id === targetNominee.id);
+      if (newStatus === "pending") {
+        response = await awardService.submitForApproval(id);
+      } else {
+        // For other status updates like 'closed'
+        const data = new FormData();
+        data.append("status", newStatus);
+        response = await awardService.update(id, data);
+      }
 
-        nominees.splice(draggedIndex, 1);
-        nominees.splice(targetIndex, 0, draggedNominee);
+      if (response.success) {
+        showSuccess(`Award status updated to ${newStatus}`);
+        fetchAwardDetails();
+      } else {
+        showError(response.message || "Failed to update status");
+      }
+    } catch (err) {
+      showError(err.message || "Failed to update status");
+    } finally {
+      setIsStatusChanging(false);
+    }
+  };
 
-        const reorderedNominees = nominees.map((nom, index) => ({
-            id: nom.id,
-            display_order: index
+  const handleDeleteAward = async () => {
+    const result = await showConfirm({
+      title: "Delete Award?",
+      text: "This will permanently delete the award and all its categories and nominees. This action cannot be undone.",
+      confirmButtonText: "Yes, delete it",
+      icon: "warning",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setIsStatusChanging(true);
+      const response = await awardService.delete(id);
+      if (response.success) {
+        showSuccess("Award deleted successfully");
+        navigate("/organizer/awards");
+      } else {
+        showError(response.message || "Failed to delete award");
+      }
+    } catch (err) {
+      showError(err.message || "Failed to delete award");
+    } finally {
+      setIsStatusChanging(false);
+    }
+  };
+
+  const handleToggleAwardVoting = async (status) => {
+    try {
+      setIsTogglingAwardVoting(true);
+      const response = await awardService.toggleVoting(id, status);
+
+      if (response.success) {
+        showSuccess(response.message || `Award voting is now ${status}`);
+        setAward((prev) => ({ ...prev, voting_status: status }));
+      } else {
+        showError(response.message || "Failed to toggle award voting status");
+      }
+    } catch (err) {
+      showError(err.message || "Failed to toggle award voting status");
+    } finally {
+      setIsTogglingAwardVoting(false);
+    }
+  };
+
+  const handleToggleCategoryVoting = async (e, categoryId, status) => {
+    if (e) e.stopPropagation();
+    try {
+      setTogglingCategoryId(categoryId);
+      const response = await categoryService.toggleVoting(categoryId, status);
+
+      if (response.success) {
+        showSuccess(response.message || `Category voting is now ${status}`);
+        setAward((prev) => ({
+          ...prev,
+          categories: prev.categories.map((cat) =>
+            cat.id === categoryId ? { ...cat, voting_status: status } : cat,
+          ),
         }));
+      } else {
+        showError(response.message || "Failed to toggle category voting");
+      }
+    } catch (err) {
+      showError(err.message || "Failed to toggle category voting");
+    } finally {
+      setTogglingCategoryId(null);
+    }
+  };
 
-        try {
-            await nomineeService.reorder(categoryId, reorderedNominees);
-            refreshAwardData();
-        } catch (err) {
-            console.error('Error reordering nominees:', err);
-        }
-        setDraggedNominee(null);
-    };
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [categoryId]: !prev[categoryId],
+    }));
+  };
 
-    // Handle submit for approval
-    const handleSubmitForApproval = async () => {
-        const result = await showConfirm({
-            title: 'Submit Award for Approval?',
-            text: 'Once submitted, you will not be able to edit this award until it has been reviewed by an admin.',
-            confirmButtonText: 'Yes, submit it',
-            icon: 'question'
-        });
+  const openCategoryModal = (category = null) => {
+    setSelectedCategory(category);
+    setCategoryModalOpen(true);
+  };
 
-        if (!result.isConfirmed) {
-            return;
-        }
+  const closeCategoryModal = () => {
+    setCategoryModalOpen(false);
+    setSelectedCategory(null);
+  };
 
-        try {
-            setIsSubmitting(true);
-            const response = await awardService.submitForApproval(id);
+  const handleDeleteCategory = async (e, categoryId) => {
+    e.stopPropagation();
+    const result = await showConfirm({
+      title: "Delete Category?",
+      text: "This will permanently delete the category and all its nominees. This action cannot be undone.",
+      confirmButtonText: "Yes, delete it",
+      icon: "warning",
+    });
 
-            if (response.success) {
-                showSuccess(response.data.message || 'Award submitted for approval successfully!');
-                // Refresh award data to show updated status
-                refreshAwardData();
-            } else {
-                showError(response.message || 'Failed to submit award for approval');
-            }
-        } catch (err) {
-            console.error('Error submitting award:', err);
-            showError(err.message || 'An error occurred while submitting the award');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    if (!result.isConfirmed) return;
 
-    // Handle delete award
-    const handleDeleteAward = async () => {
-        setOpenDropdown(false);
+    try {
+      await categoryService.delete(categoryId);
+      showSuccess("Category deleted successfully");
+      fetchAwardDetails();
+    } catch (err) {
+      console.log(err);
+      showError("Failed to delete category");
+    }
+  };
 
-        const result = await showConfirm({
-            title: 'Delete Award?',
-            text: 'This will permanently delete this award, all its categories, nominees, and votes. This action cannot be undone.',
-            confirmButtonText: 'Yes, delete it',
-            icon: 'warning'
-        });
+  const openNomineeModal = (e, categoryId, nominee = null) => {
+    if (e) e.stopPropagation();
+    setActiveCategory(categoryId);
+    setSelectedNominee(nominee);
+    setNomineeModalOpen(true);
+  };
 
-        if (!result.isConfirmed) {
-            return;
-        }
+  const closeNomineeModal = () => {
+    setNomineeModalOpen(false);
+    setSelectedNominee(null);
+    setActiveCategory(null);
+  };
 
-        try {
-            const response = await awardService.delete(id);
+  const handleDeleteNominee = async (e, nomineeId) => {
+    if (e) e.stopPropagation();
+    const result = await showConfirm({
+      title: "Delete Nominee?",
+      text: "This will permanently remove this nominee. This action cannot be undone.",
+      confirmButtonText: "Yes, delete it",
+      icon: "warning",
+    });
 
-            if (response.success) {
-                showSuccess('Award deleted successfully');
-                navigate('/organizer/awards');
-            } else {
-                showError(response.message || 'Failed to delete award');
-            }
-        } catch (err) {
-            console.error('Error deleting award:', err);
-            // API errors come with a message property from the interceptor
-            const errorMessage = err.message || 'Failed to delete award';
-            showError(errorMessage);
-        }
-    };
+    if (!result.isConfirmed) return;
 
-    // Handle view public page
-    const handleViewPublicPage = () => {
-        setOpenDropdown(false);
-        // Navigate to the public award page
-        window.open(`/awards/${award.slug || id}`, '_blank');
-    };
+    try {
+      await nomineeService.delete(nomineeId);
+      showSuccess("Nominee deleted successfully");
+      fetchAwardDetails();
+    } catch (err) {
+      console.log(err);
+      showError("Failed to delete nominee");
+    }
+  };
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (openDropdown && !event.target.closest('.dropdown-container')) {
-                setOpenDropdown(false);
-            }
-        };
+  const handleCategoryDragStart = (e, category) => {
+    setDraggedCategory(category);
+    e.dataTransfer.effectAllowed = "move";
+  };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [openDropdown]);
+  const handleCategoryDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
 
-    // Loading state
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto mb-4" />
-                    <p className="text-gray-500">Loading award details...</p>
-                </div>
-            </div>
-        );
+  const handleCategoryDrop = async (e, targetCategory) => {
+    e.preventDefault();
+    if (!draggedCategory || draggedCategory.id === targetCategory.id) {
+      setDraggedCategory(null);
+      return;
     }
 
-    // Error state
-    if (error) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <Card className="max-w-md w-full">
-                    <CardContent className="p-8 text-center">
-                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <AlertTriangle className="w-8 h-8 text-red-600" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Award</h3>
-                        <p className="text-gray-500 mb-4">{error}</p>
-                        <Button onClick={() => navigate('/organizer/awards')}>
-                            Back to Awards
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    // No award found
-    if (!award) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <Card className="max-w-md w-full">
-                    <CardContent className="p-8 text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Trophy className="w-8 h-8 text-gray-400" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Award Not Found</h3>
-                        <p className="text-gray-500 mb-4">The award you are looking for does not exist.</p>
-                        <Button onClick={() => navigate('/organizer/awards')}>
-                            Back to Awards
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="space-y-4">
-                {/* Title Row */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-                        <button
-                            onClick={() => navigate('/organizer/awards')}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
-                        >
-                            <ArrowLeft size={20} className="text-gray-600" />
-                        </button>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">{award.title}</h1>
-                                <Badge variant={getStatusStyle(award.status)}>{award.status?.toUpperCase()}</Badge>
-                                {award.voting_status && (
-                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                                        <AwardIcon size={12} className="mr-1" />
-                                        {award.voting_status}
-                                    </Badge>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                                <span>Award ID: #{award.id}</span>
-                                {award.award_code && (
-                                    <>
-                                        <span className="text-gray-300">•</span>
-                                        <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs uppercase">Code: {award.award_code}</span>
-                                    </>
-                                )}                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Actions Row */}
-                <div className="flex items-center gap-2 flex-wrap md:justify-end">
-                    <Button
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => openCategoryModal()}
-                    >
-                        <Plus size={16} />
-                        Add Category
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-2" title="Share Award">
-                        <Share2 size={16} />
-                        <span className="hidden md:inline">Share</span>
-                    </Button>
-                    {/* Submit for Approval - shown only for draft awards */}
-                    {award.status === 'draft' && (
-                        <Button
-                            size="sm"
-                            variant="default"
-                            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-                            onClick={handleSubmitForApproval}
-                            disabled={isSubmitting}
-                            title="Submit for Approval"
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 size={16} className="animate-spin" />
-                                    <span className="hidden md:inline">Submitting...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Send size={16} />
-                                    <span className="hidden lg:inline">Submit for Approval</span>
-                                    <span className="hidden md:inline lg:hidden">Submit</span>
-                                </>
-                            )}
-                        </Button>
-                    )}
-                    <Link to={`/organizer/awards/${award.id}/edit`}>
-                        <Button size="sm" className="gap-2" title="Edit Award">
-                            <Edit size={16} />
-                            <span className="hidden md:inline">Edit</span>
-                        </Button>
-                    </Link>
-                    <div className="relative dropdown-container">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setOpenDropdown(!openDropdown)}
-                            title="More Options"
-                        >
-                            <MoreVertical size={16} />
-                        </Button>
-                        {openDropdown && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                {(award.status?.toLowerCase() === 'published' || award.status?.toLowerCase() === 'completed') && (
-                                    <>
-                                        <button
-                                            onClick={handleViewPublicPage}
-                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                        >
-                                            <ExternalLink size={14} />
-                                            View Public Page
-                                        </button>
-                                        <hr className="my-1" />
-                                    </>
-                                )}
-                                <button
-                                    onClick={handleDeleteAward}
-                                    className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                >
-                                    <Trash2 size={14} />
-                                    Delete Award
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                                <Trophy size={20} className="text-orange-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-gray-900">{award.stats?.total_categories || 0}</p>
-                                <p className="text-xs text-gray-500">Categories</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <Users size={20} className="text-blue-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-gray-900">{award.stats?.total_nominees || 0}</p>
-                                <p className="text-xs text-gray-500">Nominees</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                                <AwardIcon size={20} className="text-green-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-gray-900">{award.stats?.total_votes?.toLocaleString() || 0}</p>
-                                <p className="text-xs text-gray-500">Total Votes</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                                <DollarSign size={20} className="text-orange-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-gray-900">GH₵{award.stats?.revenue?.toLocaleString() || 0}</p>
-                                <p className="text-xs text-gray-500">Revenue</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                <Users size={20} className="text-indigo-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-gray-900">{award.stats?.unique_voters?.toLocaleString() || 0}</p>
-                                <p className="text-xs text-gray-500">Unique Voters</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
-                                <ImageIcon size={20} className="text-teal-600" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-gray-900">{award.views?.toLocaleString() || 0}</p>
-                                <p className="text-xs text-gray-500">Views</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="grid grid-cols-12 gap-6">
-                {/* Left Column */}
-                <div className="col-span-12 lg:col-span-8 space-y-6">
-                    {/* Categories & Nominees */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Trophy size={20} className="text-orange-500" />
-                                Categories & Nominees
-                            </CardTitle>
-                            <Button
-                                size="sm"
-                                className="gap-2"
-                                onClick={() => openCategoryModal()}
-                            >
-                                <Plus size={16} />
-                                Add Category
-                            </Button>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {award.categories && award.categories.length > 0 ? (
-                                award.categories.map((category) => (
-                                    <div
-                                        key={category.id}
-                                        draggable
-                                        onDragStart={(e) => handleCategoryDragStart(e, category)}
-                                        onDragOver={handleCategoryDragOver}
-                                        onDrop={(e) => handleCategoryDrop(e, category)}
-                                        className={`border border-gray-200 rounded-lg p-4 cursor-move transition-all ${draggedCategory?.id === category.id ? 'opacity-50' : ''
-                                            }`}
-                                    >
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div>
-                                                <h4 className="font-semibold text-gray-900">{category.name}</h4>
-                                                {category.description && (
-                                                    <p className="text-sm text-gray-600 mt-1">{category.description}</p>
-                                                )}
-                                                <div className="flex items-center gap-4 mt-2">
-                                                    <span className="text-sm text-gray-500">
-                                                        Cost per vote: <span className="font-semibold text-gray-900">GH₵{category.cost_per_vote}</span>
-                                                    </span>
-                                                    <span className="text-sm text-gray-500">
-                                                        Total votes: <span className="font-semibold text-gray-900">{category.total_votes || 0}</span>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="gap-2"
-                                                    onClick={() => openNomineeModal(category.id)}
-                                                >
-                                                    <Plus size={14} />
-                                                    Add Nominee
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => openCategoryModal(category)}
-                                                >
-                                                    <Edit size={14} />
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-red-600 hover:bg-red-50"
-                                                    onClick={() => handleDeleteCategory(category.id)}
-                                                >
-                                                    <Trash2 size={14} />
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        {/* Nominees */}
-                                        {category.nominees && category.nominees.length > 0 ? (
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-                                                {category.nominees.map((nominee) => (
-                                                    <div
-                                                        key={nominee.id}
-                                                        draggable
-                                                        onDragStart={(e) => handleNomineeDragStart(e, nominee)}
-                                                        onDragOver={handleNomineeDragOver}
-                                                        onDrop={(e) => handleNomineeDrop(e, nominee, category.id)}
-                                                        className={`group relative border border-gray-100 rounded-lg p-3 hover:border-orange-200 transition-colors cursor-move ${draggedNominee?.id === nominee.id ? 'opacity-50' : ''
-                                                            }`}
-                                                    >
-                                                        {/* Action buttons */}
-                                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                                            <button
-                                                                onClick={() => openNomineeModal(category.id, nominee)}
-                                                                className="p-1 bg-white rounded shadow-sm hover:bg-gray-50"
-                                                                title="Edit"
-                                                            >
-                                                                <Edit size={12} className="text-gray-600" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteNominee(nominee.id)}
-                                                                className="p-1 bg-white rounded shadow-sm hover:bg-red-50"
-                                                                title="Delete"
-                                                            >
-                                                                <Trash2 size={12} className="text-red-600" />
-                                                            </button>
-                                                        </div>
-                                                        {nominee.image && (
-                                                            <img
-                                                                src={nominee.image}
-                                                                alt={nominee.name}
-                                                                className="w-full h-24 object-cover rounded-lg mb-2"
-                                                            />
-                                                        )}
-                                                        <h5 className="font-medium text-sm text-gray-900">{nominee.name}</h5>
-                                                        {nominee.nominee_code && (
-                                                            <div className="text-[10px] font-mono text-gray-400 uppercase mt-0.5">
-                                                                Code: {nominee.nominee_code}
-                                                            </div>
-                                                        )}
-                                                        {nominee.total_votes !== undefined && (
-                                                            <p className="text-xs text-gray-500 mt-1">
-                                                                {nominee.total_votes} votes
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-4 bg-gray-50 rounded-lg">
-                                                <p className="text-sm text-gray-500">No nominees added yet</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-8">
-                                    <Trophy size={32} className="mx-auto text-gray-300 mb-2" />
-                                    <p className="text-gray-500 text-sm">No categories created yet</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Vote Analytics */}
-                    {award.vote_analytics && award.vote_analytics.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <AwardIcon size={20} className="text-orange-500" />
-                                    Vote Analytics (Last 7 Days)
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    {award.vote_analytics.map((day, index) => {
-                                        const maxVotes = Math.max(...award.vote_analytics.map(d => d.votes));
-                                        const percentage = maxVotes > 0 ? (day.votes / maxVotes) * 100 : 0;
-                                        return (
-                                            <div key={index} className="flex items-center gap-3">
-                                                <span className="text-sm font-medium text-gray-600 w-8">{day.day}</span>
-                                                <div className="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
-                                                    <div
-                                                        className="bg-orange-500 h-full rounded-full transition-all duration-500"
-                                                        style={{ width: `${percentage}%` }}
-                                                    />
-                                                    <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
-                                                        {day.votes}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Main Image */}
-                    <Card className="overflow-hidden">
-                        {award.image ? (
-                            <img
-                                src={award.image}
-                                alt={award.title}
-                                className="w-full h-64 object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
-                                <ImageIcon size={48} className="text-gray-300" />
-                            </div>
-                        )}
-                    </Card>
-
-                    {/* Description */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">About This Award</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-600 whitespace-pre-line">{award.description || 'No description provided.'}</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Award Video */}
-                    {award.videoUrl && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Video size={20} className="text-orange-500" />
-                                    Award Video
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
-                                    <iframe
-                                        src={award.videoUrl.includes('youtu.be')
-                                            ? award.videoUrl.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0]
-                                            : award.videoUrl.includes('youtube.com/watch')
-                                                ? award.videoUrl.replace('watch?v=', 'embed/')
-                                                : award.videoUrl
-                                        }
-                                        className="w-full h-full"
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        title="Award Video"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Recent Votes */}
-                    {award.recent_votes && award.recent_votes.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Users size={20} className="text-orange-500" />
-                                    Recent Votes
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {award.recent_votes.map((vote) => (
-                                        <div key={vote.id} className="flex items-start justify-between py-2 border-b border-gray-100 last:border-0">
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium text-gray-900">{vote.voter}</p>
-                                                <p className="text-xs text-gray-500">voted for <span className="font-medium">{vote.nominee}</span></p>
-                                                <p className="text-xs text-gray-400">{vote.category}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-semibold text-orange-600">{vote.votes} votes</p>
-                                                <p className="text-xs text-gray-500">GH₵{vote.amount}</p>
-                                                <p className="text-xs text-gray-400">{vote.created_at}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-
-                {/* Right Column */}
-                <div className="col-span-12 lg:col-span-4 space-y-6">
-                    {/* Award Details */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Award Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-start gap-3">
-                                <Calendar size={18} className="text-gray-400 mt-0.5" />
-                                <div>
-                                    <p className="font-medium text-gray-900">{formatDate(award.ceremony_date)}</p>
-                                    <p className="text-sm text-gray-500">Ceremony Date</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <MapPin size={18} className="text-gray-400 mt-0.5" />
-                                <div>
-                                    <p className="font-medium text-gray-900">{award.venue || '—'}</p>
-                                    <p className="text-sm text-gray-500">
-                                        {[
-                                            award.location,
-                                            award.city,
-                                            award.region,
-                                            award.country
-                                        ].filter(Boolean).join(', ') || '—'}
-                                    </p>
-                                    {award.mapUrl && (
-                                        <a
-                                            href={award.mapUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-sm text-orange-500 hover:underline flex items-center gap-1 mt-1"
-                                        >
-                                            <Map size={14} />
-                                            View on Maps
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                            {award.voting_start && award.voting_end && (
-                                <>
-                                    <div className="flex items-start gap-3">
-                                        <AwardIcon size={18} className="text-gray-400 mt-0.5" />
-                                        <div>
-                                            <p className="font-medium text-gray-900">{new Date(award.voting_start).toLocaleDateString()}</p>
-                                            <p className="text-sm text-gray-500">Voting Starts</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-3">
-                                        <AwardIcon size={18} className="text-gray-400 mt-0.5" />
-                                        <div>
-                                            <p className="font-medium text-gray-900">{new Date(award.voting_end).toLocaleDateString()}</p>
-                                            <p className="text-sm text-gray-500">Voting Ends</p>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Contact & Social */}
-                    {(award.contact || award.socialMedia || award.phone || award.website || award.facebook || award.twitter || award.instagram) && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Globe size={20} className="text-orange-500" />
-                                    Contact & Social Media
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {(award.contact?.phone || award.phone) && (
-                                        <a href={`tel:${award.contact?.phone || award.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-500">
-                                            <Phone size={16} />
-                                            {award.contact?.phone || award.phone}
-                                        </a>
-                                    )}
-                                    {(award.contact?.website || award.website) && (
-                                        <a href={`http://${award.contact?.website || award.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-500">
-                                            <Globe size={16} />
-                                            Website
-                                        </a>
-                                    )}
-                                    {(award.socialMedia?.facebook || award.facebook) && (
-                                        <a href={award.socialMedia?.facebook || award.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600">
-                                            <Facebook size={16} />
-                                            Facebook
-                                        </a>
-                                    )}
-                                    {(award.socialMedia?.twitter || award.twitter) && (
-                                        <a href={award.socialMedia?.twitter || award.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-sky-500">
-                                            <Twitter size={16} />
-                                            Twitter / X
-                                        </a>
-                                    )}
-                                    {(award.socialMedia?.instagram || award.instagram) && (
-                                        <a href={award.socialMedia?.instagram || award.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600">
-                                            <Instagram size={16} />
-                                            Instagram
-                                        </a>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Organizer Info */}
-                    {award.organizer && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Organized By</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-start gap-3">
-                                    {award.organizer.avatar && (
-                                        <img
-                                            src={award.organizer.avatar}
-                                            alt={award.organizer.name}
-                                            className="w-12 h-12 rounded-full object-cover"
-                                        />
-                                    )}
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-semibold text-gray-900">{award.organizer.name}</p>
-                                            {award.organizer.verified && (
-                                                <CheckCircle size={14} className="text-blue-500" />
-                                            )}
-                                        </div>
-                                        {award.organizer.bio && (
-                                            <p className="text-sm text-gray-600 mt-1 line-clamp-3">{award.organizer.bio}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Quick Actions */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Quick Actions</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <Link to={`/organizer/awards/${award.id}/edit`} className="block">
-                                <Button variant="outline" className="w-full justify-start gap-2">
-                                    <Edit size={16} />
-                                    Edit Award
-                                </Button>
-                            </Link>
-                            <Button variant="outline" className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50">
-                                <Trash2 size={16} />
-                                Delete Award
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    {/* Metadata */}
-                    <Card>
-                        <CardContent className="p-4 text-sm text-gray-500 space-y-1">
-                            <p>Created: {formatDate(award.created_at)}</p>
-                            <p>Last updated: {formatDate(award.updated_at)}</p>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-
-            {/* Modals */}
-            <CategoryModal
-                isOpen={categoryModalOpen}
-                onClose={closeCategoryModal}
-                awardId={id}
-                category={selectedCategory}
-                onSuccess={handleCategorySuccess}
-            />
-
-            <NomineeModal
-                isOpen={nomineeModalOpen}
-                onClose={closeNomineeModal}
-                categoryId={activeCategory}
-                nominee={selectedNominee}
-                onSuccess={handleNomineeSuccess}
-            />
-        </div>
+    const categories = [...award.categories];
+    const draggedIndex = categories.findIndex(
+      (c) => c.id === draggedCategory.id,
     );
+    const targetIndex = categories.findIndex((c) => c.id === targetCategory.id);
+
+    categories.splice(draggedIndex, 1);
+    categories.splice(targetIndex, 0, draggedCategory);
+
+    const reorderedCategories = categories.map((cat, index) => ({
+      id: cat.id,
+      display_order: index,
+    }));
+
+    try {
+      await categoryService.reorder(id, reorderedCategories);
+      fetchAwardDetails();
+    } catch (err) {
+      console.error("Error reordering categories:", err);
+    }
+    setDraggedCategory(null);
+  };
+
+  const handleNomineeDragStart = (e, nominee) => {
+    setDraggedNominee(nominee);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleNomineeDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleNomineeDrop = async (e, targetNominee, categoryId) => {
+    e.preventDefault();
+    if (!draggedNominee || draggedNominee.id === targetNominee.id) {
+      setDraggedNominee(null);
+      return;
+    }
+
+    const category = award.categories.find((c) => c.id === categoryId);
+    if (!category) return;
+
+    const nominees = [...category.nominees];
+    const draggedIndex = nominees.findIndex((n) => n.id === draggedNominee.id);
+    const targetIndex = nominees.findIndex((n) => n.id === targetNominee.id);
+
+    nominees.splice(draggedIndex, 1);
+    nominees.splice(targetIndex, 0, draggedNominee);
+
+    const reorderedNominees = nominees.map((nom, index) => ({
+      id: nom.id,
+      display_order: index,
+    }));
+
+    try {
+      await nomineeService.reorder(categoryId, reorderedNominees);
+      fetchAwardDetails();
+    } catch (err) {
+      console.error("Error reordering nominees:", err);
+    }
+    setDraggedNominee(null);
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatCurrency = (amount) => `GH₵${(amount || 0).toLocaleString()}`;
+
+  const getStatusColor = (status) => {
+    const colors = {
+      published: "bg-green-100 text-green-800 border-green-200",
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      draft: "bg-gray-100 text-gray-800 border-gray-200",
+      closed: "bg-red-100 text-red-800 border-red-200",
+      completed: "bg-blue-100 text-blue-800 border-blue-200",
+    };
+    return colors[status] || colors.draft;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2
+            size={48}
+            className="animate-spin text-orange-600 mx-auto mb-4"
+          />
+          <p className="text-gray-600">Loading award details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={24} />
+            <div>
+              <h3 className="font-semibold text-red-800 mb-1">
+                Error Loading Award
+              </h3>
+              <p className="text-red-700">{error}</p>
+              <button
+                onClick={fetchAwardDetails}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const awardVotingStatus =
+    award?.voting_status === "open" ? "Active" : "Closed";
+
+  const tabs = [
+    { id: "overview", label: "Overview", icon: Eye },
+    { id: "categories", label: "Categories & Votes", icon: Trophy },
+    { id: "settings", label: "Settings", icon: Settings },
+  ];
+
+  return (
+    <div className="space-y-4 container mx-auto">
+      <AwardHeader
+        award={award}
+        navigate={navigate}
+        fetchAwardDetails={fetchAwardDetails}
+        awardVotingStatus={awardVotingStatus}
+        getStatusColor={getStatusColor}
+        onSubmitForApproval={() => handleUpdateStatus("pending")}
+        onDeleteAward={handleDeleteAward}
+        isStatusChanging={isStatusChanging}
+      />
+
+      <AwardStats award={award} />
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8 overflow-x-auto" aria-label="Tabs">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`group inline-flex items-center py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === tab.id ? "border-orange-500 text-orange-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`}
+              >
+                <Icon
+                  className={`-ml-0.5 mr-2 h-4 w-4 ${activeTab === tab.id ? "text-orange-500" : "text-gray-400 group-hover:text-gray-500"}`}
+                />
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="mt-4">
+        {activeTab === "overview" && (
+          <AwardOverview
+            award={award}
+            getYoutubeEmbedUrl={getYoutubeEmbedUrl}
+            getGoogleMapsEmbedUrl={getGoogleMapsEmbedUrl}
+            formatDate={formatDate}
+          />
+        )}
+
+        {activeTab === "categories" && (
+          <AwardCategories
+            award={award}
+            expandedCategories={expandedCategories}
+            toggleCategory={toggleCategory}
+            openCategoryModal={openCategoryModal}
+            handleToggleCategoryVoting={handleToggleCategoryVoting}
+            togglingCategoryId={togglingCategoryId}
+            formatCurrency={formatCurrency}
+            handleDeleteCategory={handleDeleteCategory}
+            openNomineeModal={openNomineeModal}
+            handleDeleteNominee={handleDeleteNominee}
+            handleCategoryDragStart={handleCategoryDragStart}
+            handleCategoryDragOver={handleCategoryDragOver}
+            handleCategoryDrop={handleCategoryDrop}
+            handleNomineeDragStart={handleNomineeDragStart}
+            handleNomineeDragOver={handleNomineeDragOver}
+            handleNomineeDrop={handleNomineeDrop}
+            draggedCategory={draggedCategory}
+            draggedNominee={draggedNominee}
+          />
+        )}
+
+        {activeTab === "settings" && (
+          <AwardSettings
+            award={award}
+            formData={formData}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            isSaving={isSaving}
+            handleInputChange={handleInputChange}
+            handleImageUpload={handleImageUpload}
+            removeBannerImage={removeBannerImage}
+            handleSave={handleSave}
+            fetchAwardDetails={fetchAwardDetails}
+            isTogglingAwardVoting={isTogglingAwardVoting}
+            handleToggleAwardVoting={handleToggleAwardVoting}
+            onCloseAward={() => handleUpdateStatus("closed")}
+            isStatusChanging={isStatusChanging}
+            countries={countries}
+          />
+        )}
+      </div>
+
+      <CategoryModal
+        isOpen={categoryModalOpen}
+        onClose={closeCategoryModal}
+        onSuccess={fetchAwardDetails}
+        awardId={id}
+        category={selectedCategory}
+      />
+
+      <NomineeModal
+        isOpen={nomineeModalOpen}
+        onClose={closeNomineeModal}
+        onSuccess={fetchAwardDetails}
+        categoryId={activeCategory}
+        nominee={selectedNominee}
+      />
+    </div>
+  );
 };
 
 export default ViewAward;
