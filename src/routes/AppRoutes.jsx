@@ -5,7 +5,7 @@ import BrowseEvents from "../pages/BrowseEvents";
 import BrowseAwards from "../pages/BrowseAwards";
 import AwardDetail from "../pages/AwardDetail";
 import AwardLeaderboard from "../pages/AwardLeaderboard";
-import VotePayment from "../pages/VotePayment";
+import PaymentCallback from "../pages/PaymentCallback";
 import EventDetails from "../pages/EventDetails";
 import Categories from "../pages/Categories";
 import CategoryNominees from "../pages/CategoryNominees";
@@ -91,7 +91,7 @@ const AppRoutes = () => {
           path="/award/:slug/nominee/:nomineeId"
           element={<NomineeVote />}
         />
-        <Route path="/award/:slug/vote/payment" element={<VotePayment />} />
+        <Route path="/payment/callback" element={<PaymentCallback />} />
 
         {/* Events Routes */}
         <Route path="/events" element={<BrowseEvents />} />

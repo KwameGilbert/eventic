@@ -84,8 +84,10 @@ const NomineeVote = () => {
         award,
         category,
         nominee,
-        voteQuantity,
-        totalCost,
+        votePackage: {
+          votes: voteQuantity,
+          price: totalCost,
+        },
       },
     });
   };

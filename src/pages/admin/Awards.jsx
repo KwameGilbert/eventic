@@ -530,9 +530,23 @@ const AdminAwards = () => {
                             by {award.organizer_name || "Unknown Organizer"}
                           </p>
                         </div>
-                        <Badge className={getStatusColor(award.status)}>
-                          {award.status.toUpperCase()}
-                        </Badge>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge className={getStatusColor(award.status)}>
+                            {award.status.toUpperCase()}
+                          </Badge>
+                          <Badge
+                            className={
+                              award.voting_status === "open"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }
+                          >
+                            Voting:{" "}
+                            {award.voting_status === "open"
+                              ? "Active"
+                              : "Closed"}
+                          </Badge>
+                        </div>
                       </div>
 
                       {/* Award Meta */}

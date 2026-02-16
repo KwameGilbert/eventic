@@ -287,6 +287,19 @@ const adminService = {
     return response;
   },
 
+  /**
+   * Toggle award voting status (Admin override)
+   * @param {number|string} awardId - Award ID
+   * @param {string} status - 'open' or 'closed'
+   * @returns {Promise<Object>} Update response
+   */
+  toggleVoting: async (awardId, status) => {
+    const response = await api.put(`/awards/${awardId}/toggle-voting`, {
+      voting_status: status,
+    });
+    return response;
+  },
+
   // =====================================================
   // FINANCE & PAYOUTS MANAGEMENT
   // =====================================================

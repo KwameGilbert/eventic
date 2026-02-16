@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
-  Trophy,
   ArrowLeft,
   Users,
-  TrendingUp,
   Heart,
   AlertCircle,
   RefreshCw,
@@ -126,91 +124,47 @@ const CategoryNominees = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-      {/* Dynamic Background Header */}
-      <div className="relative h-[300px] md:h-[400px] overflow-hidden">
-        <div className="absolute inset-0 bg-gray-900">
-          {category.image ? (
-            <img
-              src={category.image}
-              alt={category.name}
-              className="w-full h-full object-cover opacity-60 scale-105 blur-[2px]"
-            />
-          ) : (
-            <div className="w-full h-full bg-linear-to-br from-gray-900 via-gray-800 to-black" />
-          )}
-        </div>
-
-        {/* Abstract Overlays */}
-        <div className="absolute inset-0 bg-linear-to-t from-gray-50 via-gray-950/40 to-transparent" />
-
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-12">
-          <div className="flex items-center gap-3 mb-4">
+      {/* Simple Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(`/award/${slug}`)}
-              className="p-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full hover:bg-white/20 transition-all text-white"
+              className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={20} />
             </button>
-            <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white/80 text-xs font-bold uppercase tracking-widest">
-              {award.title}
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter">
+            <div className="flex flex-col">
+              <h1 className="text-lg font-bold text-gray-900 leading-none">
                 {category.name}
               </h1>
-              {category.description && (
-                <p className="text-white/80 text-lg line-clamp-2 md:line-clamp-none leading-relaxed">
-                  {category.description}
-                </p>
-              )}
+              <span className="text-xs text-gray-500 mt-1">{award.title}</span>
             </div>
-
-            <div className="flex flex-col items-start md:items-end gap-3">
-              <AwardStatusBadge
-                status={votingStatus}
-                className="text-sm px-5 py-2"
-              />
-              <div className="flex items-center gap-4 text-white/60 text-sm font-bold uppercase tracking-widest">
-                <div className="flex items-center gap-2">
-                  <Users size={16} className="text-orange-400" />
-                  <span>{category.nominees?.length || 0} Nominees</span>
-                </div>
-                {category.cost_per_vote > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Trophy size={16} className="text-yellow-400" />
-                    <span>GH₵{category.cost_per_vote.toFixed(2)}/vote</span>
-                  </div>
-                )}
-              </div>
-            </div>
+          </div>
+          <div>
+            <AwardStatusBadge
+              status={votingStatus}
+              className="text-xs px-3 py-1"
+            />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        {/* Search and Filters Bar */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-4 mb-10 border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
-          <div className="relative flex-1 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-md">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
             />
             <input
               type="text"
-              placeholder={`Search nominees in ${category.name}...`}
+              placeholder={`Search nominees...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-orange-500/20 font-semibold text-gray-700 placeholder:text-gray-400 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
             />
-          </div>
-          <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-xl border border-orange-100">
-            <TrendingUp size={18} className="text-orange-500" />
-            <span className="text-orange-700 font-bold text-sm whitespace-nowrap">
-              Active voting {category.nominees?.length > 0 ? "live" : "pending"}
-            </span>
           </div>
         </div>
 
