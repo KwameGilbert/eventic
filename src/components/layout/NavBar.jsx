@@ -37,12 +37,8 @@ const NavBar = () => {
   // Navigation items configuration - computed based on user role
   const getAddEventPath = () => {
     if (!isAuthenticated()) return "/signup/organizer";
-    if (
-      user?.role === "organizer" ||
-      user?.role === "admin" ||
-      user?.role === "super_admin"
-    )
-      return "/organizer/events/create";
+    if (isAdmin()) return "/admin/events/create";
+    if (user?.role === "organizer") return "/organizer/events/create";
     return "/signup/organizer";
   };
 

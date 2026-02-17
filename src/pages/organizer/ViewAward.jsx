@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Loader2, AlertCircle, Eye, Trophy, Settings } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  Eye,
+  Trophy,
+  Settings,
+  BarChart3,
+} from "lucide-react";
 import awardService from "../../services/awardService";
 import categoryService from "../../services/categoryService";
 import nomineeService from "../../services/nomineeService";
@@ -14,6 +21,7 @@ import AwardStats from "../../components/organizer/awards/view_award/AwardStats"
 import AwardOverview from "../../components/organizer/awards/view_award/AwardOverview";
 import AwardCategories from "../../components/organizer/awards/view_award/AwardCategories";
 import AwardSettings from "../../components/organizer/awards/view_award/AwardSettings";
+import AwardResults from "../../components/organizer/awards/view_award/AwardResults";
 
 const ViewAward = () => {
   const { id } = useParams();
@@ -570,6 +578,7 @@ const ViewAward = () => {
   const tabs = [
     { id: "overview", label: "Overview", icon: Eye },
     { id: "categories", label: "Categories & Votes", icon: Trophy },
+    { id: "results", label: "Results", icon: BarChart3 },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -641,6 +650,8 @@ const ViewAward = () => {
             draggedNominee={draggedNominee}
           />
         )}
+
+        {activeTab === "results" && <AwardResults award={award} />}
 
         {activeTab === "settings" && (
           <AwardSettings

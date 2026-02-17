@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import {
     LayoutDashboard,
     Calendar,
@@ -19,8 +20,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
     const navigation = [
         { name: 'Dashboard', href: '/organizer/dashboard', icon: LayoutDashboard },
-        { name: 'Ticketing Events', href: '/organizer/events', icon: Calendar },
         { name: 'Award Events', href: '/organizer/awards', icon: Trophy },
+        { name: 'Ticketing Events', href: '/organizer/events', icon: Calendar },
         { name: 'Orders', href: '/organizer/orders', icon: ShoppingBag },
         { name: 'Attendees', href: '/organizer/attendees', icon: Users },
         { name: 'Finance', href: '/organizer/finance', icon: DollarSign },
@@ -113,5 +114,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         </>
     );
 };
+
+
 
 export default Sidebar;

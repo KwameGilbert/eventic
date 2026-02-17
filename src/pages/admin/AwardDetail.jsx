@@ -48,6 +48,7 @@ import categoryService from "../../services/categoryService";
 import nomineeService from "../../services/nomineeService";
 import CategoryModal from "../../components/organizer/awards/CategoryModal";
 import NomineeModal from "../../components/organizer/awards/NomineeModal";
+import AwardResults from "../../components/organizer/awards/view_award/AwardResults";
 import { showSuccess, showError, showConfirm } from "../../utils/toast";
 
 const AdminAwardDetail = () => {
@@ -519,6 +520,7 @@ const AdminAwardDetail = () => {
   const tabs = [
     { id: "overview", label: "Overview", icon: Eye },
     { id: "categories", label: "Categories & Votes", icon: Trophy },
+    { id: "results", label: "Results", icon: BarChart3 },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -1403,6 +1405,8 @@ const AdminAwardDetail = () => {
           )}
         </div>
       )}
+
+      {activeTab === "results" && <AwardResults award={award} />}
 
       {activeTab === "settings" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
