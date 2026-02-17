@@ -177,24 +177,21 @@ const NomineeVote = () => {
     if (!votingOpen) return;
 
     // Validation
-    if (!voterInfo.momoNumber) {
-      showError("Please enter your Mobile Money number");
+    if (!voterInfo.email) {
+      showError("Please enter your email address");
       return;
     }
 
     setPaymentStatus("initiating");
-    showLoading("Initiating MoMo Prompt...");
+    showLoading("Initiating payment...");
 
     try {
       const voteData = {
         number_of_votes: voteQuantity,
-        voter_email: voterInfo.email || `voter_${Date.now()}@eventic.com`,
+        voter_email: voterInfo.email,
         voter_name: voterInfo.name || "Anonymous Voter",
-        voter_phone: voterInfo.phone || voterInfo.momoNumber,
-        momo_number: voterInfo.momoNumber,
-        momo_network: voterInfo.momoNetwork,
-        momo_auth_token: voterInfo.momoAuthToken,
-        payment_method: "momo",
+        voter_phone: voterInfo.phone || voterInfo.momoNumber || "0000000000",
+        payment_method: "checkout",
       };
 
       const result = await voteService.initiateVote(nomineeId, voteData);
@@ -202,29 +199,21 @@ const NomineeVote = () => {
 
       hideLoading();
 
-      if (data.payment_token) {
+      if (data.checkout_url) {
+        // Redirect to ExpressPay checkout page
         setPaymentToken(data.payment_token);
-        console.log("Payment initiated:", {
+        console.log("Redirecting to ExpressPay:", {
           reference: data.reference,
-          momo_result: data.momo_result,
-          momo_result_text: data.momo_result_text,
+          checkout_url: data.checkout_url,
         });
-
-        // momo_result: 1 = Approved immediately, 4 = Pending (wait for user to authorize)
-        if (data.momo_result === 1) {
-          setPaymentStatus("success");
-          showSuccess("Payment approved! Your votes have been cast.");
-        } else {
-          setPaymentStatus("polling");
-          setPollingCount(0);
-          showSuccess(
-            "MoMo Prompt sent! Please check your phone to authorize.",
-          );
-        }
+        window.location.href = data.checkout_url;
+      } else if (data.payment_token) {
+        // Fallback: token exists but no checkout_url
+        setPaymentToken(data.payment_token);
+        setPaymentStatus("polling");
+        setPollingCount(0);
       } else {
-        throw new Error(
-          data.momo_result_text || "Failed to initiate direct payment",
-        );
+        throw new Error("Failed to initiate payment");
       }
     } catch (err) {
       hideLoading();
@@ -443,65 +432,26 @@ const NomineeVote = () => {
               <div className="border-t border-gray-100 pt-4 mt-4">
                 <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <CreditCard size={16} className="text-(--brand-primary)" />
-                  Mobile Money Payment
+                  Payment Details
                 </h4>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-1">
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                      Network
-                    </label>
-                    <select
-                      name="momoNetwork"
-                      value={voterInfo.momoNetwork}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all"
-                    >
-                      <option value="MTN">MTN MoMo</option>
-                      <option value="Telecel">Telecel Cash</option>
-                      <option value="AirtelTigo">AirtelTigo Money</option>
-                    </select>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                      MoMo Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="momoNumber"
-                      placeholder="024 XXX XXXX"
-                      value={voterInfo.momoNumber}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                    Phone Number (optional)
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="024 XXX XXXX"
+                    value={voterInfo.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all"
+                  />
                 </div>
 
-                {/* Voucher Code for Vodafone/Telecel */}
-                {(voterInfo.momoNetwork === "Telecel" ||
-                  voterInfo.momoNetwork === "Vodafone") && (
-                  <div className="mt-4">
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                      Voucher Code
-                    </label>
-                    <input
-                      type="text"
-                      name="momoAuthToken"
-                      placeholder="Enter 6-digit code (*110#)"
-                      value={voterInfo.momoAuthToken}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all"
-                    />
-                    <p className="mt-1 text-[10px] text-gray-400 italic">
-                      Dial *110# and select &apos;Generate Voucher&apos; to get
-                      your code.
-                    </p>
-                  </div>
-                )}
-
                 <p className="mt-3 text-[10px] text-gray-400 italic">
-                  * You will receive a prompt on this number to authorize the
-                  GH₵{totalCost.toFixed(2)} payment.
+                  * You will be redirected to ExpressPay to complete the GH₵
+                  {totalCost.toFixed(2)} payment via Mobile Money or Card.
                 </p>
               </div>
             </div>
@@ -548,12 +498,12 @@ const NomineeVote = () => {
                 {paymentStatus === "idle" ? (
                   <>
                     <Lock size={18} />
-                    Confirm & Cast {voteQuantity} Votes
+                    Pay &amp; Vote — GH₵{totalCost.toFixed(2)}
                   </>
                 ) : paymentStatus === "initiating" ? (
                   <>
                     <Loader2 size={18} className="animate-spin" />
-                    Initiating...
+                    Redirecting to payment...
                   </>
                 ) : paymentStatus === "polling" ? (
                   <>
