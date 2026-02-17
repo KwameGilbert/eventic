@@ -1,208 +1,228 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, Home as HomeIcon } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
-import FilterSidebar from '../components/events/FilterSidebar';
-import EventCard from '../components/events/EventCard';
-import eventService from '../services/eventService';
-import PageHeader from '../components/common/PageHeader';
-import ResultsHeader from '../components/common/ResultsHeader';
-import LoadingState from '../components/common/LoadingState';
-import ErrorState from '../components/common/ErrorState';
-import EmptyState from '../components/common/EmptyState';
-import Pagination from '../components/common/Pagination';
+import React, { useState, useEffect, useCallback } from "react";
+import { Calendar, Home as HomeIcon } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import FilterSidebar from "../components/events/FilterSidebar";
+import EventCard from "../components/events/EventCard";
+import eventService from "../services/eventService";
+import PageHeader from "../components/common/PageHeader";
+import ResultsHeader from "../components/common/ResultsHeader";
+import LoadingState from "../components/common/LoadingState";
+import ErrorState from "../components/common/ErrorState";
+import EmptyState from "../components/common/EmptyState";
+import Pagination from "../components/common/Pagination";
+import SEO from "../components/common/SEO";
 
 const BrowseEvents = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [viewMode, setViewMode] = useState('grid');
-    const [events, setEvents] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [pagination, setPagination] = useState({
-        page: 1,
-        perPage: 12,
-        total: 0,
-        totalPages: 0
-    });
-    const [currentFilters, setCurrentFilters] = useState({});
-    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [viewMode, setViewMode] = useState("grid");
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    perPage: 12,
+    total: 0,
+    totalPages: 0,
+  });
+  const [currentFilters, setCurrentFilters] = useState({});
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-    // Fetch events from API
-    const fetchEvents = useCallback(async (filters = {}, page = 1) => {
-        setIsLoading(true);
-        setError(null);
+  // Fetch events from API
+  const fetchEvents = useCallback(
+    async (filters = {}, page = 1) => {
+      setIsLoading(true);
+      setError(null);
 
-        try {
-            const params = {
-                page,
-                per_page: pagination.perPage,
-                ...filters
-            };
+      try {
+        const params = {
+          page,
+          per_page: pagination.perPage,
+          ...filters,
+        };
 
-            // Add search param if exists
-            if (filters.keyword) {
-                params.search = filters.keyword;
-                delete params.keyword;
-            }
-
-            // Add category filter
-            if (filters.category) {
-                params.category = filters.category;
-            }
-
-            // Add location filter
-            if (filters.location) {
-                params.location = filters.location;
-            }
-
-            const response = await eventService.getAll(params);
-            const data = response?.data || response;
-
-            setEvents(data?.events || []);
-            setPagination(prev => ({
-                ...prev,
-                page: data?.page || 1,
-                total: data?.total || 0,
-                totalPages: data?.total_pages || 1
-            }));
-        } catch (err) {
-            console.error('Failed to fetch events:', err);
-            setError('Failed to load events. Please try again.');
-            setEvents([]);
-        } finally {
-            setIsLoading(false);
+        // Add search param if exists
+        if (filters.keyword) {
+          params.search = filters.keyword;
+          delete params.keyword;
         }
-    }, [pagination.perPage]);
 
-    // Initial load
-    useEffect(() => {
-        const category = searchParams.get('category');
-        const search = searchParams.get('search');
+        // Add category filter
+        if (filters.category) {
+          params.category = filters.category;
+        }
 
-        const initialFilters = {};
-        if (category) initialFilters.category = category;
-        if (search) initialFilters.keyword = search;
+        // Add location filter
+        if (filters.location) {
+          params.location = filters.location;
+        }
 
-        setCurrentFilters(initialFilters);
-        fetchEvents(initialFilters);
-    }, [searchParams, fetchEvents]);
+        const response = await eventService.getAll(params);
+        const data = response?.data || response;
 
-    // Handle filter changes
-    const handleFilterChange = (filters) => {
-        setCurrentFilters(filters);
+        setEvents(data?.events || []);
+        setPagination((prev) => ({
+          ...prev,
+          page: data?.page || 1,
+          total: data?.total || 0,
+          totalPages: data?.total_pages || 1,
+        }));
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+        setError("Failed to load events. Please try again.");
+        setEvents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [pagination.perPage],
+  );
 
-        // Update URL params
-        const params = new URLSearchParams();
-        if (filters.category) params.set('category', filters.category);
-        if (filters.keyword) params.set('search', filters.keyword);
-        setSearchParams(params);
+  // Initial load
+  useEffect(() => {
+    const category = searchParams.get("category");
+    const search = searchParams.get("search");
 
-        // Fetch with new filters
-        fetchEvents(filters, 1);
-    };
+    const initialFilters = {};
+    if (category) initialFilters.category = category;
+    if (search) initialFilters.keyword = search;
 
-    // Handle page change
-    const handlePageChange = (newPage) => {
-        fetchEvents(currentFilters, newPage);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    setCurrentFilters(initialFilters);
+    fetchEvents(initialFilters);
+  }, [searchParams, fetchEvents]);
 
-    // Retry loading
-    const handleRetry = () => {
-        fetchEvents(currentFilters, pagination.page);
-    };
+  // Handle filter changes
+  const handleFilterChange = (filters) => {
+    setCurrentFilters(filters);
 
-    // Count active filters
-    const filterCount = Object.keys(currentFilters).filter(k => currentFilters[k] && currentFilters[k] !== 'Ghana').length;
+    // Update URL params
+    const params = new URLSearchParams();
+    if (filters.category) params.set("category", filters.category);
+    if (filters.keyword) params.set("search", filters.keyword);
+    setSearchParams(params);
 
-    return (
-        <div className="bg-gray-50 min-h-screen">
-            {/* Page Header */}
-            <PageHeader
-                title="Ticketing Events"
-                breadcrumbs={[
-                    { icon: <HomeIcon size={16} />, path: '/' },
-                    { label: 'Ticketing Events' }
-                ]}
+    // Fetch with new filters
+    fetchEvents(filters, 1);
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    fetchEvents(currentFilters, newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Retry loading
+  const handleRetry = () => {
+    fetchEvents(currentFilters, pagination.page);
+  };
+
+  // Count active filters
+  const filterCount = Object.keys(currentFilters).filter(
+    (k) => currentFilters[k] && currentFilters[k] !== "Ghana",
+  ).length;
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <SEO
+        title="Browse Events"
+        description="Discover upcoming concerts, conferences, and festivals. Buy tickets easily on Eventic."
+      />
+      {/* Page Header */}
+      <PageHeader
+        title="Ticketing Events"
+        breadcrumbs={[
+          { icon: <HomeIcon size={16} />, path: "/" },
+          { label: "Ticketing Events" },
+        ]}
+      />
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Mobile Filter Drawer */}
+        <FilterSidebar
+          onFilterChange={handleFilterChange}
+          initialFilters={currentFilters}
+          isOpen={isMobileFilterOpen}
+          onClose={() => setIsMobileFilterOpen(false)}
+          isMobile={true}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filter Sidebar - Desktop Only */}
+          <div className="hidden lg:block lg:col-span-1">
+            <FilterSidebar
+              onFilterChange={handleFilterChange}
+              initialFilters={currentFilters}
+            />
+          </div>
+
+          {/* Events Grid */}
+          <div className="lg:col-span-3">
+            {/* Results Header */}
+            <ResultsHeader
+              isLoading={isLoading}
+              totalCount={pagination.total}
+              itemType="event(s)"
+              filterCount={filterCount}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onFilterClick={() => setIsMobileFilterOpen(true)}
             />
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Mobile Filter Drawer */}
-                <FilterSidebar
-                    onFilterChange={handleFilterChange}
-                    initialFilters={currentFilters}
-                    isOpen={isMobileFilterOpen}
-                    onClose={() => setIsMobileFilterOpen(false)}
-                    isMobile={true}
-                />
+            {/* Loading State */}
+            {isLoading && <LoadingState message="Loading events..." />}
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Filter Sidebar - Desktop Only */}
-                    <div className="hidden lg:block lg:col-span-1">
-                        <FilterSidebar
-                            onFilterChange={handleFilterChange}
-                            initialFilters={currentFilters}
-                        />
-                    </div>
+            {/* Error State */}
+            {error && !isLoading && (
+              <ErrorState
+                title="Failed to Load Events"
+                message={error}
+                onRetry={handleRetry}
+              />
+            )}
 
-                    {/* Events Grid */}
-                    <div className="lg:col-span-3">
-                        {/* Results Header */}
-                        <ResultsHeader
-                            isLoading={isLoading}
-                            totalCount={pagination.total}
-                            itemType="event(s)"
-                            filterCount={filterCount}
-                            viewMode={viewMode}
-                            onViewModeChange={setViewMode}
-                            onFilterClick={() => setIsMobileFilterOpen(true)}
-                        />
+            {/* Empty State */}
+            {!isLoading && !error && events.length === 0 && (
+              <EmptyState
+                icon={Calendar}
+                title="No Events Found"
+                message="Try adjusting your filters or check back later for new events."
+                actionLabel="Clear Filters"
+                onAction={() => handleFilterChange({})}
+              />
+            )}
 
-                        {/* Loading State */}
-                        {isLoading && <LoadingState message="Loading events..." />}
-
-                        {/* Error State */}
-                        {error && !isLoading && (
-                            <ErrorState
-                                title="Failed to Load Events"
-                                message={error}
-                                onRetry={handleRetry}
-                            />
-                        )}
-
-                        {/* Empty State */}
-                        {!isLoading && !error && events.length === 0 && (
-                            <EmptyState
-                                icon={Calendar}
-                                title="No Events Found"
-                                message="Try adjusting your filters or check back later for new events."
-                                actionLabel="Clear Filters"
-                                onAction={() => handleFilterChange({})}
-                            />
-                        )}
-
-                        {/* Event Cards */}
-                        {!isLoading && !error && events.length > 0 && (
-                            <>
-                                <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-4'}>
-                                    {events.map((event) => (
-                                        <EventCard key={event.id} event={event} viewMode={viewMode} />
-                                    ))}
-                                </div>
-
-                                {/* Pagination */}
-                                <Pagination
-                                    currentPage={pagination.page}
-                                    totalPages={pagination.totalPages}
-                                    onPageChange={handlePageChange}
-                                />
-                            </>
-                        )}
-                    </div>
+            {/* Event Cards */}
+            {!isLoading && !error && events.length > 0 && (
+              <>
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                      : "space-y-4"
+                  }
+                >
+                  {events.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      viewMode={viewMode}
+                    />
+                  ))}
                 </div>
-            </div>
+
+                {/* Pagination */}
+                <Pagination
+                  currentPage={pagination.page}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            )}
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default BrowseEvents;

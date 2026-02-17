@@ -11,6 +11,7 @@ import {
   Heart,
   AlertCircle,
   RefreshCw,
+  Search,
 } from "lucide-react";
 import awardService from "../services/awardService";
 import AwardStatusBadge from "../components/awards/AwardStatusBadge";
@@ -19,12 +20,14 @@ import AwardOrganizerInfo from "../components/awards/AwardOrganizerInfo";
 import AwardLocationMap from "../components/awards/AwardLocationMap";
 import AwardContactInfo from "../components/awards/AwardContactInfo";
 import PageLoader from "../components/ui/PageLoader";
+import SEO from "../components/common/SEO";
 
 const AwardDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [award, setAward] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -86,7 +89,7 @@ const AwardDetail = () => {
 
   const getVotingStatus = () => {
     // 1. Check if backend explicitly says voting is open
-    if (award?.is_voting_open) return "voting_open";
+    if (award?.voting_status === "open") return "voting_open";
 
     // 2. Check manual voting status toggle
     if (award?.voting_status === "closed") return "voting_closed";
@@ -178,8 +181,21 @@ const AwardDetail = () => {
 
   const votingStatus = getVotingStatus();
 
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   return (
     <div className="bg-gray-50 min-h-screen">
+      <SEO
+        title={award.title}
+        description={
+          award.description ||
+          `Vote for your favorite nominees at ${award.title}. Management by ${award.organizer?.name}.`
+        }
+        image={award.banner_image || award.image}
+        type="article"
+      />
       {/* Page Header with Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -212,14 +228,37 @@ const AwardDetail = () => {
           {/* Left Column - Categories */}
           <div className="lg:w-2/3 order-1 lg:order-1">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <Trophy className="text-(--brand-primary)" size={28} />
-                Award Categories
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div className="flex items-center gap-3">
+                  <Trophy className="text-(--brand-primary)" size={28} />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Award Categories
+                  </h2>
+                  <AwardStatusBadge
+                    status={votingStatus}
+                    className="text-[10px] px-2 py-0.5"
+                  />
+                </div>
 
-              {categories.length > 0 ? (
+                {/* Search Bar */}
+                <div className="relative w-full sm:w-64">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={16}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search categories..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all text-sm font-medium"
+                  />
+                </div>
+              </div>
+
+              {filteredCategories.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {categories.map((category) => (
+                  {filteredCategories.map((category) => (
                     <AwardCategoryCard
                       key={category.id}
                       category={category}
@@ -232,10 +271,14 @@ const AwardDetail = () => {
                 <div className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                   <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-600 font-medium text-lg">
-                    No categories available yet
+                    {searchTerm
+                      ? `No categories matching "${searchTerm}"`
+                      : "No categories available yet"}
                   </p>
                   <p className="text-sm text-gray-400 mt-2">
-                    Check back later once categories are published.
+                    {searchTerm
+                      ? "Try a different search term"
+                      : "Check back later once categories are published."}
                   </p>
                 </div>
               )}

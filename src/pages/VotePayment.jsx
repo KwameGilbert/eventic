@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Home as HomeIcon,
-  CheckCircle,
   Lock,
   Trophy,
   Loader2,
   Shield,
   AlertCircle,
 } from "lucide-react";
+import PropTypes from "prop-types";
 import voteService from "../services/voteService";
+import SEO from "../components/common/SEO";
 import {
   showError as showErrorToast,
   showLoading,
@@ -23,9 +24,6 @@ const VotePayment = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
-
-  // Ref to track payment completion
-  const paymentCompleteRef = useRef(false);
 
   // Voter info
   const [voterInfo, setVoterInfo] = useState({
@@ -93,7 +91,7 @@ const VotePayment = () => {
         return;
       }
 
-      const { checkout_url, vote_id } = result.data;
+      const { checkout_url } = result.data;
 
       if (checkout_url) {
         // Redirect to ExpressPay
@@ -113,6 +111,10 @@ const VotePayment = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      <SEO
+        title={`Payment: ${nominee.name}`}
+        description={`Complete your vote for ${nominee.name} in the ${category.name} category.`}
+      />
       {/* Page Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -307,6 +309,15 @@ const VotePayment = () => {
       </div>
     </div>
   );
+};
+
+VotePayment.propTypes = {
+  // Not strictly props as it's a page component using location.state,
+  // but good for documentation.
+  award: PropTypes.object,
+  category: PropTypes.object,
+  nominee: PropTypes.object,
+  votePackage: PropTypes.object,
 };
 
 export default VotePayment;

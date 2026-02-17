@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { showError } from "../utils/toast";
+import SEO from "../components/common/SEO";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -93,6 +94,10 @@ const SignIn = () => {
 
   return (
     <div className="bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 my-8">
+      <SEO
+        title="Sign In"
+        description="Sign in to your Eventic account to manage your awards, buy tickets, or vote for your favorite nominees."
+      />
       <div className="max-w-md w-full">
         {/* Sign In Card */}
         <div className="bg-white rounded-2xl shadow-sm p-8">

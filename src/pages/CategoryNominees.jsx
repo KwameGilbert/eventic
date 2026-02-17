@@ -12,6 +12,7 @@ import awardService from "../services/awardService";
 import PageLoader from "../components/ui/PageLoader";
 import AwardStatusBadge from "../components/awards/AwardStatusBadge";
 import { showWarning } from "../utils/toast";
+import SEO from "../components/common/SEO";
 
 /**
  * Category Nominees Page
@@ -144,6 +145,11 @@ const CategoryNominees = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
+      <SEO
+        title={`${category.name} - ${award.title}`}
+        description={`Vote for your favorite nominees in the ${category.name} category at ${award.title}.`}
+        image={category.image || award.image}
+      />
       <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">

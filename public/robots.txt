@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /organizer/
+Disallow: /settings
+Disallow: /my-tickets
+Disallow: /my-orders
+Disallow: /checkout
+Disallow: /reset-password
+Disallow: /forgot-password
+
+# Sitemaps
+Sitemap: https://eventic.com/sitemap.xml

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import SEO from "../components/common/SEO";
 import {
   Music,
   Dumbbell,
@@ -121,6 +122,10 @@ const Categories = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
+      <SEO
+        title="Event Categories"
+        description="Browse events by category - Music, Sports, Theater, Food, Conferences and more on Eventic."
+      />
       {/* Minimal Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">

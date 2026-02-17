@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import SEO from "../components/common/SEO";
 import PropTypes from "prop-types";
 import {
   Trophy,
@@ -275,6 +276,11 @@ const AwardLeaderboard = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
+      <SEO
+        title={`Results: ${award.title}`}
+        description={`View live voting results and leaderboard for ${award.title}. See who's leading in each category.`}
+        image={award.banner_image || award.image}
+      />
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

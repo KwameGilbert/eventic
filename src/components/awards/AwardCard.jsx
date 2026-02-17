@@ -24,11 +24,10 @@ const AwardCard = ({ award, viewMode = "grid" }) => {
 
   // Determine voting status
   const getVotingStatus = () => {
-    // 1. Check if backend explicitly says voting is open
-    if (award.is_voting_open) return "voting_open";
-
-    // 2. Check manual voting status toggle
+    // 1. Check manual voting status toggle
     if (award.voting_status === "closed") return "voting_closed";
+
+    if (award.voting_status === "open") return "voting_open";
 
     // 3. Check overall award status
     if (award.status === "completed") return "completed";
@@ -192,6 +191,7 @@ AwardCard.propTypes = {
     description: PropTypes.string,
     venue_name: PropTypes.string,
     ceremony_date: PropTypes.string,
+    voting_status: PropTypes.string,
     voting_start: PropTypes.string,
     voting_end: PropTypes.string,
     status: PropTypes.string,
