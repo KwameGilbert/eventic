@@ -11,6 +11,7 @@ import {
 import awardService from "../services/awardService";
 import PageLoader from "../components/ui/PageLoader";
 import AwardStatusBadge from "../components/awards/AwardStatusBadge";
+import { showWarning } from "../utils/toast";
 
 /**
  * Category Nominees Page
@@ -66,6 +67,13 @@ const CategoryNominees = () => {
   };
 
   const getVotingStatus = () => {
+    // Rely on backend's calculated is_voting_open
+    if (award?.voting_status === "open") return "voting_open";
+
+    // Fallback to manual check if is_voting_open is missing
+    if (award?.voting_status === "closed") return "voting_closed";
+    if (award?.status === "completed") return "completed";
+
     if (!award?.voting_start || !award?.voting_end) return "upcoming";
 
     const now = new Date();
@@ -73,8 +81,9 @@ const CategoryNominees = () => {
     const votingEnd = new Date(award.voting_end);
 
     if (now < votingStart) return "upcoming";
-    if (now >= votingStart && now <= votingEnd) return "voting_open";
-    return "voting_closed";
+    if (now > votingEnd) return "voting_closed";
+
+    return "voting_open";
   };
 
   const filteredNominees = useMemo(() => {
@@ -122,9 +131,19 @@ const CategoryNominees = () => {
 
   const votingStatus = getVotingStatus();
 
+  const handleNomineeClick = (nominee) => {
+    const isCategoryOpen =
+      votingStatus === "voting_open" && category?.voting_status === "open";
+
+    if (isCategoryOpen) {
+      navigate(`/award/${slug}/nominee/${nominee.id}`);
+    } else {
+      showWarning("Voting is currently closed for this category.");
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-      {/* Simple Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -143,7 +162,12 @@ const CategoryNominees = () => {
           </div>
           <div>
             <AwardStatusBadge
-              status={votingStatus}
+              status={
+                votingStatus === "voting_open" &&
+                category?.voting_status === "open"
+                  ? "voting_open"
+                  : "voting_closed"
+              }
               className="text-xs px-3 py-1"
             />
           </div>
@@ -173,10 +197,7 @@ const CategoryNominees = () => {
           {filteredNominees.map((nominee) => (
             <div
               key={nominee.id}
-              onClick={() =>
-                votingStatus === "voting_open" &&
-                navigate(`/award/${slug}/nominee/${nominee.id}`)
-              }
+              onClick={() => handleNomineeClick(nominee)}
               className={`group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-orange-500/30 hover:shadow-2xl hover:shadow-orange-200/40 transition-all duration-500 cursor-pointer flex flex-col`}
             >
               {/* Nominee Image Container - Smaller Aspect */}

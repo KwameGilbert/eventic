@@ -85,11 +85,16 @@ const AwardDetail = () => {
   };
 
   const getVotingStatus = () => {
-    // 1. Master toggle from backend
-    if (award?.voting_status === "open") return "voting_open";
+    // 1. Check if backend explicitly says voting is open
+    if (award?.is_voting_open) return "voting_open";
+
+    // 2. Check manual voting status toggle
     if (award?.voting_status === "closed") return "voting_closed";
 
-    // 2. Date-based logic (fallback if master is missing or we want date-aware status)
+    // 3. Check overall award status
+    if (award?.status === "completed") return "completed";
+
+    // 4. Date-based logic as fallback/refinement
     if (!award?.voting_start || !award?.voting_end) return "upcoming";
 
     const now = new Date();
@@ -99,12 +104,11 @@ const AwardDetail = () => {
       ? new Date(award.ceremony_date)
       : null;
 
-    // Check if ceremony has passed - show "completed"
+    // Check if ceremony has passed
     if (ceremonyDate && now > ceremonyDate) return "completed";
 
-    // Check voting status
+    // Check voting window
     if (now < votingStart) return "upcoming";
-    if (now >= votingStart && now <= votingEnd) return "voting_open";
     if (now > votingEnd) return "voting_closed";
 
     return award.status || "upcoming";

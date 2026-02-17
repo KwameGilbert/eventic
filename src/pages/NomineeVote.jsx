@@ -78,7 +78,33 @@ const NomineeVote = () => {
 
   const totalCost = (category?.cost_per_vote || 0) * voteQuantity;
 
+  const isVotingOpen = () => {
+    // 1. Check if backend says everything is open
+    if (award?.voting_status === "open") return true;
+
+    // 2. Manual toggle checks
+    if (
+      award?.voting_status === "closed" ||
+      category?.voting_status === "closed"
+    )
+      return false;
+
+    // 3. Fallback to manual date check
+    const now = new Date();
+    const isInWindow =
+      award?.voting_start &&
+      award?.voting_end &&
+      now >= new Date(award.voting_start) &&
+      now <= new Date(award.voting_end);
+
+    return isInWindow && category?.voting_status === "open";
+  };
+
+  const votingOpen = isVotingOpen();
+
   const handleProceedToPayment = () => {
+    if (!votingOpen) return;
+
     navigate(`/award/${slug}/vote/payment`, {
       state: {
         award,
@@ -291,9 +317,16 @@ const NomineeVote = () => {
 
               <button
                 onClick={handleProceedToPayment}
-                className="w-full mt-6 bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
+                disabled={!votingOpen}
+                className={`w-full mt-6 font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                  votingOpen
+                    ? "bg-gray-900 hover:bg-gray-800 text-white"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                }`}
               >
-                Proceed to Payment
+                {votingOpen
+                  ? "Proceed to Payment"
+                  : "Voting is Currently Closed"}
                 <ArrowRight size={16} />
               </button>
 

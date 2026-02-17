@@ -257,6 +257,13 @@ const AwardLeaderboard = () => {
   }
 
   const isVotingOpen = () => {
+    // 1. Check if backend explicitly says voting is open
+    if (award?.is_voting_open) return true;
+
+    // 2. Check manual voting status toggle
+    if (award?.voting_status === "closed") return false;
+
+    // 3. Fallback to date-based logic
     const now = new Date();
     return (
       award.voting_start &&
@@ -495,14 +502,19 @@ const AwardLeaderboard = () => {
                                       onClick={() =>
                                         handleVoteClick(category, nominee)
                                       }
-                                      disabled={!isVotingOpen()}
+                                      disabled={
+                                        !isVotingOpen() ||
+                                        category.voting_status !== "open"
+                                      }
                                       className={`p-2 rounded-lg font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center ${
-                                        isVotingOpen()
+                                        isVotingOpen() &&
+                                        category.voting_status === "open"
                                           ? "bg-(--brand-primary) text-white hover:bg-orange-600 shadow-orange-100"
                                           : "bg-gray-100 text-gray-400 cursor-not-allowed"
                                       }`}
                                       title={
-                                        isVotingOpen()
+                                        isVotingOpen() &&
+                                        category.voting_status === "open"
                                           ? "Cast your vote"
                                           : "Voting closed"
                                       }

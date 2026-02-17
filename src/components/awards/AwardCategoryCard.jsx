@@ -9,16 +9,14 @@ const AwardCategoryCard = ({ category, votingStatus, onVoteClick }) => {
     votingStatus === "voting_open" && category.voting_status === "open";
 
   const handleCardClick = () => {
-    if (isCategoryVotingOpen) {
-      onVoteClick(category);
-    }
+    onVoteClick(category);
   };
 
   return (
     <div
       onClick={handleCardClick}
-      className={`border border-gray-200 rounded-xl overflow-hidden hover:border-(--brand-primary) hover:shadow-md transition-all ${
-        isCategoryVotingOpen ? "cursor-pointer" : "cursor-default opacity-80"
+      className={`border border-gray-200 rounded-xl overflow-hidden hover:border-(--brand-primary) hover:shadow-md transition-all cursor-pointer ${
+        !isCategoryVotingOpen ? "opacity-90" : ""
       }`}
     >
       {/* Category Image */}
