@@ -100,10 +100,8 @@ const Awards = () => {
     if (activeTab === "all") {
       matchesTab = true;
     } else if (activeTab.toLowerCase() === "voting open") {
-      // For "Voting Open" tab, check the voting_status field
-      matchesTab =
-        award.voting_status &&
-        award.voting_status.toLowerCase() === "voting open";
+      // For "Voting Open" tab, check the voting_status field (raw DB value: 'open')
+      matchesTab = award.voting_status === "open";
     } else {
       // For other tabs (published, draft, completed, closed), check the status field
       const normalizedStatus = award.status.toLowerCase();

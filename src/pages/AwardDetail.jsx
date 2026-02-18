@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Trophy,
-  Home as HomeIcon,
   Calendar,
   MapPin,
   Users,
@@ -204,245 +203,86 @@ const AwardDetail = () => {
               {award.title}
             </h1>
 
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Link to="/" className="hover:text-(--brand-primary)">
-                <HomeIcon size={16} />
+            {/* View Results Button */}
+            {award.show_results && (
+              <Link
+                to={`/award/${slug}/results`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-colors text-sm"
+              >
+                <TrendingUp size={16} />
+                View Results
               </Link>
-              <span>/</span>
-              <Link to="/awards" className="hover:text-(--brand-primary)">
-                Award Events
-              </Link>
-              <span>/</span>
-              <span className="text-gray-900 font-medium truncate max-w-[200px]">
-                {award.title}
-              </span>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Column - Categories */}
-          <div className="lg:w-2/3 order-1 lg:order-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                <div className="flex items-center gap-3">
-                  <Trophy className="text-(--brand-primary)" size={28} />
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Award Categories
-                  </h2>
-                  <AwardStatusBadge
-                    status={votingStatus}
-                    className="text-[10px] px-2 py-0.5"
-                  />
-                </div>
+        {/* Categories Section - Full Width */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-3">
+              <Trophy className="text-(--brand-primary)" size={28} />
+              <h2 className="text-2xl font-bold text-gray-900">
+                Award Categories
+              </h2>
+              <AwardStatusBadge
+                status={votingStatus}
+                className="text-[10px] px-2 py-0.5"
+              />
+            </div>
 
-                {/* Search Bar */}
-                <div className="relative w-full sm:w-64">
-                  <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    size={16}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search categories..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all text-sm font-medium"
-                  />
-                </div>
-              </div>
-
-              {filteredCategories.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredCategories.map((category) => (
-                    <AwardCategoryCard
-                      key={category.id}
-                      category={category}
-                      votingStatus={votingStatus}
-                      onVoteClick={handleVoteClick}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 font-medium text-lg">
-                    {searchTerm
-                      ? `No categories matching "${searchTerm}"`
-                      : "No categories available yet"}
-                  </p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    {searchTerm
-                      ? "Try a different search term"
-                      : "Check back later once categories are published."}
-                  </p>
-                </div>
-              )}
-
-              {/* Additional Sections below categories */}
-              <div className="mt-12 space-y-12">
-                {/* Mobile-only Award Banner, Title & Description */}
-                <div className="lg:hidden border-t border-gray-100 pt-8 -mt-4 mb-8">
-                  <div className="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 mb-8">
-                    <div className="aspect-video relative">
-                      <img
-                        src={
-                          award.banner_image ||
-                          award.image ||
-                          "/placeholder-award.jpg"
-                        }
-                        alt={award.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-4 right-4">
-                        <AwardStatusBadge status={votingStatus} />
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                        {award.title}
-                      </h1>
-                      {award.description && (
-                        <p className="text-gray-600 text-sm leading-relaxed">
-                          {award.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Mobile-only Award Details */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6 mb-8">
-                    <h3 className="font-bold text-gray-900 border-b border-gray-50 pb-3">
-                      Event Details
-                    </h3>
-                    <div className="space-y-4">
-                      {award.ceremony_date && (
-                        <div className="flex gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                            <Calendar
-                              className="text-(--brand-primary)"
-                              size={18}
-                            />
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                              Ceremony Date
-                            </p>
-                            <p className="text-gray-900 font-semibold">
-                              {formatDate(award.ceremony_date)}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {(award.voting_start || award.voting_end) && (
-                        <div className="flex gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-                            <TrendingUp className="text-green-600" size={18} />
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                              Voting Period
-                            </p>
-                            <p className="text-gray-900 font-semibold text-sm">
-                              {formatDate(award.voting_start)} -{" "}
-                              {formatDate(award.voting_end)}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-                          <Users className="text-purple-600" size={18} />
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                            Categories
-                          </p>
-                          <p className="text-gray-900 font-semibold">
-                            {categories.length} Total
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Mobile-only Voting Status */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-                    <h3 className="text-sm font-semibold text-gray-500 mb-4">
-                      Voting Status
-                    </h3>
-                    <div className="mb-4">
-                      <AwardStatusBadge
-                        status={votingStatus}
-                        className="w-full justify-center py-2.5"
-                      />
-                    </div>
-                    {votingStatus === "voting_open" && (
-                      <p className="text-xs text-gray-500 text-center italic mb-4">
-                        Voting is currently active. Select a category to vote.
-                      </p>
-                    )}
-                    {award.show_results && (
-                      <Link
-                        to={`/award/${slug}/results`}
-                        className="w-full block text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-colors"
-                      >
-                        View Results
-                      </Link>
-                    )}
-                  </div>
-
-                  {/* Mobile-only Organizer Info */}
-                  <AwardOrganizerInfo organizer={award.organizer} />
-                </div>
-
-                {/* Map Section */}
-                <AwardLocationMap mapUrl={award.mapUrl} />
-
-                {/* Contact & Social Media */}
-                <AwardContactInfo
-                  contact={award.contact}
-                  socialMedia={award.socialMedia}
-                />
-
-                {/* Share Buttons */}
-                <div className="pt-8 border-t border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">
-                    Share This Award
-                  </h2>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-semibold transition-all flex items-center gap-2 shadow-sm">
-                      <Share2 size={16} />
-                      Share
-                    </button>
-                    <button
-                      onClick={() => setIsFavorite(!isFavorite)}
-                      className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 border ${
-                        isFavorite
-                          ? "bg-red-50 text-red-600 border-red-200"
-                          : "bg-white text-gray-700 hover:bg-gray-50 border-gray-200"
-                      }`}
-                    >
-                      <Heart
-                        size={16}
-                        className={isFavorite ? "fill-current" : ""}
-                      />
-                      {isFavorite ? "Favorited" : "Add to Favorites"}
-                    </button>
-                  </div>
-                </div>
-              </div>
+            {/* Search Bar */}
+            <div className="relative w-full sm:w-64">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Search categories..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all text-sm font-medium"
+              />
             </div>
           </div>
 
-          {/* Right Column - Award Info & Banner */}
-          <div className="lg:w-1/3 order-2 lg:order-2 space-y-6">
-            {/* Banner Image Card - Desktop Only */}
-            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          {filteredCategories.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCategories.map((category) => (
+                <AwardCategoryCard
+                  key={category.id}
+                  category={category}
+                  votingStatus={votingStatus}
+                  onVoteClick={handleVoteClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 font-medium text-lg">
+                {searchTerm
+                  ? `No categories matching "${searchTerm}"`
+                  : "No categories available yet"}
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                {searchTerm
+                  ? "Try a different search term"
+                  : "Check back later once categories are published."}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Award Information Section - Two columns on desktop, single column on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          {/* Column 1: Banner + Event Details */}
+          <div className="space-y-6">
+            {/* Banner Image Card */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="aspect-video relative">
                 <img
                   src={
@@ -462,15 +302,15 @@ const AwardDetail = () => {
                   {award.title}
                 </h1>
                 {award.description && (
-                  <p className="text-gray-600 text-sm leading-relaxed line-clamp-4 hover:line-clamp-none transition-all duration-300">
+                  <p className="text-gray-600 text-sm leading-relaxed">
                     {award.description}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Award Details Card - Desktop Only */}
-            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+            {/* Event Details Card */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
               <h3 className="font-bold text-gray-900 border-b border-gray-50 pb-3">
                 Event Details
               </h3>
@@ -546,8 +386,14 @@ const AwardDetail = () => {
               </div>
             </div>
 
-            {/* Status Card - Desktop Only */}
-            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {/* Map Section */}
+            <AwardLocationMap mapUrl={award.mapUrl} />
+          </div>
+
+          {/* Column 2: Voting Status + Organizer + Contact + Share */}
+          <div className="space-y-6">
+            {/* Voting Status Card */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-sm font-semibold text-gray-500 mb-4">
                 Voting Status
               </h3>
@@ -559,7 +405,7 @@ const AwardDetail = () => {
               </div>
               {votingStatus === "voting_open" && (
                 <p className="text-xs text-gray-500 text-center italic mb-4">
-                  Voting is currently active. Select a category to vote.
+                  Voting is currently active. Select a category above to vote.
                 </p>
               )}
               {award.show_results && (
@@ -577,9 +423,40 @@ const AwardDetail = () => {
               )}
             </div>
 
-            {/* Organizer Info - Desktop Only */}
-            <div className="hidden lg:block">
-              <AwardOrganizerInfo organizer={award.organizer} />
+            {/* Organizer Info */}
+            <AwardOrganizerInfo organizer={award.organizer} />
+
+            {/* Contact & Social Media */}
+            <AwardContactInfo
+              contact={award.contact}
+              socialMedia={award.socialMedia}
+            />
+
+            {/* Share Buttons */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                Share This Award
+              </h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-semibold transition-all flex items-center gap-2 shadow-sm">
+                  <Share2 size={16} />
+                  Share
+                </button>
+                <button
+                  onClick={() => setIsFavorite(!isFavorite)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 border ${
+                    isFavorite
+                      ? "bg-red-50 text-red-600 border-red-200"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  <Heart
+                    size={16}
+                    className={isFavorite ? "fill-current" : ""}
+                  />
+                  {isFavorite ? "Favorited" : "Add to Favorites"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

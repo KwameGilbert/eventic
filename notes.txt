@@ -1,1 +1,11 @@
-categories should be under each major
+payment method to transactions table
+add source of vote to award votes and transactions
+
+all payment http request and response logged to db
+
+Bring the award information on the right side to the buttom 
+
+12
+6 : 4
+
+Home page Search bar ()

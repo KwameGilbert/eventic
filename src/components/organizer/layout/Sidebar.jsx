@@ -115,6 +115,10 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     );
 };
 
+Sidebar.propTypes = {
+    isSidebarOpen: PropTypes.bool.isRequired,
+    setIsSidebarOpen: PropTypes.func.isRequired,
+};
 
 
 export default Sidebar;

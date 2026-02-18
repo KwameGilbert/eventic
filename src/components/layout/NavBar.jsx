@@ -43,7 +43,7 @@ const NavBar = () => {
   };
 
   const navItems = [
-    { path: "/", label: "Home", icon: Home, isActive: true },
+    { path: "/", label: "Home", icon: Home },
     { path: "/awards", label: "Award Events", icon: Trophy },
     { path: "/events", label: "Ticketing Events", icon: Calendar },
     {
@@ -53,7 +53,7 @@ const NavBar = () => {
       hasDropdown: true,
     },
     { path: "/my-tickets", label: "My tickets", icon: Ticket },
-    { path: getAddEventPath(), label: "Create Event", icon: Plus },
+    { path: getAddEventPath(), label: "Create Event", icon: Plus, isActive: true },
   ];
 
   const userMenuItems = [

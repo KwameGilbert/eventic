@@ -57,6 +57,7 @@ CustomTooltip.propTypes = {
 const RenderCustomBar = (props) => {
   const { fill, x, y, width, height, index, payload } = props;
   const radius = 8;
+  const imgSize = 40;
 
   return (
     <g>
@@ -69,33 +70,39 @@ const RenderCustomBar = (props) => {
         rx={radius}
         ry={radius}
       />
-      {payload.nominee_image && (
-        <defs>
-          <clipPath id={`clip-${index}`}>
-            <circle cx={x + width / 2} cy={y - 25} r={18} />
-          </clipPath>
-        </defs>
-      )}
-      {payload.nominee_image && (
-        <image
-          x={x + width / 2 - 18}
-          y={y - 43}
-          width={36}
-          height={36}
-          xlinkHref={payload.nominee_image}
-          clipPath={`url(#clip-${index})`}
-          preserveAspectRatio="xMidYMid slice"
-        />
-      )}
-      {payload.nominee_image && (
-        <circle
-          cx={x + width / 2}
-          cy={y - 25}
-          r={18}
-          fill="none"
-          stroke={fill}
-          strokeWidth={2}
-        />
+      {/* Nominee image centered inside the bar */}
+      {payload.nominee_image && height > imgSize + 8 && (
+        <>
+          <defs>
+            <clipPath id={`clip-${index}`}>
+              <circle cx={x + width / 2} cy={y + height / 2} r={imgSize / 2} />
+            </clipPath>
+          </defs>
+          {/* White circle background for contrast */}
+          <circle
+            cx={x + width / 2}
+            cy={y + height / 2}
+            r={imgSize / 2 + 2}
+            fill="white"
+          />
+          <image
+            x={x + width / 2 - imgSize / 2}
+            y={y + height / 2 - imgSize / 2}
+            width={imgSize}
+            height={imgSize}
+            xlinkHref={payload.nominee_image}
+            clipPath={`url(#clip-${index})`}
+            preserveAspectRatio="xMidYMid slice"
+          />
+          <circle
+            cx={x + width / 2}
+            cy={y + height / 2}
+            r={imgSize / 2}
+            fill="none"
+            stroke="white"
+            strokeWidth={2}
+          />
+        </>
       )}
     </g>
   );
@@ -536,12 +543,12 @@ const AwardLeaderboard = () => {
                       ) : (
                         /* Chart View */
                         <div className="p-8 pb-12 bg-gray-50/10">
-                          <div className="h-[400px] w-full pt-16">
+                          <div className="h-[400px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                               <BarChart
                                 data={category.nominees.slice(0, 10)}
                                 margin={{
-                                  top: 20,
+                                  top: 30,
                                   right: 30,
                                   left: 0,
                                   bottom: 40,
