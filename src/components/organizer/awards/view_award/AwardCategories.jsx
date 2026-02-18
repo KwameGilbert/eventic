@@ -11,6 +11,7 @@ import {
   Edit,
   Trash2,
   Users,
+  Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../../../ui/card";
 import { Button } from "../../../ui/button";
@@ -41,10 +42,88 @@ const AwardCategories = ({
         <h3 className="text-lg font-semibold text-gray-900">
           Categories & Nominees
         </h3>
-        <Button onClick={() => openCategoryModal()} className="gap-2">
-          <Plus size={16} />
-          Add Category
-        </Button>
+        <div className="flex items-center gap-2">
+          {award?.categories?.length > 0 && (
+            <Button
+              variant="outline"
+              className="gap-2 text-gray-600 hover:text-gray-900"
+              onClick={() => {
+                const categories = award.categories || [];
+                let tableRows = "";
+                categories
+                  .sort(
+                    (a, b) => (a.display_order || 0) - (b.display_order || 0),
+                  )
+                  .forEach((cat) => {
+                    const catVotes = (cat.nominees || []).reduce(
+                      (sum, n) => sum + (n.total_votes || 0),
+                      0,
+                    );
+                    tableRows += `<tr class="cat-header"><td colspan="4">${cat.name}  —  ${(cat.nominees || []).length} Nominees  •  ${catVotes.toLocaleString()} Votes</td></tr>`;
+                    if (cat.nominees && cat.nominees.length > 0) {
+                      [...cat.nominees]
+                        .sort(
+                          (a, b) => (b.total_votes || 0) - (a.total_votes || 0),
+                        )
+                        .forEach((n) => {
+                          tableRows += `<tr>
+                            <td>${n.name || "-"}</td>
+                            <td>${n.nominee_code || "-"}</td>
+                            <td class="right">${(n.total_votes || 0).toLocaleString()}</td>
+                            <td class="right">${catVotes > 0 ? (((n.total_votes || 0) / catVotes) * 100).toFixed(1) + "%" : "0.0%"}</td>
+                          </tr>`;
+                        });
+                    } else {
+                      tableRows += `<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:16px;">No nominees</td></tr>`;
+                    }
+                  });
+
+                const html = `<!DOCTYPE html><html><head><title>${award.title || "Award"} - Nominees</title><style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111827; padding: 24px; }
+                  .title { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+                  .subtitle { text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 20px; }
+                  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                  th { background: #1f2937; color: #fff; padding: 8px 12px; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+                  th.right { text-align: right; }
+                  td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; }
+                  td.right { text-align: right; }
+                  tr:nth-child(even) { background: #f9fafb; }
+                  .cat-header td { background: #f97316; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 12px; }
+                  @media print { body { padding: 0; } @page { margin: 15mm; } }
+                </style></head><body>
+                  <div class="title">${award.title || "Award"} — Nominees</div>
+                  <div class="subtitle">Exported on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
+                  <table>
+                    <thead><tr>
+                      <th>Nominee Name</th>
+                      <th>Code</th>
+                      <th class="right">Votes</th>
+                      <th class="right" style="width:70px">Share</th>
+                    </tr></thead>
+                    <tbody>${tableRows}</tbody>
+                  </table>
+                </body></html>`;
+
+                const printWindow = window.open("", "_blank");
+                if (!printWindow) return;
+                printWindow.document.write(html);
+                printWindow.document.close();
+                printWindow.onload = () => {
+                  printWindow.focus();
+                  printWindow.print();
+                };
+              }}
+            >
+              <Download size={16} />
+              Export Nominees
+            </Button>
+          )}
+          <Button onClick={() => openCategoryModal()} className="gap-2">
+            <Plus size={16} />
+            Add Category
+          </Button>
+        </div>
       </div>
 
       {award?.categories?.length > 0 ? (

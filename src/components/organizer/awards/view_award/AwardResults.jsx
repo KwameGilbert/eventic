@@ -226,27 +226,42 @@ const exportCategoryPDF = (category, awardTitle) => {
   </body></html>`);
 };
 
-const exportCategoryImage = (categoryRef, categoryName) => {
+/* Helper: convert a remote image URL to a base64 data URL */
+const toDataURL = (url) =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      c.getContext("2d").drawImage(img, 0, 0);
+      resolve(c.toDataURL("image/png"));
+    };
+    img.onerror = () => resolve(url); // fallback to original URL
+    img.src = url;
+  });
+
+const exportCategoryImage = async (categoryRef, categoryName) => {
   if (!categoryRef) return;
 
   const fileName = `${(categoryName || "category").replace(/[^a-zA-Z0-9]/g, "_")}_results.png`;
 
-  // Check if we're in chart view (SVG from Recharts) or table view
+  // Detect chart view (SVG from Recharts) vs table view
   const svgEl = categoryRef.querySelector("svg.recharts-surface");
 
   if (svgEl) {
-    // ── Chart view: serialize SVG to canvas ──
+    // ── Chart view: serialize SVG → canvas with inline images ──
     const svgClone = svgEl.cloneNode(true);
     const bbox = svgEl.getBoundingClientRect();
     const scale = 2;
 
-    // Ensure the clone has explicit dimensions and a white background
     svgClone.setAttribute("width", bbox.width);
     svgClone.setAttribute("height", bbox.height);
     svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-    // Add white background rect as first child
+    // White background
     const bgRect = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "rect",
@@ -256,7 +271,24 @@ const exportCategoryImage = (categoryRef, categoryName) => {
     bgRect.setAttribute("fill", "#ffffff");
     svgClone.insertBefore(bgRect, svgClone.firstChild);
 
-    // Copy computed styles for text elements
+    // Convert cross-origin <image> elements to inline base64 so they render
+    const imageEls = svgClone.querySelectorAll("image");
+    if (imageEls.length > 0) {
+      await Promise.all(
+        Array.from(imageEls).map(async (imgEl) => {
+          const href =
+            imgEl.getAttribute("href") ||
+            imgEl.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+          if (href && !href.startsWith("data:")) {
+            const dataUrl = await toDataURL(href);
+            imgEl.removeAttributeNS("http://www.w3.org/1999/xlink", "href");
+            imgEl.setAttribute("href", dataUrl);
+          }
+        }),
+      );
+    }
+
+    // Copy computed font styles for text elements
     const origTexts = svgEl.querySelectorAll("text");
     const cloneTexts = svgClone.querySelectorAll("text");
     origTexts.forEach((orig, i) => {
@@ -478,12 +510,12 @@ const AwardResults = ({ award }) => {
     }
   };
 
-  const handleExportCategoryImage = (category) => {
+  const handleExportCategoryImage = async (category) => {
     setExportingCategory(category.category_id);
     setOpenExportMenu(null);
     try {
       const ref = categoryRefs.current[category.category_id];
-      exportCategoryImage(ref, category.category_name);
+      await exportCategoryImage(ref, category.category_name);
     } catch (err) {
       console.error("Category image export failed:", err);
     } finally {
