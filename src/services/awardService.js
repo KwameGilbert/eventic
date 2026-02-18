@@ -256,6 +256,20 @@ const awardService = {
   },
 
   /**
+   * Get award transactions for organizer
+   * @param {number|string} awardId - Award ID
+   * @param {Object} [params] - Optional filters (page, per_page, search, category_id, status)
+   * @returns {Promise<Object>} Transactions data
+   */
+  getAwardTransactions: async (awardId, params = {}) => {
+    const response = await api.get(
+      `/organizers/data/awards/${awardId}/transactions`,
+      { params },
+    );
+    return response;
+  },
+
+  /**
    * Get award statistics for organizer dashboard
    * Returns aggregated stats for all organizer's awards
    * @returns {Promise<Object>} Award statistics (total, active voting, etc.)

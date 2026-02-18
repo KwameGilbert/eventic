@@ -288,6 +288,19 @@ const adminService = {
   },
 
   /**
+   * Get all transactions for a specific award
+   * @param {number|string} awardId - Award ID
+   * @param {Object} [params] - Optional filters (page, per_page, search, category_id, status)
+   * @returns {Promise<Object>} Transactions data
+   */
+  getAwardTransactions: async (awardId, params = {}) => {
+    const response = await api.get(`/admin/awards/${awardId}/transactions`, {
+      params,
+    });
+    return response;
+  },
+
+  /**
    * Toggle award voting status (Admin override)
    * @param {number|string} awardId - Award ID
    * @param {string} status - 'open' or 'closed'

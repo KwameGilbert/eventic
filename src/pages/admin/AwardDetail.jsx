@@ -21,6 +21,7 @@ import {
   Eye,
   BarChart3,
   Settings,
+  History,
   ChevronDown,
   ChevronRight,
   Mail,
@@ -49,6 +50,7 @@ import nomineeService from "../../services/nomineeService";
 import CategoryModal from "../../components/organizer/awards/CategoryModal";
 import NomineeModal from "../../components/organizer/awards/NomineeModal";
 import AwardResults from "../../components/organizer/awards/view_award/AwardResults";
+import AwardTransactions from "../../components/organizer/awards/view_award/AwardTransactions";
 import { showSuccess, showError, showConfirm } from "../../utils/toast";
 
 const AdminAwardDetail = () => {
@@ -521,6 +523,7 @@ const AdminAwardDetail = () => {
     { id: "overview", label: "Overview", icon: Eye },
     { id: "categories", label: "Categories & Votes", icon: Trophy },
     { id: "results", label: "Results", icon: BarChart3 },
+    { id: "transactions", label: "Transactions", icon: History },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -646,9 +649,7 @@ const AdminAwardDetail = () => {
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {formatCurrency(
-                    award?.stats?.revenue || award?.total_revenue,
-                  )}
+                  {formatCurrency(award?.total_revenue || 0)}
                 </p>
                 <p className="text-xs text-gray-500">Total Revenue</p>
               </div>
@@ -678,13 +679,24 @@ const AdminAwardDetail = () => {
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {formatCurrency(
-                    ((award?.stats?.revenue || award?.total_revenue || 0) *
-                      (award?.platform_fee_percentage || 5)) /
-                      100,
-                  )}
+                  {formatCurrency(award?.total_admin_earnings || 0)}
                 </p>
                 <p className="text-xs text-gray-500">Platform Earnings</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                <DollarSign size={20} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {formatCurrency(award?.total_organizer_earnings || 0)}
+                </p>
+                <p className="text-xs text-gray-500">Organizer Earnings</p>
               </div>
             </div>
           </CardContent>
@@ -1048,6 +1060,10 @@ const AdminAwardDetail = () => {
             </Card>
           </div>
         </div>
+      )}
+
+      {activeTab === "transactions" && (
+        <AwardTransactions award={award} isAdmin={true} />
       )}
 
       {activeTab === "categories" && (

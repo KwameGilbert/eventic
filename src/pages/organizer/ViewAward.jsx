@@ -7,6 +7,7 @@ import {
   Trophy,
   Settings,
   BarChart3,
+  History,
 } from "lucide-react";
 import awardService from "../../services/awardService";
 import categoryService from "../../services/categoryService";
@@ -22,6 +23,7 @@ import AwardOverview from "../../components/organizer/awards/view_award/AwardOve
 import AwardCategories from "../../components/organizer/awards/view_award/AwardCategories";
 import AwardSettings from "../../components/organizer/awards/view_award/AwardSettings";
 import AwardResults from "../../components/organizer/awards/view_award/AwardResults";
+import AwardTransactions from "../../components/organizer/awards/view_award/AwardTransactions";
 
 const ViewAward = () => {
   const { id } = useParams();
@@ -579,6 +581,7 @@ const ViewAward = () => {
     { id: "overview", label: "Overview", icon: Eye },
     { id: "categories", label: "Categories & Votes", icon: Trophy },
     { id: "results", label: "Results", icon: BarChart3 },
+    { id: "transactions", label: "Transactions", icon: History },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -627,6 +630,8 @@ const ViewAward = () => {
             formatDate={formatDate}
           />
         )}
+
+        {activeTab === "transactions" && <AwardTransactions award={award} />}
 
         {activeTab === "categories" && (
           <AwardCategories

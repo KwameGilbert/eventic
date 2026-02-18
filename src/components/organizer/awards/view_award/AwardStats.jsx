@@ -9,7 +9,7 @@ const AwardStats = ({ award }) => {
   };
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
@@ -65,7 +65,37 @@ const AwardStats = ({ award }) => {
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {formatCurrency(award?.stats?.revenue)}
               </p>
-              <p className="text-xs text-gray-500">Revenue</p>
+              <p className="text-xs text-gray-500">Gross Revenue</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+              <DollarSign size={20} className="text-red-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {formatCurrency(award?.stats?.admin_earnings)}
+              </p>
+              <p className="text-xs text-gray-500">Platform Share</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+              <DollarSign size={20} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {formatCurrency(award?.stats?.organizer_earnings)}
+              </p>
+              <p className="text-xs text-gray-500">My Share</p>
             </div>
           </div>
         </CardContent>
@@ -112,6 +142,8 @@ AwardStats.propTypes = {
       total_nominees: PropTypes.number,
       total_votes: PropTypes.number,
       revenue: PropTypes.number,
+      admin_earnings: PropTypes.number,
+      organizer_earnings: PropTypes.number,
       unique_voters: PropTypes.number,
     }),
   }),

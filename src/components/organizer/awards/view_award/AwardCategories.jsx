@@ -55,26 +55,33 @@ const AwardCategories = ({
                     (a, b) => (a.display_order || 0) - (b.display_order || 0),
                   )
                   .forEach((cat) => {
-                    const catVotes = (cat.nominees || []).reduce(
-                      (sum, n) => sum + (n.total_votes || 0),
-                      0,
-                    );
-                    tableRows += `<tr class="cat-header"><td colspan="4">${cat.name}  —  ${(cat.nominees || []).length} Nominees  •  ${catVotes.toLocaleString()} Votes</td></tr>`;
+                    const catVotes =
+                      cat.total_votes ??
+                      (cat.nominees || []).reduce(
+                        (sum, n) => sum + (n.total_votes || 0),
+                        0,
+                      );
+                    const catRevenue = cat.revenue ?? 0;
+                    tableRows += `<tr class="cat-header"><td colspan="5">${cat.name}  —  ${(cat.nominees || []).length} Nominees  •  ${catVotes.toLocaleString()} Votes • ${formatCurrency(catRevenue)} Rev</td></tr>`;
                     if (cat.nominees && cat.nominees.length > 0) {
                       [...cat.nominees]
                         .sort(
                           (a, b) => (b.total_votes || 0) - (a.total_votes || 0),
                         )
                         .forEach((n) => {
+                          const revenue =
+                            n.revenue ||
+                            (n.total_votes || 0) * (cat.cost_per_vote || 0);
                           tableRows += `<tr>
                             <td>${n.name || "-"}</td>
                             <td>${n.nominee_code || "-"}</td>
                             <td class="right">${(n.total_votes || 0).toLocaleString()}</td>
+                            <td class="right">${formatCurrency(revenue)}</td>
                             <td class="right">${catVotes > 0 ? (((n.total_votes || 0) / catVotes) * 100).toFixed(1) + "%" : "0.0%"}</td>
                           </tr>`;
                         });
                     } else {
-                      tableRows += `<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:16px;">No nominees</td></tr>`;
+                      tableRows += `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:16px;">No nominees</td></tr>`;
                     }
                   });
 
@@ -99,6 +106,7 @@ const AwardCategories = ({
                       <th>Nominee Name</th>
                       <th>Code</th>
                       <th class="right">Votes</th>
+                      <th class="right">Revenue</th>
                       <th class="right" style="width:70px">Share</th>
                     </tr></thead>
                     <tbody>${tableRows}</tbody>
@@ -132,10 +140,16 @@ const AwardCategories = ({
             .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
             .map((category) => {
               const categoryTotalVotes =
-                category.nominees?.reduce(
+                category.total_votes ??
+                (category.nominees?.reduce(
                   (sum, n) => sum + (n.total_votes || 0),
                   0,
-                ) || 0;
+                ) ||
+                  0);
+
+              const categoryRevenue = category.revenue || 0;
+              const categoryAdmin = category.admin_earnings || 0;
+              const categoryOrganizer = category.organizer_earnings || 0;
 
               return (
                 <Card
@@ -226,12 +240,27 @@ const AwardCategories = ({
                           </span>
                         </div>
 
-                        <div className="text-right hidden md:block">
+                        <div className="text-right hidden md:block border-r pr-4 border-gray-100">
                           <p className="text-sm font-semibold text-gray-900">
                             {categoryTotalVotes.toLocaleString()} votes
                           </p>
                           <p className="text-[10px] text-gray-500 uppercase tracking-wider">
                             {formatCurrency(category.cost_per_vote)}/vote
+                          </p>
+                        </div>
+                        <div className="text-right hidden lg:block">
+                          <p className="text-sm font-semibold text-emerald-600">
+                            {formatCurrency(categoryRevenue)}
+                          </p>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                            Org:{" "}
+                            <span className="text-blue-600 font-medium">
+                              {formatCurrency(categoryOrganizer)}
+                            </span>{" "}
+                            | Admin:{" "}
+                            <span className="text-red-500 font-medium">
+                              {formatCurrency(categoryAdmin)}
+                            </span>
                           </p>
                         </div>
                       </div>
