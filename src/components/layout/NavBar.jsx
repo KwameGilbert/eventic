@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Search,
   Home,
@@ -38,9 +38,16 @@ const NavBar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSignUpOpen, setIsMobileSignUpOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
-  const searchRef = React.useRef(null);
+  const desktopSearchRef = React.useRef(null);
+  const mobileSearchRef = React.useRef(null);
+
+  // Close search results when location changes (navigation successful)
+  React.useEffect(() => {
+    setShowResults(false);
+  }, [location.pathname]);
 
   // Handle global search
   React.useEffect(() => {
@@ -66,23 +73,35 @@ const NavBar = () => {
     performSearch();
   }, [debouncedSearchQuery]);
 
-  // Handle click outside search results
+  // Handle click outside global search dropdown results
   React.useEffect(() => {
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
+      const isClickInsideDesktop =
+        desktopSearchRef.current &&
+        desktopSearchRef.current.contains(event.target);
+      const isClickInsideMobile =
+        mobileSearchRef.current &&
+        mobileSearchRef.current.contains(event.target);
+
+      if (!isClickInsideDesktop && !isClickInsideMobile) {
         setShowResults(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (showResults) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showResults]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      setShowResults(false);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      console.log("Search submitted");
+      setShowResults(false);
     }
   };
 
@@ -147,7 +166,7 @@ const NavBar = () => {
               {/* Desktop Search Bar */}
               <div
                 className="hidden md:flex flex-1 max-w-xl relative"
-                ref={searchRef}
+                ref={desktopSearchRef}
               >
                 <form onSubmit={handleSearchSubmit} className="relative w-full">
                   <input
@@ -174,10 +193,7 @@ const NavBar = () => {
                     results={searchResults}
                     isLoading={isSearching}
                     query={searchQuery}
-                    onResultClick={() => {
-                      setShowResults(false);
-                      setSearchQuery("");
-                    }}
+                    onResultClick={() => {}}
                   />
                 )}
               </div>
@@ -546,7 +562,7 @@ const NavBar = () => {
       {/* Mobile Search Bar - Visible only on mobile when menu is closed OR as part of the menu */}
       <div
         className="md:hidden bg-gray-50 border-t border-gray-100 px-4 py-2 relative"
-        ref={searchRef}
+        ref={mobileSearchRef}
       >
         <form onSubmit={handleSearchSubmit} className="relative">
           <input
@@ -575,10 +591,7 @@ const NavBar = () => {
                 results={searchResults}
                 isLoading={isSearching}
                 query={searchQuery}
-                onResultClick={() => {
-                  setShowResults(false);
-                  setSearchQuery("");
-                }}
+                onResultClick={() => {}}
               />
             </div>
           </div>

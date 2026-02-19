@@ -28,6 +28,7 @@ import VerifyEmail from "../pages/VerifyEmail";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import SearchResults from "../pages/SearchResults";
+import OrganizerProfile from "../pages/OrganizerProfile";
 
 // Auth Components
 import {
@@ -101,6 +102,7 @@ const AppRoutes = () => {
         <Route path="/event/:slug" element={<EventDetails />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/search" element={<SearchResults />} />
+        <Route path="/organizers/:id" element={<OrganizerProfile />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
 
         {/* Authentication */}

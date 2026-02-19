@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import {
   Calendar,
   Trophy,
@@ -15,7 +15,14 @@ import {
 import PropTypes from "prop-types";
 
 const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
+  const navigate = useNavigate(); 
+
   if (!query) return null;
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    if (onResultClick) onResultClick();
+  };
 
   const hasResults =
     results &&
@@ -26,7 +33,10 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
       results.organizers?.length > 0);
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+    <div
+      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+      className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-100 animate-in fade-in slide-in-from-top-2 duration-200"
+    >
       <div className="max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
         {/* Loading State */}
         {isLoading && (
@@ -68,11 +78,16 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                 </div>
                 <div className="mt-1">
                   {results.contestants.map((nominee) => (
-                    <Link
+                    <div
                       key={nominee.id}
-                      to={`/award/${nominee.award_slug}/nominee/${nominee.id}`}
-                      onClick={onResultClick}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+                      onClick={() =>
+                        handleNavigation(
+                          `/award/${nominee.award_slug}/nominee/${nominee.id}`,
+                        )
+                      }
+                      role="button"
+                      tabIndex={0}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group cursor-pointer"
                     >
                       <div className="w-12 h-12 rounded-full bg-blue-50 overflow-hidden shrink-0 border border-blue-100">
                         {nominee.image ? (
@@ -107,7 +122,7 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                         size={16}
                         className="text-gray-300 group-hover:text-(--brand-primary) group-hover:translate-x-1 transition-all"
                       />
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -127,11 +142,16 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                 </div>
                 <div className="mt-1">
                   {results.categories.map((category) => (
-                    <Link
+                    <div
                       key={category.id}
-                      to={`/award/${category.award_slug}/category/${category.id}`}
-                      onClick={onResultClick}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+                      onClick={() =>
+                        handleNavigation(
+                          `/award/${category.award_slug}/category/${category.id}`,
+                        )
+                      }
+                      role="button"
+                      tabIndex={0}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group cursor-pointer"
                     >
                       <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 border border-purple-100">
                         <Compass size={20} className="text-purple-500" />
@@ -148,7 +168,7 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                         size={16}
                         className="text-gray-300 group-hover:text-(--brand-primary) group-hover:translate-x-1 transition-all"
                       />
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -168,11 +188,12 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                 </div>
                 <div className="mt-1">
                   {results.awards.map((award) => (
-                    <Link
+                    <div
                       key={award.id}
-                      to={`/award/${award.slug}`}
-                      onClick={onResultClick}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+                      onClick={() => handleNavigation(`/award/${award.slug}`)}
+                      role="button"
+                      tabIndex={0}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group cursor-pointer"
                     >
                       <div className="w-12 h-12 rounded-lg bg-orange-50 overflow-hidden shrink-0 border border-orange-100">
                         {award.image ? (
@@ -204,7 +225,7 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                         size={16}
                         className="text-gray-300 group-hover:text-(--brand-primary) group-hover:translate-x-1 transition-all"
                       />
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -224,11 +245,12 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                 </div>
                 <div className="mt-1">
                   {results.events.map((event) => (
-                    <Link
+                    <div
                       key={event.id}
-                      to={`/event/${event.slug}`}
-                      onClick={onResultClick}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+                      onClick={() => handleNavigation(`/event/${event.slug}`)}
+                      role="button"
+                      tabIndex={0}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group cursor-pointer"
                     >
                       <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
                         {event.image ? (
@@ -258,7 +280,7 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                         size={16}
                         className="text-gray-300 group-hover:text-(--brand-primary) group-hover:translate-x-1 transition-all"
                       />
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -278,11 +300,14 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                 </div>
                 <div className="mt-1">
                   {results.organizers.map((organizer) => (
-                    <Link
+                    <div
                       key={organizer.id}
-                      to={`/organizers/${organizer.id}`}
-                      onClick={onResultClick}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+                      onClick={() =>
+                        handleNavigation(`/organizers/${organizer.id}`)
+                      }
+                      role="button"
+                      tabIndex={0}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group cursor-pointer"
                     >
                       <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
                         {organizer.image ? (
@@ -307,7 +332,7 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
                           </p>
                         )}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -318,16 +343,19 @@ const GlobalSearchDropdown = ({ results, isLoading, query, onResultClick }) => {
 
       {/* Footer */}
       {hasResults && !isLoading && (
-        <Link
-          to={`/search?q=${encodeURIComponent(query)}`}
-          onClick={onResultClick}
-          className="block p-3 bg-gray-50 hover:bg-gray-100 text-center border-t border-gray-100 transition-colors"
+        <div
+          onClick={() =>
+            handleNavigation(`/search?q=${encodeURIComponent(query)}`)
+          }
+          role="button"
+          tabIndex={0}
+          className="block p-3 bg-gray-50 hover:bg-gray-100 text-center border-t border-gray-100 transition-colors cursor-pointer"
         >
           <span className="text-sm font-semibold text-(--brand-primary) flex items-center justify-center gap-2">
             See all search results for &quot;{query}&quot;
             <ArrowRight size={16} />
           </span>
-        </Link>
+        </div>
       )}
     </div>
   );
