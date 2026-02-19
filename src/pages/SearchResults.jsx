@@ -447,7 +447,7 @@ const SearchResults = () => {
       <div className="bg-gray-900 py-16 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
           <h2 className="text-3xl font-extrabold mb-4">
-            Didn't find what you're looking for?
+            Didn&apos;t find what you&apos;re looking for?
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto mb-10 text-lg">
             Try different keywords or browse our top categories to discover
