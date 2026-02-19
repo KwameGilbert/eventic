@@ -147,9 +147,9 @@ const AwardCategories = ({
                 ) ||
                   0);
 
-              const categoryRevenue = category.revenue || 0;
-              const categoryAdmin = category.admin_earnings || 0;
-              const categoryOrganizer = category.organizer_earnings || 0;
+              const categoryRevenue = category.revenue;
+              const categoryGrossAdmin = category.gross_admin_earnings || 0;
+              const categoryOrganizer = category.organizer_share || 0;
 
               return (
                 <Card
@@ -157,7 +157,7 @@ const AwardCategories = ({
                   draggable
                   onDragStart={(e) => handleCategoryDragStart(e, category)}
                   onDragOver={handleCategoryDragOver}
-                  onDrop={(e) => handleCategoryDrop(e, category)}
+                  onDrop={(e) => handleCategoryDrop(e, category)} 
                   className={`transition-all overflow-hidden ${
                     draggedCategory?.id === category.id ? "opacity-50" : ""
                   }`}
@@ -257,9 +257,9 @@ const AwardCategories = ({
                             <span className="text-blue-600 font-medium">
                               {formatCurrency(categoryOrganizer)}
                             </span>{" "}
-                            | Admin:{" "}
+                            | Gross Platform:{" "}
                             <span className="text-red-500 font-medium">
-                              {formatCurrency(categoryAdmin)}
+                              {formatCurrency(categoryGrossAdmin)}
                             </span>
                           </p>
                         </div>

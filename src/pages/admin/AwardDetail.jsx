@@ -589,7 +589,109 @@ const AdminAwardDetail = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                <DollarSign size={20} className="text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {formatCurrency(
+                    award?.stats?.revenue || award?.total_revenue || 0,
+                  )}
+                </p>
+                <p className="text-xs text-gray-500">Gross Revenue</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                <DollarSign size={20} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {formatCurrency(
+                    award?.stats?.organizer_earnings ||
+                      award?.total_organizer_earnings ||
+                      0,
+                  )}
+                </p>
+                <p className="text-xs text-gray-500">Organizer Share</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                <DollarSign size={20} className="text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {formatCurrency(award?.stats?.gross_admin_earnings || 0)}
+                </p>
+                <p className="text-xs text-gray-500">Gross Admin Earnings</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100">
+                <DollarSign size={20} className="text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {formatCurrency(award?.stats?.net_admin_earnings || 0)}
+                </p>
+                <p className="text-xs text-gray-500">Net Admin Earnings</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                <DollarSign size={20} className="text-red-600" />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {formatCurrency(
+                    award?.stats?.total_fees || award?.total_fees || 0,
+                  )}
+                </p>
+                <p className="text-xs text-gray-500">Payment Fees</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                <AwardIcon size={20} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {(
+                    award?.stats?.total_votes ||
+                    award?.total_votes ||
+                    0
+                  ).toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500">Total Votes</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -625,18 +727,14 @@ const AdminAwardDetail = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
-                <AwardIcon size={20} className="text-green-600" />
+              <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center shrink-0">
+                <Eye size={20} className="text-teal-600" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {(
-                    award?.stats?.total_votes ||
-                    award?.total_votes ||
-                    0
-                  ).toLocaleString()}
+                  {award?.views || 0}
                 </p>
-                <p className="text-xs text-gray-500">Total Votes</p>
+                <p className="text-xs text-gray-500">Views</p>
               </div>
             </div>
           </CardContent>
@@ -644,59 +742,17 @@ const AdminAwardDetail = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                <DollarSign size={20} className="text-purple-600" />
+              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+                <Percent size={20} className="text-indigo-600" />
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {formatCurrency(award?.total_revenue || 0)}
+                  {award?.stats?.admin_share_percent ||
+                    award?.platform_fee_percentage ||
+                    0}
+                  %
                 </p>
-                <p className="text-xs text-gray-500">Total Revenue</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
-                <Percent size={20} className="text-red-600" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {award?.platform_fee_percentage || 5}%
-                </p>
-                <p className="text-xs text-gray-500">Platform Fee</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                <DollarSign size={20} className="text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {formatCurrency(award?.total_admin_earnings || 0)}
-                </p>
-                <p className="text-xs text-gray-500">Platform Earnings</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                <DollarSign size={20} className="text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {formatCurrency(award?.total_organizer_earnings || 0)}
-                </p>
-                <p className="text-xs text-gray-500">Organizer Earnings</p>
+                <p className="text-xs text-gray-500">Admin Commission</p>
               </div>
             </div>
           </CardContent>

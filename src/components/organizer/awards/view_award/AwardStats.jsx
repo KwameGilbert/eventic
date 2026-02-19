@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Award, Users, Trophy, DollarSign, Eye } from "lucide-react";
+import { Award, Users, Trophy, DollarSign, Eye, Percent } from "lucide-react";
 import { Card, CardContent } from "../../../ui/card";
 
 const AwardStats = ({ award }) => {
@@ -10,6 +10,66 @@ const AwardStats = ({ award }) => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+              <DollarSign size={20} className="text-purple-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {formatCurrency(award?.stats?.revenue)}
+              </p>
+              <p className="text-xs text-gray-500">Gross Revenue</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+              <DollarSign size={20} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {formatCurrency(award?.stats?.organizer_earnings)}
+              </p>
+              <p className="text-xs text-gray-500">My Share</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+              <DollarSign size={20} className="text-red-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {formatCurrency(award?.stats?.gross_admin_earnings)}
+              </p>
+              <p className="text-xs text-gray-500">Platform Share</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+              <Award size={20} className="text-green-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {award?.stats?.total_votes || 0}
+              </p>
+              <p className="text-xs text-gray-500">Total Votes</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
@@ -43,81 +103,6 @@ const AwardStats = ({ award }) => {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
-              <Award size={20} className="text-green-600" />
-            </div>
-            <div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.stats?.total_votes || 0}
-              </p>
-              <p className="text-xs text-gray-500">Total Votes</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-              <DollarSign size={20} className="text-purple-600" />
-            </div>
-            <div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {formatCurrency(award?.stats?.revenue)}
-              </p>
-              <p className="text-xs text-gray-500">Gross Revenue</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
-              <DollarSign size={20} className="text-red-600" />
-            </div>
-            <div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {formatCurrency(award?.stats?.admin_earnings)}
-              </p>
-              <p className="text-xs text-gray-500">Platform Share</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-              <DollarSign size={20} className="text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {formatCurrency(award?.stats?.organizer_earnings)}
-              </p>
-              <p className="text-xs text-gray-500">My Share</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
-              <Users size={20} className="text-indigo-600" />
-            </div>
-            <div>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {award?.stats?.unique_voters || 0}
-              </p>
-              <p className="text-xs text-gray-500">Unique Voters</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center shrink-0">
               <Eye size={20} className="text-teal-600" />
             </div>
@@ -126,6 +111,21 @@ const AwardStats = ({ award }) => {
                 {award?.views || 0}
               </p>
               <p className="text-xs text-gray-500">Views</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+              <Percent size={20} className="text-indigo-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {award?.stats?.admin_share_percent || 0}%
+              </p>
+              <p className="text-xs text-gray-500">Admin Commission</p>
             </div>
           </div>
         </CardContent>
@@ -142,7 +142,9 @@ AwardStats.propTypes = {
       total_nominees: PropTypes.number,
       total_votes: PropTypes.number,
       revenue: PropTypes.number,
-      admin_earnings: PropTypes.number,
+      net_admin_earnings: PropTypes.number,
+      gross_admin_earnings: PropTypes.number,
+      admin_share_percent: PropTypes.number,
       organizer_earnings: PropTypes.number,
       unique_voters: PropTypes.number,
     }),
