@@ -48,6 +48,7 @@ const ViewAward = () => {
   const [draggedNominee, setDraggedNominee] = useState(null);
 
   const [isTogglingAwardVoting, setIsTogglingAwardVoting] = useState(false);
+  const [isTogglingResults, setIsTogglingResults] = useState(false);
   const [togglingCategoryId, setTogglingCategoryId] = useState(null);
 
   // Countries (static for now)
@@ -295,6 +296,32 @@ const ViewAward = () => {
       showError(err.message || "Failed to delete award");
     } finally {
       setIsStatusChanging(false);
+    }
+  };
+
+  const handleToggleResults = async () => {
+    try {
+      setIsTogglingResults(true);
+      const response = await awardService.toggleShowResults(id);
+
+      if (response.success) {
+        showSuccess(response.message || "Results visibility updated");
+        const newValue = response.data.show_results;
+        setAward((prev) => ({
+          ...prev,
+          show_results: newValue,
+        }));
+        setFormData((prev) => ({
+          ...prev,
+          show_results: newValue,
+        }));
+      } else {
+        showError(response.message || "Failed to toggle results visibility");
+      }
+    } catch (err) {
+      showError(err.message || "Failed to toggle results visibility");
+    } finally {
+      setIsTogglingResults(false);
     }
   };
 
@@ -672,6 +699,8 @@ const ViewAward = () => {
             fetchAwardDetails={fetchAwardDetails}
             isTogglingAwardVoting={isTogglingAwardVoting}
             handleToggleAwardVoting={handleToggleAwardVoting}
+            isTogglingResults={isTogglingResults}
+            handleToggleResults={handleToggleResults}
             onCloseAward={() => handleUpdateStatus("closed")}
             isStatusChanging={isStatusChanging}
             countries={countries}

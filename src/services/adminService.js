@@ -313,6 +313,16 @@ const adminService = {
     return response;
   },
 
+  /**
+   * Toggle public results visibility for an award
+   * @param {number|string} awardId - Award ID
+   * @returns {Promise<Object>} Toggle response
+   */
+  toggleShowResults: async (awardId) => {
+    const response = await api.put(`/awards/${awardId}/toggle-results`);
+    return response;
+  },
+
   // =====================================================
   // FINANCE & PAYOUTS MANAGEMENT
   // =====================================================
@@ -365,6 +375,16 @@ const adminService = {
    */
   getPayouts: async (params = {}) => {
     const response = await api.get("/admin/payouts", { params });
+    return response;
+  },
+
+  /**
+   * Get single payout details
+   * @param {number} payoutId - Payout ID
+   * @returns {Promise<Object>} Payout details
+   */
+  getPayout: async (payoutId) => {
+    const response = await api.get(`/admin/payouts/${payoutId}`);
     return response;
   },
 

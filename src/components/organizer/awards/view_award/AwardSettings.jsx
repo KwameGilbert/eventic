@@ -24,6 +24,8 @@ const AwardSettings = ({
   fetchAwardDetails,
   isTogglingAwardVoting,
   handleToggleAwardVoting,
+  isTogglingResults,
+  handleToggleResults,
   onCloseAward,
   isStatusChanging,
   countries,
@@ -351,21 +353,40 @@ const AwardSettings = ({
             </div>
 
             <div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="show_results"
-                  checked={formData.show_results}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500 shadow-sm transition-all"
-                />
+              <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-sm font-medium text-gray-700">
                   Show Results Publicly
                 </span>
+                <div
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    formData.show_results ? "bg-orange-600" : "bg-gray-200"
+                  } ${isTogglingResults ? "opacity-50 cursor-not-allowed" : ""}`}
+                  onClick={() => !isTogglingResults && handleToggleResults()}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.show_results ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </div>
               </label>
-              <p className="text-xs text-gray-500 mt-1 ml-8">
-                If enabled, vote counts will be visible to the public
+              <p className="text-xs text-gray-500 mt-1">
+                Current Status:{" "}
+                {isTogglingResults ? (
+                  <Loader2
+                    size={12}
+                    className="inline animate-spin text-orange-600 mx-1"
+                  />
+                ) : (
+                  <span
+                    className={`font-semibold ${
+                      formData.show_results ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {formData.show_results ? "VISIBLE" : "HIDDEN"}
+                  </span>
+                )}
+                . If enabled, vote counts will be visible to the public.
               </p>
             </div>
           </CardContent>
@@ -508,6 +529,8 @@ AwardSettings.propTypes = {
   fetchAwardDetails: PropTypes.func.isRequired,
   isTogglingAwardVoting: PropTypes.bool.isRequired,
   handleToggleAwardVoting: PropTypes.func.isRequired,
+  isTogglingResults: PropTypes.bool.isRequired,
+  handleToggleResults: PropTypes.func.isRequired,
   onCloseAward: PropTypes.func.isRequired,
   isStatusChanging: PropTypes.bool.isRequired,
   countries: PropTypes.array.isRequired,

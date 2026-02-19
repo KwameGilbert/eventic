@@ -24,17 +24,26 @@ const AwardTransactions = ({ award, isAdmin = false }) => {
 
   const fetchTransactions = useCallback(
     async (page = 1) => {
+      if (!award?.id) return;
       setLoading(true);
       try {
         const service = isAdmin ? adminService : awardService;
         const response = await service.getAwardTransactions(award.id, {
           ...filters,
           page,
+          per_page: pagination.per_page,
         });
 
         if (response.success) {
-          setTransactions(response.data.transactions);
-          setPagination(response.data.pagination);
+          setTransactions(response.data.transactions || []);
+          setPagination(
+            response.data.pagination || {
+              total: 0,
+              current_page: 1,
+              last_page: 1,
+              per_page: 50,
+            },
+          );
         }
       } catch (error) {
         console.error("Failed to fetch transactions:", error);
@@ -42,22 +51,19 @@ const AwardTransactions = ({ award, isAdmin = false }) => {
         setLoading(false);
       }
     },
-    [award.id, filters, isAdmin],
+    [award?.id, filters, isAdmin, pagination.per_page],
   );
 
   useEffect(() => {
-    // Only fetch if we don't have initial data OR if filters are active
-    const hasFilters =
-      filters.search || filters.category_id || filters.status !== "paid";
-    if (!award?.transactions || hasFilters) {
-      fetchTransactions(1);
-    } else {
-      setLoading(false);
-    }
-  }, [fetchTransactions, award?.transactions]);
+    // Fetch always when filters or component mounts
+    // This ensures that even clearing filters resets the data correctly
+    fetchTransactions(1);
+  }, [filters, award?.id, isAdmin]);
 
   const handlePageChange = (newPage) => {
-    fetchTransactions(newPage);
+    if (newPage >= 1 && newPage <= pagination.last_page) {
+      fetchTransactions(newPage);
+    }
   };
 
   const formatCurrency = (amount) => {

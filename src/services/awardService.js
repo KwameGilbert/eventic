@@ -301,6 +301,16 @@ const awardService = {
     });
     return response;
   },
+
+  /**
+   * Toggle public results visibility for an award
+   * @param {number|string} awardId - Award ID
+   * @returns {Promise<Object>} Toggle response
+   */
+  toggleShowResults: async (awardId) => {
+    const response = await api.put(`/awards/${awardId}/toggle-results`);
+    return response;
+  },
 };
 
 export default awardService;

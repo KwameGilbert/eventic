@@ -616,21 +616,35 @@ const CreateAward = () => {
                 <CardTitle>Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    name="showResults"
-                    checked={awardData.showResults}
-                    onChange={handleChange}
-                    className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                    id="show-results"
-                  />
+                <div className="flex items-center justify-between cursor-pointer">
                   <label
                     htmlFor="show-results"
-                    className="text-sm text-gray-700"
+                    className="text-sm text-gray-700 cursor-pointer"
                   >
                     Show voting results publicly
                   </label>
+                  <div
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      awardData.showResults ? "bg-orange-600" : "bg-gray-200"
+                    }`}
+                    onClick={() =>
+                      handleChange({
+                        target: {
+                          name: "showResults",
+                          type: "checkbox",
+                          checked: !awardData.showResults,
+                        },
+                      })
+                    }
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        awardData.showResults
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

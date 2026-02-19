@@ -76,6 +76,7 @@ const AdminAwardDetail = () => {
   const [draggedNominee, setDraggedNominee] = useState(null);
 
   const [isTogglingVoting, setIsTogglingVoting] = useState(false);
+  const [isTogglingResults, setIsTogglingResults] = useState(false);
   const [togglingCategory, setTogglingCategory] = useState(null);
 
   // Form state
@@ -238,6 +239,32 @@ const AdminAwardDetail = () => {
       showError(err.message || "Failed to toggle voting status");
     } finally {
       setIsTogglingVoting(false);
+    }
+  };
+
+  const handleToggleResults = async () => {
+    try {
+      setIsTogglingResults(true);
+      const response = await adminService.toggleShowResults(id);
+
+      if (response.success) {
+        showSuccess(response.message || "Results visibility updated");
+        const newValue = response.data.show_results;
+        setAward((prev) => ({
+          ...prev,
+          show_results: newValue,
+        }));
+        setFormData((prev) => ({
+          ...prev,
+          show_results: newValue,
+        }));
+      } else {
+        showError(response.message || "Failed to toggle results visibility");
+      }
+    } catch (err) {
+      showError(err.message || "Failed to toggle results visibility");
+    } finally {
+      setIsTogglingResults(false);
     }
   };
 
@@ -1868,23 +1895,47 @@ const AdminAwardDetail = () => {
                 </p>
               </div>
               <div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="show_results"
-                    checked={formData.show_results}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                  />
+                <label className="flex items-center justify-between cursor-pointer">
                   <span className="text-sm font-medium text-gray-700">
                     Show Results Publicly
                   </span>
+                  <div
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      formData.show_results ? "bg-orange-600" : "bg-gray-200"
+                    } ${isTogglingResults ? "opacity-50 cursor-not-allowed" : ""}`}
+                    onClick={() => !isTogglingResults && handleToggleResults()}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        formData.show_results
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </div>
                 </label>
-                <p className="text-xs text-gray-500 mt-1 ml-8">
-                  If enabled, vote counts will be visible to the public
+                <p className="text-xs text-gray-500 mt-1">
+                  Current Status:{" "}
+                  {isTogglingResults ? (
+                    <Loader2
+                      size={12}
+                      className="inline animate-spin text-orange-600 mx-1"
+                    />
+                  ) : (
+                    <span
+                      className={`font-semibold ${
+                        formData.show_results
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {formData.show_results ? "VISIBLE" : "HIDDEN"}
+                    </span>
+                  )}
+                  . If enabled, vote counts will be visible to the public
                 </p>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Percent size={14} className="inline mr-1" />
