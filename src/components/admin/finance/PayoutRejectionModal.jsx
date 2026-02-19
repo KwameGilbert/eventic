@@ -51,6 +51,7 @@ const PayoutRejectionModal = ({
   );
 };
 
+
 PayoutRejectionModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   payoutId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

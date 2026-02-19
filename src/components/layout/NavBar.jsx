@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   Home,
@@ -24,13 +24,67 @@ import {
 import { categories } from "../../pages/Categories";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
+import { useDebounce } from "../../hooks/useDebounce";
+import searchService from "../../services/searchService";
+import GlobalSearchDropdown from "../common/GlobalSearchDropdown";
 
 const NavBar = () => {
   const { user, isAuthenticated, logout, isAdmin } = useAuth();
   const { getCartCount } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSignUpOpen, setIsMobileSignUpOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+  const searchRef = React.useRef(null);
+
+  // Handle global search
+  React.useEffect(() => {
+    const performSearch = async () => {
+      if (debouncedSearchQuery.trim().length > 1) {
+        setIsSearching(true);
+        setShowResults(true);
+        try {
+          const results =
+            await searchService.globalSearch(debouncedSearchQuery);
+          setSearchResults(results);
+        } catch (error) {
+          console.error("Search failed:", error);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults(null);
+        setShowResults(false);
+      }
+    };
+
+    performSearch();
+  }, [debouncedSearchQuery]);
+
+  // Handle click outside search results
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setShowResults(false);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   const cartCount = getCartCount();
 
@@ -53,7 +107,12 @@ const NavBar = () => {
       hasDropdown: true,
     },
     { path: "/my-tickets", label: "My tickets", icon: Ticket },
-    { path: getAddEventPath(), label: "Create Event", icon: Plus, isActive: true },
+    {
+      path: getAddEventPath(),
+      label: "Create Event",
+      icon: Plus,
+      isActive: true,
+    },
   ];
 
   const userMenuItems = [
@@ -86,19 +145,41 @@ const NavBar = () => {
               </Link>
 
               {/* Desktop Search Bar */}
-              <div className="hidden md:flex flex-1 max-w-xl">
-                <div className="relative w-full">
+              <div
+                className="hidden md:flex flex-1 max-w-xl relative"
+                ref={searchRef}
+              >
+                <form onSubmit={handleSearchSubmit} className="relative w-full">
                   <input
                     type="text"
-                    placeholder="Search for events"
+                    placeholder="Search for events, contestants, organizers..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => {
+                      if (searchQuery.trim().length > 1) setShowResults(true);
+                    }}
                     className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all"
                   />
-                  <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                  <button
+                    type="submit"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
                     <Search size={20} />
                   </button>
-                </div>
+                </form>
+
+                {/* Search Results Dropdown */}
+                {showResults && (
+                  <GlobalSearchDropdown
+                    results={searchResults}
+                    isLoading={isSearching}
+                    query={searchQuery}
+                    onResultClick={() => {
+                      setShowResults(false);
+                      setSearchQuery("");
+                    }}
+                  />
+                )}
               </div>
 
               {/* Desktop Auth/Cart Section - only show on large screens */}
@@ -460,63 +541,105 @@ const NavBar = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Menu Drawer */}
-        {isMobileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <div
-              className="lg:hidden fixed inset-0 bg-black/50 -z-10 animate-in fade-in duration-300"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
+      {/* Mobile Search Bar - Visible only on mobile when menu is closed OR as part of the menu */}
+      <div
+        className="md:hidden bg-gray-50 border-t border-gray-100 px-4 py-2 relative"
+        ref={searchRef}
+      >
+        <form onSubmit={handleSearchSubmit} className="relative">
+          <input
+            type="text"
+            placeholder="Search events, contestants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => {
+              if (searchQuery.trim().length > 1) setShowResults(true);
+            }}
+            className="w-full px-4 py-2 pr-10 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--brand-primary)"
+          />
+          <button
+            type="submit"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+          >
+            <Search size={18} />
+          </button>
+        </form>
 
-            {/* Mobile Menu */}
-            <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-lg">
-              <div className="overflow-y-auto max-h-[calc(100vh-180px)] animate-in slide-in-from-top duration-300">
-                <div className="p-6 space-y-2">
-                  {navItems.map((item, index) => {
-                    const Icon = item.icon;
+        {/* Mobile Search Results Dropdown */}
+        {showResults && (
+          <div className="fixed inset-x-0 top-[125px] bottom-0 z-[60] p-4 bg-gray-50/95 backdrop-blur-sm overflow-y-auto">
+            <div className="relative">
+              <GlobalSearchDropdown
+                results={searchResults}
+                isLoading={isSearching}
+                query={searchQuery}
+                onResultClick={() => {
+                  setShowResults(false);
+                  setSearchQuery("");
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
-                    if (item.hasDropdown) {
-                      return (
-                        <div
-                          key={item.path}
-                          className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3 animate-in slide-in-from-left duration-300"
-                          style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                          <Icon size={20} />
-                          <span>{item.label}</span>
-                          <ChevronDown size={16} className="ml-auto" />
-                        </div>
-                      );
-                    }
+      {/* Mobile Menu Drawer */}
+      {isMobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 -z-10 animate-in fade-in duration-300"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
 
+          {/* Mobile Menu */}
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-lg">
+            <div className="overflow-y-auto max-h-[calc(100vh-180px)] animate-in slide-in-from-top duration-300">
+              <div className="p-6 space-y-2">
+                {navItems.map((item, index) => {
+                  const Icon = item.icon;
+
+                  if (item.hasDropdown) {
                     return (
-                      <Link
+                      <div
                         key={item.path}
-                        to={item.path}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 animate-in slide-in-from-left ${
-                          item.isActive
-                            ? "bg-(--brand-primary) text-white shadow-md"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                        style={{
-                          animationDelay: `${index * 50}ms`,
-                          animationDuration: "300ms",
-                        }}
+                        className="px-4 py-3 text-gray-700 font-medium flex items-center gap-3 animate-in slide-in-from-left duration-300"
+                        style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <Icon size={20} />
                         <span>{item.label}</span>
-                      </Link>
+                        <ChevronDown size={16} className="ml-auto" />
+                      </div>
                     );
-                  })}
-                </div>
+                  }
+
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-95 animate-in slide-in-from-left ${
+                        item.isActive
+                          ? "bg-(--brand-primary) text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                      style={{
+                        animationDelay: `${index * 50}ms`,
+                        animationDuration: "300ms",
+                      }}
+                    >
+                      <Icon size={20} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Desktop Navigation - only on large screens */}
       <nav className="hidden lg:block bg-white shadow-sm">

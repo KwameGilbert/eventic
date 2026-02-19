@@ -27,6 +27,7 @@ import ChangePassword from "../pages/ChangePassword";
 import VerifyEmail from "../pages/VerifyEmail";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import SearchResults from "../pages/SearchResults";
 
 // Auth Components
 import {
@@ -99,6 +100,7 @@ const AppRoutes = () => {
         <Route path="/events" element={<BrowseEvents />} />
         <Route path="/event/:slug" element={<EventDetails />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/search" element={<SearchResults />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
 
         {/* Authentication */}
