@@ -2,13 +2,10 @@
  * Order Service
  *
  * Handles all order-related API calls including
- * order creation, Paystack payment, and order management.
+ * order creation, Kowri payment, and order management.
  */
 
 import api from "./api";
-
-// Paystack public key
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "";
 
 const orderService = {
   /**
@@ -26,25 +23,24 @@ const orderService = {
   },
 
   /**
-   * Initialize Paystack payment for an order
+   * Initialize Kowri payment for an order
    * @param {number} orderId - Order ID
-   * @returns {Promise<Object>} Paystack authorization URL
+   * @returns {Promise<Object>} Kowri authorization URL or direct prompt status
    */
-  initializePayment: async (orderId) => {
-    const response = await api.post(`/orders/${orderId}/pay`);
+  initializePayment: async (orderId, data = {}) => {
+    const response = await api.post(`/orders/${orderId}/pay`, data);
     return response;
   },
 
   /**
    * Verify payment status
    * @param {number} orderId - Order ID
-   * @param {string} reference - Paystack reference
+   * @param {string} reference - Payment reference
    * @returns {Promise<Object>} Payment verification result
    */
-  verifyPayment: async (orderId, reference) => {
-    const response = await api.get(`/orders/${orderId}/verify`, {
-      params: { reference },
-    });
+  verifyPayment: async (orderId, reference = null) => {
+    const params = reference ? { reference } : {};
+    const response = await api.get(`/orders/${orderId}/verify`, { params });
     return response;
   },
 
@@ -135,14 +131,13 @@ const orderService = {
       // Handle different response formats
       const order = orderResponse.data || orderResponse;
 
-      // Return order data for Paystack initialization
+      // Return order data for Kowri initialization
       return {
         success: true,
         order: order,
-        paystack: {
-          key: PAYSTACK_PUBLIC_KEY,
+        kowri: {
           email: order.customer_email || billingInfo.email,
-          amount: Math.round((order.total_amount || 0) * 100),
+          amount: order.total_amount || 0,
           reference: order.reference,
           orderId: order.order_id,
         },
@@ -260,13 +255,13 @@ const orderService = {
     });
 
     // 1.5% Processing fee on the total customer paying amount (effective subtotal)
-    const paystackFee = Math.round(subtotal * 0.015 * 100) / 100;
-    const total = subtotal + paystackFee;
+    const kowriFee = Math.round(subtotal * 0.015 * 100) / 100;
+    const total = subtotal + kowriFee;
 
     return {
       subtotal, // Base + DynamicMarkup
-      fees: paystackFee, // Only the payment processing fee
-      paystackFee,
+      fees: kowriFee, // Only the payment processing fee
+      kowriFee,
       dynamicMarkup: totalDynamicMarkup,
       total,
       itemCount,

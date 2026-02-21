@@ -10,7 +10,6 @@ import EventDetails from "../pages/EventDetails";
 import Categories from "../pages/Categories";
 import CategoryNominees from "../pages/CategoryNominees";
 import NomineeVote from "../pages/NomineeVote";
-import VotePayment from "../pages/VotePayment";
 import SignIn from "../pages/SignIn";
 import SignUpAttendee from "../pages/SignUpAttendee";
 import SignUpOrganizer from "../pages/SignUpOrganizer";
@@ -94,9 +93,8 @@ const AppRoutes = () => {
           path="/award/:slug/nominee/:nomineeId"
           element={<NomineeVote />}
         />
-        <Route path="/award/:slug/vote/payment" element={<VotePayment />} />
         <Route path="/payment/callback" element={<PaymentCallback />} />
-
+ 
         {/* Events Routes */}
         <Route path="/events" element={<BrowseEvents />} />
         <Route path="/event/:slug" element={<EventDetails />} />

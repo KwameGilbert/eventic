@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Home,
@@ -17,28 +17,30 @@ import { useAuth } from "../context/AuthContext";
 import orderService from "../services/orderService";
 import { Badge } from "../components/ui/badge";
 import {
-  showOrderCreated,
   showPaymentSuccess,
   showError as showErrorToast,
   showLoading,
   hideLoading,
 } from "../utils/toast";
 
-// Paystack public key
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+// Polling interval for payment verification
+const POLLING_INTERVAL = 3000;
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cartItems, isLoaded, getCartTotal, clearCart } = useCart();
+  const { cartItems, isLoaded, clearCart } = useCart();
   const { user } = useAuth();
 
   const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paystackLoaded, setPaystackLoaded] = useState(false);
   const [error, setError] = useState("");
 
   // Ref to track if payment was completed successfully (prevents empty cart redirect)
   const paymentCompleteRef = useRef(false);
+  const pollingIntervalRef = useRef(null);
+
+  // Payment state
+  const [network, setNetwork] = useState("MTN");
 
   // Billing form state
   const [billingInfo, setBillingInfo] = useState({
@@ -60,24 +62,6 @@ const Checkout = () => {
       });
     }
   }, [user]);
-
-  // Load Paystack script
-  useEffect(() => {
-    const existingScript = document.querySelector(
-      'script[src="https://js.paystack.co/v1/inline.js"]',
-    );
-
-    if (existingScript) {
-      setPaystackLoaded(true);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    script.onload = () => setPaystackLoaded(true);
-    document.body.appendChild(script);
-  }, []);
 
   // Redirect if cart is empty (but not after successful payment)
   useEffect(() => {
@@ -131,16 +115,60 @@ const Checkout = () => {
     setError("");
   };
 
-  // Handle Paystack payment
-  const handlePaystackPayment = async () => {
+  // Verification polling
+  const startPolling = (orderId) => {
+    if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+
+    pollingIntervalRef.current = setInterval(async () => {
+      try {
+        const verifyResult = await orderService.verifyPayment(orderId);
+        const data = verifyResult.data || verifyResult;
+
+        if (data.status === "paid" || data.status === "completed") {
+          clearInterval(pollingIntervalRef.current);
+          hideLoading();
+          paymentCompleteRef.current = true;
+          showPaymentSuccess({
+            reference: data.payment_reference || data.reference,
+            orderId: data.order_id || data.id,
+          }).then(() => {
+            clearCart();
+            navigate("/my-tickets", {
+              state: {
+                paymentSuccess: true,
+                orderId: data.order_id || data.id,
+              },
+            });
+          });
+        } else if (data.status === "failed") {
+          clearInterval(pollingIntervalRef.current);
+          hideLoading();
+          showErrorToast("Payment failed. Please try again.");
+          setIsProcessing(false);
+        }
+      } catch (pollErr) {
+        console.error("Polling error:", pollErr);
+      }
+    }, POLLING_INTERVAL);
+  };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+    };
+  }, []);
+
+  // Handle Kowri payment
+  const handleKowriPayment = async () => {
     // Validate billing info
     if (!billingInfo.email || !billingInfo.firstName) {
       showErrorToast("Please fill in your name and email address");
       return;
     }
 
-    if (!paystackLoaded || !window.PaystackPop) {
-      showErrorToast("Payment system is loading. Please try again.");
+    if (!billingInfo.phone) {
+      showErrorToast("Please provide a phone number for Mobile Money");
       return;
     }
 
@@ -151,12 +179,11 @@ const Checkout = () => {
       // Show loading
       showLoading("Creating your order...");
 
-      // Create order on backend first
+      // 1. Create order on backend
       const result = await orderService.processCheckout(cartItems, billingInfo);
 
-      hideLoading();
-
       if (!result.success) {
+        hideLoading();
         showErrorToast(
           result.error || "Failed to create order. Please try again.",
         );
@@ -164,132 +191,43 @@ const Checkout = () => {
         return;
       }
 
-      const { order, paystack } = result;
+      const { kowri } = result;
 
-      // Validate required fields for Paystack
-      if (!paystack.email || !paystack.amount || !paystack.reference) {
-        console.error("Missing Paystack required fields:", paystack);
-        showErrorToast("Missing payment information. Please try again.");
+      // 2. Initialize payment
+      showLoading("Initializing payment...");
+      const isCard = network === "CARD";
+
+      const payload = {
+        direct_charge: !isCard,
+        network: network,
+        phone: billingInfo.phone,
+      };
+
+      const initResult = await orderService.initializePayment(
+        kowri.orderId,
+        payload,
+      );
+
+      if (!initResult.success) {
+        hideLoading();
+        showErrorToast("Failed to initialize payment. Please try again.");
         setIsProcessing(false);
         return;
       }
 
-      // Format amount for display
-      const formattedAmount = `GH₵${(paystack.amount / 100).toFixed(2)}`;
+      const { pay_token, mode, checkout_url } = initResult.data;
 
-      // Show order created confirmation
-      const confirmResult = await showOrderCreated({
-        orderId: paystack.orderId,
-        amount: formattedAmount,
-      });
-
-      // If user cancels, cancel the order on backend
-      if (!confirmResult.isConfirmed) {
-        // Cancel order to restore ticket quantities
-        try {
-          showLoading("Cancelling order...");
-          await orderService.cancelOrder(paystack.orderId);
-          hideLoading();
-        } catch (cancelError) {
-          console.error("Failed to cancel order:", cancelError);
-          hideLoading();
-        }
+      if (checkout_url) {
+        hideLoading();
+        window.location.href = checkout_url;
+      } else if (mode === "direct" || pay_token) {
+        showLoading("Waiting for payment authorization on your phone...");
+        startPolling(kowri.orderId);
+      } else {
+        hideLoading();
+        showErrorToast("Could not initiate payment.");
         setIsProcessing(false);
-        return;
       }
-
-      // Initialize Paystack popup
-      const handler = window.PaystackPop.setup({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: paystack.email,
-        amount: paystack.amount,
-        currency: "GHS",
-        ref: paystack.reference,
-        metadata: {
-          order_id: paystack.orderId,
-          customer_name: `${billingInfo.firstName} ${billingInfo.lastName}`,
-          custom_fields: [
-            {
-              display_name: "Order ID",
-              variable_name: "order_id",
-              value: String(paystack.orderId || ""),
-            },
-            {
-              display_name: "Customer Phone",
-              variable_name: "phone",
-              value: billingInfo.phone || "N/A",
-            },
-          ],
-        },
-        callback: function (response) {
-          showLoading("Verifying payment...");
-
-          // Verify payment with backend
-          orderService
-            .verifyPayment(paystack.orderId, response.reference)
-            .then((verifyResult) => {
-              hideLoading();
-
-              if (
-                verifyResult.success ||
-                verifyResult.data?.status === "paid"
-              ) {
-                // Mark payment as complete to prevent empty cart redirect
-                paymentCompleteRef.current = true;
-
-                // Show success notification
-                showPaymentSuccess({
-                  reference: response.reference,
-                  orderId: paystack.orderId,
-                }).then(() => {
-                  // Payment successful - redirect
-                  clearCart();
-                  navigate("/my-tickets", {
-                    state: {
-                      paymentSuccess: true,
-                      orderId: paystack.orderId,
-                      reference: response.reference,
-                    },
-                  });
-                });
-              } else {
-                showErrorToast(
-                  "Payment verification failed. Please contact support.",
-                );
-              }
-            })
-            .catch(() => {
-              hideLoading();
-              // Mark payment as complete to prevent empty cart redirect
-              paymentCompleteRef.current = true;
-
-              // Even if verification fails, payment might be successful
-              showPaymentSuccess({
-                reference: response.reference,
-                orderId: paystack.orderId,
-              }).then(() => {
-                clearCart();
-                navigate("/my-tickets", {
-                  state: {
-                    paymentSuccess: true,
-                    reference: response.reference,
-                    message:
-                      "Payment completed. Your tickets will appear shortly.",
-                  },
-                });
-              });
-            })
-            .finally(() => {
-              setIsProcessing(false);
-            });
-        },
-        onClose: function () {
-          setIsProcessing(false);
-          // Don't show error - user intentionally closed
-        },
-      });
-
-      handler.openIframe();
     } catch (err) {
       hideLoading();
       console.error("Checkout error:", err);
@@ -503,15 +441,16 @@ const Checkout = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Phone (optional)
+                      Phone*
                     </label>
                     <input
                       type="tel"
                       name="phone"
                       value={billingInfo.phone}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/20 transition-all outline-none"
-                      placeholder="+233 XX XXX XXXX"
+                      className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:border-(--brand-primary) focus:ring-2 focus:ring-(--brand-primary)/20 transition-all outline-none"
+                      placeholder="024 XXX XXXX"
+                      required
                     />
                   </div>
                 </div>
@@ -531,39 +470,58 @@ const Checkout = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-green-800">
-                      Secure Payment with Paystack
+                      Secure Payment with Kowri
                     </h3>
                     <p className="text-sm text-green-700">
-                      Pay securely using your card, mobile money, or bank
-                      transfer
+                      Pay securely using Mobile Money or Card via Kowri
                     </p>
                   </div>
                 </div>
 
-                {/* Accepted Payment Methods */}
-                <div className="flex flex-wrap items-center gap-3 mb-6">
-                  <span className="text-sm text-gray-500">We accept:</span>
-                  <div className="flex gap-2">
-                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">
-                      Visa
+                {/* Direct Mobile Money Network Selection */}
+                <div className="space-y-4 mb-6">
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 animate-in fade-in slide-in-from-top-1">
+                    <div className="flex items-center gap-2 mb-4">
+                      <img
+                        src="/images/momo-icons.png"
+                        alt="MoMo"
+                        className="h-6 object-contain"
+                        onError={(e) => (e.target.style.display = "none")}
+                      />
+                      <label className="block text-sm font-bold text-gray-700">
+                        Pay with Mobile Money
+                      </label>
                     </div>
-                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">
-                      Mastercard
-                    </div>
-                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">
-                      MTN MoMo
-                    </div>
-                    <div className="px-3 py-1.5 bg-gray-100 rounded text-xs font-medium text-gray-700">
-                      Vodafone Cash
+
+                    <p className="text-xs text-gray-500 mb-4">
+                      Choose your network and authorize the payment on your
+                      phone.
+                    </p>
+
+                    <div className="flex gap-3">
+                      {["MTN", "VODAFONE", "AIRTELTIGO", "CARD"].map((net) => (
+                        <button
+                          key={net}
+                          type="button"
+                          onClick={() => setNetwork(net)}
+                          className={`flex-1 py-4 px-2 rounded-xl border-2 font-bold text-sm transition-all shadow-sm ${
+                            network === net
+                              ? "border-(--brand-primary) bg-white text-(--brand-primary) ring-2 ring-(--brand-primary)/10"
+                              : "border-gray-100 bg-white text-gray-400 hover:border-gray-200"
+                          }`}
+                        >
+                          {net === "AIRTELTIGO" ? "AT" : net}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
 
                 {/* Pay Button */}
                 <button
-                  onClick={handlePaystackPayment}
-                  disabled={isProcessing || !paystackLoaded}
-                  className="w-full bg-[var(--brand-primary)] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[var(--brand-primary)]/30 flex items-center justify-center gap-2 text-lg uppercase transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  onClick={handleKowriPayment}
+                  disabled={isProcessing}
+                  className="w-full bg-(--brand-primary) text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all shadow-lg shadow-(--brand-primary)/30 flex items-center justify-center gap-2 text-lg uppercase transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isProcessing ? (
                     <>
@@ -577,13 +535,6 @@ const Checkout = () => {
                     </>
                   )}
                 </button>
-
-                {!paystackLoaded && (
-                  <p className="text-center text-sm text-gray-500 mt-2">
-                    <Loader2 className="inline animate-spin mr-1" size={14} />
-                    Loading payment system...
-                  </p>
-                )}
               </div>
             </div>
           </div>
@@ -615,7 +566,7 @@ const Checkout = () => {
                     <span className="text-xl font-bold text-gray-900">
                       Total
                     </span>
-                    <span className="text-2xl font-bold text-[var(--brand-primary)]">
+                    <span className="text-2xl font-bold text-(--brand-primary)">
                       GH₵{total.toFixed(2)}
                     </span>
                   </div>

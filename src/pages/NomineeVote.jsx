@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Trophy,
@@ -11,17 +11,11 @@ import {
   Lock,
   Users,
   Loader2,
-  CheckCircle,
 } from "lucide-react";
 import awardService from "../services/awardService";
 import voteService from "../services/voteService";
 import PageLoader from "../components/ui/PageLoader";
-import {
-  showError,
-  showSuccess,
-  showLoading,
-  hideLoading,
-} from "../utils/toast";
+import { showError, showLoading, hideLoading } from "../utils/toast";
 import SEO from "../components/common/SEO";
 
 const NomineeVote = () => {
@@ -39,15 +33,11 @@ const NomineeVote = () => {
     name: "",
     email: "",
     phone: "",
-    momoNetwork: "MTN",
-    momoNumber: "",
-    momoAuthToken: "",
   });
 
-  // Payment Status State
-  const [paymentStatus, setPaymentStatus] = useState("idle"); // idle, initiating, polling, success, failed
-  const [paymentToken, setPaymentToken] = useState(null);
-  const [pollingCount, setPollingCount] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [network, setNetwork] = useState("MTN");
+  const pollingIntervalRef = useRef(null);
 
   useEffect(() => {
     const fetchNomineeData = async () => {
@@ -93,46 +83,44 @@ const NomineeVote = () => {
     fetchNomineeData();
   }, [slug, nomineeId]);
 
-  // Polling logic - checks payment status every 5 seconds
-  useEffect(() => {
-    let interval;
-    if (paymentStatus === "polling" && paymentToken) {
-      interval = setInterval(async () => {
-        try {
-          const result = await voteService.confirmPayment({
-            token: paymentToken,
+  // Verification polling for direct charge
+  const startPolling = (reference) => {
+    if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+
+    pollingIntervalRef.current = setInterval(async () => {
+      try {
+        const verifyResult = await voteService.confirmPayment({ reference });
+
+        if (verifyResult.success && verifyResult.data?.status === "paid") {
+          clearInterval(pollingIntervalRef.current);
+          hideLoading();
+          setIsProcessing(false);
+
+          navigate("/payment/callback", {
+            state: {
+              status: "success",
+              message: "Payment successful! Your vote has been recorded.",
+              voteDetails: verifyResult.data,
+            },
+            search: `?token=${verifyResult.data.payment_token || ""}`,
           });
-          // Backend returns success when payment is confirmed (query result = 1)
-          if (result.success || result.data?.status === "paid") {
-            setPaymentStatus("success");
-            clearInterval(interval);
-            showSuccess("Payment confirmed! Your votes have been cast.");
-          }
-        } catch (pollErr) {
-          // HTTP 202 = still pending (expected), 400 = failed
-          const status = pollErr?.response?.status;
-          if (status === 202) {
-            // Still pending - continue polling
-            console.log("Payment still pending, polling...");
-          } else {
-            console.log("Polling check:", status);
-          }
-
-          setPollingCount((prev) => prev + 1);
-
-          // Timeout after ~2.5 minutes (5s interval × 30 polls)
-          if (pollingCount > 30) {
-            setPaymentStatus("failed");
-            setError(
-              "Payment confirmation timed out. If you were charged, please contact support.",
-            );
-            clearInterval(interval);
-          }
+        } else if (verifyResult.data?.status === "failed") {
+          clearInterval(pollingIntervalRef.current);
+          hideLoading();
+          showError("Payment failed. Please try again.");
+          setIsProcessing(false);
         }
-      }, 5000); // 5 second interval
-    }
-    return () => clearInterval(interval);
-  }, [paymentStatus, paymentToken, pollingCount]);
+      } catch (pollErr) {
+        console.error("Polling error:", pollErr);
+      }
+    }, 3000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -150,12 +138,14 @@ const NomineeVote = () => {
   const totalCost = (category?.cost_per_vote || 0) * voteQuantity;
 
   const isVotingOpen = () => {
+    if (!award) return false;
+
     // 1. Check if backend says everything is open
-    if (award?.voting_status === "open") return true;
+    if (award.voting_status === "open") return true;
 
     // 2. Manual toggle checks
     if (
-      award?.voting_status === "closed" ||
+      award.voting_status === "closed" ||
       category?.voting_status === "closed"
     )
       return false;
@@ -163,8 +153,8 @@ const NomineeVote = () => {
     // 3. Fallback to manual date check
     const now = new Date();
     const isInWindow =
-      award?.voting_start &&
-      award?.voting_end &&
+      award.voting_start &&
+      award.voting_end &&
       now >= new Date(award.voting_start) &&
       now <= new Date(award.voting_end);
 
@@ -173,51 +163,48 @@ const NomineeVote = () => {
 
   const votingOpen = isVotingOpen();
 
-  const handleProceedToPayment = async () => {
+  const handlePayment = async (e) => {
+    if (e) e.preventDefault();
     if (!votingOpen) return;
 
     // Validation
-    if (!voterInfo.email) {
-      showError("Please enter your email address");
+    if (!voterInfo.phone) {
+      showError("Please enter your phone number for the MoMo prompt");
       return;
     }
 
-    setPaymentStatus("initiating");
-    showLoading("Initiating payment...");
+    setIsProcessing(true);
+    showLoading("Sending STK Push...");
 
     try {
+      const isCard = network === "CARD";
+      const emailToUse = voterInfo.email || "anonymous@eventic.com";
       const voteData = {
         number_of_votes: voteQuantity,
-        voter_email: voterInfo.email,
-        voter_name: voterInfo.name || "Anonymous Voter",
-        voter_phone: voterInfo.phone || voterInfo.momoNumber || "0000000000",
-        payment_method: "checkout",
+        voter_email: emailToUse,
+        voter_name: voterInfo.name || "Guest",
+        voter_phone: voterInfo.phone,
+        direct_charge: !isCard,
+        network: network,
       };
 
       const result = await voteService.initiateVote(nomineeId, voteData);
       const data = result.data || result;
 
-      hideLoading();
-
       if (data.checkout_url) {
-        // Redirect to ExpressPay checkout page
-        setPaymentToken(data.payment_token);
-        console.log("Redirecting to ExpressPay:", {
-          reference: data.reference,
-          checkout_url: data.checkout_url,
-        });
+        hideLoading();
         window.location.href = data.checkout_url;
-      } else if (data.payment_token) {
-        // Fallback: token exists but no checkout_url
-        setPaymentToken(data.payment_token);
-        setPaymentStatus("polling");
-        setPollingCount(0);
+      } else if (data.is_direct || data.payment_token) {
+        showLoading("Waiting for payment authorization on your phone...");
+        startPolling(data.reference);
       } else {
-        throw new Error("Failed to initiate payment");
+        hideLoading();
+        showError("Failed to initiate payment.");
+        setIsProcessing(false);
       }
     } catch (err) {
       hideLoading();
-      setPaymentStatus("idle");
+      setIsProcessing(false);
       showError(err.message || "Failed to initiate payment. Please try again.");
     }
   };
@@ -437,7 +424,7 @@ const NomineeVote = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
-                    Phone Number (optional)
+                    Phone Number*
                   </label>
                   <input
                     type="tel"
@@ -445,13 +432,37 @@ const NomineeVote = () => {
                     placeholder="024 XXX XXXX"
                     value={voterInfo.phone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-(--brand-primary) focus:border-transparent transition-all outline-none"
+                    required
                   />
                 </div>
 
-                <p className="mt-3 text-[10px] text-gray-400 italic">
-                  * You will be redirected to ExpressPay to complete the GH₵
-                  {totalCost.toFixed(2)} payment via Mobile Money or Card.
+                <div className="mt-4 space-y-3">
+                  <label className="block text-xs font-bold text-gray-700 uppercase">
+                    Select Network
+                  </label>
+                  <div className="flex gap-2">
+                    {["MTN", "VODAFONE", "AIRTELTIGO", "CARD"].map((net) => (
+                      <button
+                        key={net}
+                        type="button"
+                        onClick={() => setNetwork(net)}
+                        className={`flex-1 py-2 px-1 rounded-lg border-2 font-bold text-xs transition-all ${
+                          network === net
+                            ? "border-(--brand-primary) bg-white text-(--brand-primary) ring-2 ring-(--brand-primary)/10"
+                            : "border-gray-100 bg-white text-gray-400 hover:border-gray-200"
+                        }`}
+                      >
+                        {net === "AIRTELTIGO" ? "AT" : net}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <p className="mt-4 text-[10px] text-gray-400 italic">
+                  {network === "CARD"
+                    ? "* You will be redirected to a secure card payment page."
+                    : `* You will receive a Mobile Money prompt on your phone to complete the GH₵ ${totalCost.toFixed(2)} payment via STK push.`}
                 </p>
               </div>
             </div>
@@ -487,72 +498,31 @@ const NomineeVote = () => {
               </div>
 
               <button
-                onClick={handleProceedToPayment}
-                disabled={!votingOpen || paymentStatus !== "idle"}
+                onClick={handlePayment}
+                disabled={!votingOpen || isProcessing}
                 className={`w-full mt-6 font-bold py-4 px-4 rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg active:scale-95 ${
-                  votingOpen && paymentStatus === "idle"
+                  votingOpen && !isProcessing
                     ? "bg-gray-900 hover:bg-black text-white"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {paymentStatus === "idle" ? (
+                {isProcessing ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
                   <>
                     <Lock size={18} />
                     Pay &amp; Vote — GH₵{totalCost.toFixed(2)}
                   </>
-                ) : paymentStatus === "initiating" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Redirecting to payment...
-                  </>
-                ) : paymentStatus === "polling" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Waiting for Authorization...
-                  </>
-                ) : paymentStatus === "success" ? (
-                  <>
-                    <CheckCircle size={18} className="text-green-500" />
-                    Votes Cast!
-                  </>
-                ) : (
-                  "Payment Failed"
                 )}
               </button>
 
-              {paymentStatus === "polling" && (
-                <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-xl text-center">
-                  <p className="text-sm text-orange-800 font-medium mb-1">
-                    Authorize the prompt on your phone
-                  </p>
-                  <p className="text-[11px] text-orange-600">
-                    Once authorized, your votes will be automatically confirmed.
-                  </p>
-                </div>
-              )}
-
-              {paymentStatus === "success" && (
-                <div className="mt-6 flex flex-col items-center gap-4">
-                  <div className="p-4 bg-green-50 border border-green-100 rounded-xl w-full text-center">
-                    <p className="text-sm text-green-800 font-semibold italic">
-                      &quot;Thank you for voting for {nominee.name}!&quot;
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigate(`/award/${slug}`)}
-                    className="text-(--brand-primary) font-bold hover:underline"
-                  >
-                    Back to Award Details &rarr;
-                  </button>
-                </div>
-              )}
-
-              <div className="mt-4 flex items-center justify-center gap-4 text-xs text-gray-400">
+              <div className="mt-4 flex items-center justify-center gap-4 text-[10px] text-gray-400 uppercase tracking-widest font-medium">
                 <div className="flex items-center gap-1.5">
-                  <Shield size={12} /> Secure Payment
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Lock size={12} /> Encrypted
+                  <Shield size={12} className="text-blue-500" /> Secured by
+                  Kowri
                 </div>
               </div>
             </div>
